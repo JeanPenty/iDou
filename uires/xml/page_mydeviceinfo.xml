@@ -1,0 +1,10 @@
+﻿<include>
+  <window size="-2,-2">
+    <window pos="0,0,@250,-0" colorBkgnd="#ff0000">
+      
+    </window>
+    <window pos="[,0,@458,-0" colorBkgnd="#00ff00">
+
+    </window>
+  </window>
+</include>

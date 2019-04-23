@@ -1,0 +1,50 @@
+﻿<SOUI name="mainWindow" title="@string/title" bigIcon="ICON_LOGO:32" smallIcon="ICON_LOGO:16" width="1000" height="752"  margin="5,5,5,5"  resizable="1" wndType="appMain"
+toolWindow="1" minSize="1000,752"
+translucent="1"
+>
+  <root skin="skin_bk" cache="1">
+    <caption pos="0,0,-0,88" layout="hbox" colorText="@color/white" interval="8" gravity="center">
+      <img extend_left="18" skin="skin_logo"/>
+      <window size="-1,-1" layout="vbox" gravity="center" msgTransparent="1">
+        <text font="adding:3">@string/title</text>
+        <link text="www.soui.com"/>
+      </window>
+      <window name="btn_mydevice" class="tab_btn">
+        <img skin="skin_mydevice"/>
+        <text text="我的设备"/>
+      </window>
+      <window name="tab2" class="tab_btn">
+        <img skin="skin_bell"/>
+        <text text="酷炫铃声"/>
+      </window>
+      <window name="tab3" class="tab_btn">
+        <img skin="skin_mydevice"/>
+        <text text="酷炫铃声"/>
+      </window>
+      <window name="tab4" class="tab_btn">
+        <img skin="skin_mydevice"/>
+        <text text="酷炫铃声"/>
+      </window>
+      <window size="0,0" weight="1"/>
+      <window size="-1,-1" layout="hbox" layout_gravity="top">
+        <imgbtn name="btn_skin" skin="skin_btn"  animate="1"/>
+        <imgbtn name="btn_min" skin="_skin.sys.btn.minimize" animate="1" />
+        <imgbtn name="btn_max" display="0" skin="_skin.sys.btn.maximize"  animate="1" />
+        <imgbtn name="btn_restore" display="0" skin="_skin.sys.btn.restore" show="0" animate="1" />
+        <imgbtn name="btn_close" skin="_skin.sys.btn.close" tip="close" animate="1"/>
+      </window>
+    </caption>
+    <tabctrl name="tab_main" pos="1,[,-1,]" curSel="0" animateSteps="10" tabHeight="0">
+      <page title="我的设备" colorBkgnd="#dae9f2">
+        <include src="layout:XML_MyDevice"/>
+      </page>
+      <page title="page2" colorBkgnd="#dae9f2">
+        <include src="layout:XML_page"/>
+      </page>
+    </tabctrl>
+    <window pos="0,-36,-0,-1">
+      
+    </window>
+    <shellnotifyicon id="110" menu="SMENU:menu_tray" ico="ICON_LOGO:16" tip="110"/>
+  </root>
+</SOUI>

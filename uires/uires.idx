@@ -1,0 +1,37 @@
+﻿<resource>
+  <UIDEF>
+    <file name="XML_INIT" path="uidef\init.xml"/>
+  </UIDEF>
+  <LAYOUT>
+    <file name="XML_MAINWND" path="xml\dlg_main.xml"/>
+    <file name="XML_page" path="xml\page.xml"/>
+    <file name="XML_MyDevice" path="xml\page_mydevice.xml"/>
+    <file name="XML_MyDevice_Info" path="xml\page_mydeviceinfo.xml"/>
+  </LAYOUT>
+  
+  <values>
+  	<file name="string" path="values\string.xml"/>
+  	<file name="color" path="values\color.xml"/>
+  	<file name="skin" path="values\skin.xml"/>
+  </values>
+
+  <IMG>
+    <file name="traymenu_icons" path="image\traymenu_icons.png"/>
+    <file name="png_tab_main" path="image\tab_main.png"/>
+    <file name="png_page_icons" path="image\page_icons.png"/>
+    <file name="png_logo" path="image\logo.png"/>
+    <file name="png_mydevice" path="image\mydevice.png"/>
+    <file name="png_bell" path="image\bell.png"/>
+    <file name="png_skinbtn" path="image\btn_skin.png"/>
+    <file name="png_connect_dev" path="image\connect_dev.png"/>
+    <file name="png_pro_pc_apps" path="image\pro_pc_apps.png"/>
+    <file name="png_menu_bk" path="image\menubk.png"/>
+  </IMG>
+  <ICON>
+    <file name="ICON_LOGO"  path="image\soui.ico"/>
+  </ICON>
+  <SMENU>
+    <file name="menu_skin" path="xml\skin_menuex.xml"/>
+    <file name="menu_tray" path="xml\menu_tray.xml"/>
+  </SMENU>
+</resource>

@@ -1,0 +1,265 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{ad1f0f26-b41c-4425-8337-cc6c74e6e521}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;def;odl;idl;hpj;bat;asm</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{567ba8dc-4be4-4252-bb54-5edbffee3edd}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{76e1c448-b78f-4d1f-b743-5f0776f98160}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;jpg;jpeg;jpe;manifest</Extensions>
+    </Filter>
+    <Filter Include="SoUI Resource">
+      <UniqueIdentifier>{92b81970-1000-4a73-ab75-97e3664ab7a2}</UniqueIdentifier>
+      <Extensions>idx;xml;png;gif;jpg;ico;lua;bmp</Extensions>
+    </Filter>
+    <Filter Include="SoUI Sys Resource">
+      <UniqueIdentifier>{12ccbb17-0533-4db4-b7bd-72ff603a39bf}</UniqueIdentifier>
+      <Extensions>idx;xml;png;gif;jpg;ico;lua;bmp</Extensions>
+    </Filter>
+    <Filter Include="ctrls">
+      <UniqueIdentifier>{e067e695-7e37-40ab-96f5-2087cd734800}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="skin">
+      <UniqueIdentifier>{685990b1-af4e-48c0-b80c-2c493882e6f7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SoUI Resource\layout">
+      <UniqueIdentifier>{59dc16cc-0a13-46e3-9879-e18b7d2a917e}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="license.txt" />
+    <Text Include="readme.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="iDou.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MainDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="trayicon\SShellNotifyIcon.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="trayicon\SShellNofityHwnd2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\STabCtrlHeaderBinder.cpp">
+      <Filter>ctrls</Filter>
+    </ClCompile>
+    <ClCompile Include="skin\SDemoSkin.cpp">
+      <Filter>skin</Filter>
+    </ClCompile>
+    <ClCompile Include="skin\SSkinLoader.cpp">
+      <Filter>skin</Filter>
+    </ClCompile>
+    <ClCompile Include="CDataCenter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="iDou.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="MainDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="trayicon\SShellNotifyIcon.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="trayicon\SShellNofityHwnd2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="controls\STabCtrlHeaderBinder.h">
+      <Filter>ctrls</Filter>
+    </ClInclude>
+    <ClInclude Include="skin\SDemoSkin.h">
+      <Filter>skin</Filter>
+    </ClInclude>
+    <ClInclude Include="skin\SSkinLoader.h">
+      <Filter>skin</Filter>
+    </ClInclude>
+    <ClInclude Include="CDataCenter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TV_iOSDeviceAdapter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\soui_res.rc2">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="uires\theme_sys_res\uires.idx">
+      <Filter>SoUI Sys Resource</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="uires\uidef\init.xml">
+      <Filter>SoUI Resource</Filter>
+    </Xml>
+    <Xml Include="uires\values\color.xml">
+      <Filter>SoUI Resource</Filter>
+    </Xml>
+    <Xml Include="uires\values\skin.xml">
+      <Filter>SoUI Resource</Filter>
+    </Xml>
+    <Xml Include="uires\values\string.xml">
+      <Filter>SoUI Resource</Filter>
+    </Xml>
+    <Xml Include="uires\xml\page.xml">
+      <Filter>SoUI Resource</Filter>
+    </Xml>
+    <Xml Include="uires\theme_sys_res\sys_xml_skin.xml">
+      <Filter>SoUI Sys Resource</Filter>
+    </Xml>
+    <Xml Include="uires\theme_sys_res\sys_xml_msgbox.xml">
+      <Filter>SoUI Sys Resource</Filter>
+    </Xml>
+    <Xml Include="uires\theme_sys_res\sys_xml_editmenu.xml">
+      <Filter>SoUI Sys Resource</Filter>
+    </Xml>
+    <Xml Include="uires\xml\dlg_main.xml">
+      <Filter>SoUI Resource\layout</Filter>
+    </Xml>
+    <Xml Include="uires\xml\menu_tray.xml">
+      <Filter>SoUI Resource\layout</Filter>
+    </Xml>
+    <Xml Include="uires\xml\skin_menuex.xml">
+      <Filter>SoUI Resource\layout</Filter>
+    </Xml>
+    <Xml Include="uires\xml\page_mydevice.xml">
+      <Filter>SoUI Resource\layout</Filter>
+    </Xml>
+    <Xml Include="uires\xml\page_mydeviceinfo.xml">
+      <Filter>SoUI Resource\layout</Filter>
+    </Xml>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="uires\image\tab_main.png">
+      <Filter>SoUI Resource</Filter>
+    </Image>
+    <Image Include="uires\image\page_icons.png">
+      <Filter>SoUI Resource</Filter>
+    </Image>
+    <Image Include="uires\image\soui.ico">
+      <Filter>SoUI Resource</Filter>
+    </Image>
+    <Image Include="uires\image\traymenu_icons.png">
+      <Filter>SoUI Resource</Filter>
+    </Image>
+    <Image Include="uires\theme_sys_res\sys_border.png">
+      <Filter>SoUI Sys Resource</Filter>
+    </Image>
+    <Image Include="uires\theme_sys_res\sys_btn_close.png">
+      <Filter>SoUI Sys Resource</Filter>
+    </Image>
+    <Image Include="uires\theme_sys_res\sys_btn_maximize.png">
+      <Filter>SoUI Sys Resource</Filter>
+    </Image>
+    <Image Include="uires\theme_sys_res\sys_btn_minimize.png">
+      <Filter>SoUI Sys Resource</Filter>
+    </Image>
+    <Image Include="uires\theme_sys_res\sys_btn_next.png">
+      <Filter>SoUI Sys Resource</Filter>
+    </Image>
+    <Image Include="uires\theme_sys_res\sys_btn_prev.png">
+      <Filter>SoUI Sys Resource</Filter>
+    </Image>
+    <Image Include="uires\theme_sys_res\sys_btn_restore.png">
+      <Filter>SoUI Sys Resource</Filter>
+    </Image>
+    <Image Include="uires\theme_sys_res\sys_checkbox.png">
+      <Filter>SoUI Sys Resource</Filter>
+    </Image>
+    <Image Include="uires\theme_sys_res\sys_dropbtn.png">
+      <Filter>SoUI Sys Resource</Filter>
+    </Image>
+    <Image Include="uires\theme_sys_res\sys_focus_checkbox.png">
+      <Filter>SoUI Sys Resource</Filter>
+    </Image>
+    <Image Include="uires\theme_sys_res\sys_focus_radio.png">
+      <Filter>SoUI Sys Resource</Filter>
+    </Image>
+    <Image Include="uires\theme_sys_res\sys_header.png">
+      <Filter>SoUI Sys Resource</Filter>
+    </Image>
+    <Image Include="uires\theme_sys_res\sys_icons.png">
+      <Filter>SoUI Sys Resource</Filter>
+    </Image>
+    <Image Include="uires\theme_sys_res\sys_menu_arrow.png">
+      <Filter>SoUI Sys Resource</Filter>
+    </Image>
+    <Image Include="uires\theme_sys_res\sys_menu_border.png">
+      <Filter>SoUI Sys Resource</Filter>
+    </Image>
+    <Image Include="uires\theme_sys_res\sys_menu_check.png">
+      <Filter>SoUI Sys Resource</Filter>
+    </Image>
+    <Image Include="uires\theme_sys_res\sys_menu_sep.png">
+      <Filter>SoUI Sys Resource</Filter>
+    </Image>
+    <Image Include="uires\theme_sys_res\sys_menu_skin.png">
+      <Filter>SoUI Sys Resource</Filter>
+    </Image>
+    <Image Include="uires\theme_sys_res\sys_prog_bar.png">
+      <Filter>SoUI Sys Resource</Filter>
+    </Image>
+    <Image Include="uires\theme_sys_res\sys_prog_bkgnd.png">
+      <Filter>SoUI Sys Resource</Filter>
+    </Image>
+    <Image Include="uires\theme_sys_res\sys_radio.png">
+      <Filter>SoUI Sys Resource</Filter>
+    </Image>
+    <Image Include="uires\theme_sys_res\sys_scrollbar.png">
+      <Filter>SoUI Sys Resource</Filter>
+    </Image>
+    <Image Include="uires\theme_sys_res\sys_slider_thumb.png">
+      <Filter>SoUI Sys Resource</Filter>
+    </Image>
+    <Image Include="uires\theme_sys_res\sys_split_horz.png">
+      <Filter>SoUI Sys Resource</Filter>
+    </Image>
+    <Image Include="uires\theme_sys_res\sys_split_vert.png">
+      <Filter>SoUI Sys Resource</Filter>
+    </Image>
+    <Image Include="uires\theme_sys_res\sys_tab_page.png">
+      <Filter>SoUI Sys Resource</Filter>
+    </Image>
+    <Image Include="uires\theme_sys_res\sys_tree_checkbox.png">
+      <Filter>SoUI Sys Resource</Filter>
+    </Image>
+    <Image Include="uires\theme_sys_res\sys_Tree_toggle.png">
+      <Filter>SoUI Sys Resource</Filter>
+    </Image>
+    <Image Include="uires\theme_sys_res\sys_vert_prog_bar.png">
+      <Filter>SoUI Sys Resource</Filter>
+    </Image>
+    <Image Include="uires\theme_sys_res\sys_vert_prog_bkgnd.png">
+      <Filter>SoUI Sys Resource</Filter>
+    </Image>
+    <Image Include="uires\theme_sys_res\sys_wnd_bkgnd.png">
+      <Filter>SoUI Sys Resource</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="uires\uires.idx">
+      <Filter>SoUI Resource</Filter>
+    </CustomBuild>
+  </ItemGroup>
+</Project>
