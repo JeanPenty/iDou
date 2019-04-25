@@ -63,6 +63,9 @@
     <ClCompile Include="CDataCenter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="controls\STabCtrlTemplate.cpp">
+      <Filter>ctrls</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="iDou.rc">
@@ -99,6 +102,9 @@
     </ClInclude>
     <ClInclude Include="TV_iOSDeviceAdapter.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="controls\STabCtrlTemplate.h">
+      <Filter>ctrls</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

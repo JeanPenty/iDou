@@ -94,7 +94,7 @@
       <ConformanceMode>false</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\libimobiledevice-vs\libimobiledevice;$(SolutionDir)..\libimobiledevice-vs\libplist\include;$(SolutionDir)..\libimobiledevice-vs\libusbmuxd\include;$(SolutionDir)..\libimobiledevice-vs\libimobiledevice\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\libimobiledevice-vs\libimobiledevice;$(SolutionDir)..\libimobiledevice-vs\libplist\include;$(SolutionDir)..\libimobiledevice-vs\libusbmuxd\include;$(SolutionDir)..\libimobiledevice-vs\libimobiledevice\include;$(SOUIPATH)\utilities\include;$(SOUIPATH)\config</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

@@ -1,32 +1,43 @@
 ﻿<include>
-  <tabctrl size="-2,-2" tabHeight="0" animateSteps="0" curSel="1">
+  <tabctrl name="tab_dev_info" size="-2,-2" tabHeight="0" animateSteps="0" curSel="1">
     <page>
       <window size="-2,-2" layout="hbox">
         <treeview size="190,-2" name="tv_ios" indent="0">
           <template >
             <item_group focusable="0" layout="vbox" size="-2,36"  colorHover="#dddbda" colorSelected="#c9c7c6">
-              <text extend_left="12" weight="1" size="-2,0" align="bottom" name="name" text="iPhone 11"/>
+              <text extend_left="12" weight="1" size="-2,0" align="bottom" name="Name" text="iPhone 11"/>
             </item_group>
             <item_data size="-2,36" layout="hbox" gravity="center" colorHover="#dddbda" colorSelected="#c9c7c6">
               <img extend_left="12" size="12,12" name="face"/>
-              <text extend_left="12" name="name" text="寶寶"/>
+              <text extend_left="12" name="Name" text="寶寶"/>
             </item_data>
           </template>
         </treeview>
-        <window size="0,-2" weight="1" colorBkgnd="@color/infotabbk" layout="hbox" gravity="center" clipClient="true">
-          <window weight="1"/>
-          <window size="807,800" colorBkgnd="@color/white">
-            <tabctrl size="-2,-2" tabHeight="0">
-              <page>
-                <include src="layout:XML_MyDevice_Info"/>
-              </page>
-              <page>
-                <include src="layout:XML_MyDevice_Info"/>
-              </page>
-            </tabctrl>
-          </window>
-          <window weight="1"/>
-        </window>
+        <tabctrltemplate name="nav_dev_cmd" tabHeight="0" size="0,-2" weight="1" colorBkgnd="@color/infotabbk">
+          <pageTemplate>
+            <page>
+              <tabctrl size="-2,-2" name="tab_dev_cmd" tabHeight="0" curSel="0">
+                <page size="-2,-2" layout="hbox" gravity="center" clipClient="true">
+                  <window weight="1"/>
+                  <include src="layout:XML_MyDevice_Info"/>
+                  <window weight="1"/>
+                </page>
+                <page layout="hbox" gravity="center">
+                  <text text="cmd2"/>
+                </page>
+                <page layout="hbox" gravity="center">
+                  <text text="cmd3"/>
+                </page>
+                <page layout="hbox" gravity="center">
+                  <text text="cmd4"/>
+                </page>
+                <page layout="hbox" gravity="center">
+                  <text text="cmd5"/>
+                </page>
+              </tabctrl>
+            </page>
+          </pageTemplate>
+        </tabctrltemplate>
       </window>
     </page>
     <page layout="vbox" gravity="center" colorText="@color/gray" colorBkgnd="@color/white">
@@ -34,7 +45,7 @@
       <img skin="skin_connect_dev"/>
       <text name="Txt_Tip" font="adding:12" text="欢迎使用爱豆助手，请用数据线将苹果设备连接到电脑"/>
       <text extend_top="20" font="adding:6" text="绿色！安全！"/>
-      <text extend_top="8" text="管理您的苹果设备更轻松"/>      
+      <text extend_top="8" text="管理您的苹果设备更轻松"/>
       <window weight="1"/>
       <img skin="skin_pro_pc_apps"/>
     </page>

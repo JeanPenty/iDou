@@ -2,7 +2,7 @@
 #include "CiOSDevice.h"
 #include "../../libimobiledevice-vs/libimobiledevice/common/utils.c"
 #include "iOSUtils.h"
-
+#include <string/strcpcvt.h>
 
 CiOSDevice::CiOSDevice()
 {
@@ -44,11 +44,44 @@ bool CiOSDevice::IsOpen()
 	return m_device && m_client;
 }
 
+bool CiOSDevice::GetDevName(SStringT &outName)
+{
+	if (m_strDevName.IsEmpty())
+	{
+		char* name = NULL;
+		lockdownd_get_device_name(m_client, &name);
+		if (name) {
+			using namespace SOUI;
+			m_strDevName = S_CA2T(name, CP_UTF8);
+			free(name);
+		}
+		else
+			return false;
+	}
+	outName = m_strDevName;
+	return true;
+}
+
+bool CiOSDevice::SetDevName(LPCTSTR newName)
+{
+	if (newName)
+	{
+		using namespace SOUI;
+		SStringA strU8Name = S_CT2A(newName, CP_UTF8);
+		if (lockdownd_set_value(m_client, NULL, "DeviceName", plist_new_string(strU8Name)) == LOCKDOWN_E_SUCCESS) {
+			m_strDevName = newName;
+			return true;
+		}
+	}
+	return false;
+}
+
 bool CiOSDevice::GetDeviceInfo()
 {
 	if (!IsOpen())
 		return false;
-	
+
+
 	plist_t node = NULL; char* key = NULL;
 	char* xml_doc = NULL;
 	int i = 0;

@@ -188,6 +188,7 @@
   <ItemGroup>
     <ClCompile Include="CDataCenter.cpp" />
     <ClCompile Include="controls\STabCtrlHeaderBinder.cpp" />
+    <ClCompile Include="controls\STabCtrlTemplate.cpp" />
     <ClCompile Include="iDou.cpp" />
     <ClCompile Include="MainDlg.cpp" />
     <ClCompile Include="skin\SDemoSkin.cpp" />
@@ -207,6 +208,7 @@
   <ItemGroup>
     <ClInclude Include="CDataCenter.h" />
     <ClInclude Include="controls\STabCtrlHeaderBinder.h" />
+    <ClInclude Include="controls\STabCtrlTemplate.h" />
     <ClInclude Include="MainDlg.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="skin\SDemoSkin.h" />

@@ -1,17 +1,22 @@
 #pragma once
 #include <set>
 #include <string>
-#include "TV_iOSDeviceAdapter.h"
+#include <map>
+
+#include "iOsDeviceLib/CiOSDevice.h"
+class CiOSDeviceTreeViewAdapter;
 
 class CDataCenter:public SSingleton<CDataCenter>
 {
 protected:
-	std::set<std::string> m_listDevGUID;
-
+	std::map<std::string, CiOSDevice> m_listDev;
 public:
 	bool IsExistDev(LPCSTR guid);
+	bool GetDevName(LPCSTR udid, SStringT& outName);
 	bool AddDevGUID(LPCSTR guid, CiOSDeviceTreeViewAdapter *pAdapter);
-	const std::set<std::string>& GetDevGUIDList()const;
+	bool RemoveDevGUID(LPCSTR udid, CiOSDeviceTreeViewAdapter* pAdapter);
+	const std::map<std::string, CiOSDevice>& GetDevGUIDList()const;
+	bool PairDev(LPCSTR id, CiOSDeviceTreeViewAdapter* pAdapter);
 	CDataCenter();
 	~CDataCenter();
 };

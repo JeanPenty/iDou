@@ -3,7 +3,8 @@
 #include <string>
 #include <vector>
 #include <set>
-
+#include <string/tstring.h>
+using SOUI::SStringT;
 EXTERN_C{
 #include <libimobiledevice/libimobiledevice.h>
 #include <libimobiledevice/lockdown.h>
@@ -28,6 +29,8 @@ public:
 	bool OpenDevice(LPCSTR udid);
 	void CloseDevice();
 	bool IsOpen();
+	bool GetDevName(SStringT& outName);
+	bool SetDevName(LPCTSTR newName);
 	template<class T>
 	bool GetBattery(LPCSTR key, T& outValue);	
 	bool GetDeviceInfo();
@@ -44,6 +47,9 @@ public:
 	static bool GetiOSDeviceGUIDList(std::vector<std::string>& iosList);
 private:
 	static void idevice_event_cb_t(const idevice_event_t* event, void* user_data);
+
+private:
+	SStringT m_strDevName;
 };
 
 template<class T>
