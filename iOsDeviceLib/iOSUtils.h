@@ -47,6 +47,30 @@ const char* const batteryKey[] = {
 		"HasBattery"
 };
 
+enum diagnostics_cmd_mode {
+	CMD_NONE = 0,
+	CMD_SLEEP,
+	CMD_RESTART,
+	CMD_SHUTDOWN,
+	CMD_DIAGNOSTICS,
+	CMD_MOBILEGESTALT,
+	CMD_IOREGISTRY,
+	CMD_IOREGISTRY_ENTRY
+};
+
+//const char* const AddressName[] = { "BluetoothAddress","WiFiAddress" };
+
+#define NODE_BLUETOOTH_ADDRESS "BluetoothAddress"
+#define NODE_WIFI_ADDRESS "WiFiAddress"
+#define NODE_SERIALNUMBER "SerialNumber"
+#define NODE_MODELNUMBER "ModelNumber"
+#define NODE_HARDWAREMODEL "HardwareModel"
+#define NODE_DEVICENAME "DeviceName"
+#define NODE_IMEI "InternationalMobileEquipmentIdentity"
+#define NODE_CPUARC "CPUArchitecture"
+#define NODE_PRODUCTTYPE "ProductType"
+
+
 enum DomainsID
 {
 	BATTERY = 2,
@@ -55,10 +79,11 @@ enum DomainsID
 #include <common/utils.h>
 #include <time.h>
 #include <WinSock2.h>
+#include <string/tstring.h>
 
 namespace utils
 {
-
+	void productType_to_phonename(SOUI::SStringT &productType);
 	void plist_print_to_stringstream(plist_t plist, std::stringstream& stream);
 }
 

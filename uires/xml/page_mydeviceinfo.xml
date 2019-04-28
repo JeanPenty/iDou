@@ -1,10 +1,59 @@
 ﻿<include>
-  <window size="-2,-2">
+  <window size="-2,-2" colorBkgnd="@color/white">
     <window pos="0,0,@250,-0" colorBkgnd="#ff0000">
-      
-    </window>
-    <window pos="[,0,@458,-0" colorBkgnd="#00ff00">
 
+    </window>
+    <window pos="[,0,@458,-0">
+      <window pos="10,10" name="BaseInfoWnd" size="-2,376" margin="1,1,1,1" colorBorder="@color/infoborder" layout="vbox">
+        <window class="info_item">
+          <text text="unknow" name="lable_ProductName" extend_left="10"/>
+          <text text="32G" inset="6,0,6,0" font="size:12" skin="skin_lable"/>
+          <text text="土豪金"/>
+        </window>
+        <hr size="-2,1" colorLine="@color/infoborder"/>
+        <window size="-2,0" weight="1" layout="hbox">          
+          <window size="0,-1" weight="1" padding="10,0,0,0" layout="vbox">
+            <window class="info_item">
+              <text text="@string/SerialNumber"/>
+              <text name="lable_SerialNumber" class="info_lable_item"/>
+            </window>
+            <hr size="-2,1" colorLine="@color/infoborder"/>
+            <window class="info_item">
+              <text text="@string/ModelNumber"/>
+              <text name="lable_ModelNumber"  class="info_lable_item"/>
+            </window>
+            <hr size="-2,1" colorLine="@color/infoborder"/>
+            <window class="info_item">
+              <text text="@string/WiFiAddress"/>
+              <text name="lable_WiFiAddress"  class="info_lable_item"/>
+            </window>
+            <hr size="-2,1" colorLine="@color/infoborder"/>
+            <window class="info_item">
+              <text text="@string/BluetoothAddress"/>
+              <text name="lable_BluetoothAddress"  class="info_lable_item"/>
+            </window>
+            <hr size="-2,1" colorLine="@color/infoborder"/>
+            <window class="info_item">
+              <text text="@string/HardwareModel"/>
+              <text name="lable_HardwareModel"  class="info_lable_item"/>
+            </window>
+            <hr size="-2,1" colorLine="@color/infoborder"/>
+            <window class="info_item">
+              <text text="@string/IMEI"/>
+              <text name="lable_IMEI"  class="info_lable_item"/>
+            </window>
+            <hr size="-2,1" colorLine="@color/infoborder"/>
+            <window class="info_item">
+              <text text="@string/ProductType"/>
+              <text name="lable_ProductType"  class="info_lable_item"/>
+            </window>
+          </window>
+          <hr size="1,-2" mode="vertical" colorLine="@color/infoborder"/>
+          <window size="0,-1" weight="1">
+
+          </window>
+        </window>
+      </window>
     </window>
   </window>
 </include>

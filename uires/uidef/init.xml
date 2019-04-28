@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <UIDEF>
-  <font face="宋体" size="13"/>
+  <font face="微软雅黑" size="14"/>
 
   <string src="values:string" />
   <skin src="values:skin"/>
@@ -11,6 +11,8 @@
     <class name="cls_btn_weblink" cursor="hand" colorText="#1e78d5" colorTextHover="#1e78d5" font="italic:1" fontHover="underline:1,italic:1" />
     <class name="tab_btn" size="99,66" skin="skin_colorwnd" layout="vbox" gravity="center"/>
     <class name="skin_wnd" size="0,-2" cursor="hand" weight="1"/>
+    <class name="info_item" layout="hbox" interval="4" size="-2,33" padding="0,0,10,0" gravity="center"/>
+    <class name="info_lable_item"  weight="1" align="right"/>
   </style>
 
   <objattr>

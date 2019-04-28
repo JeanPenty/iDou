@@ -43,6 +43,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "plist", "..\libimobiledevic
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "usbmuxd", "..\libimobiledevice-vs\libusbmuxd.vcxproj", "{527AE686-CD0E-4BC2-9B0F-4BC4CF9621E0}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ideviceprovision", "..\libimobiledevice-vs\libimobiledevice\tools\ideviceprovision.vcxproj", "{BCA0D09C-9250-4805-9CAE-FFA4FC4A0C96}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -115,6 +117,14 @@ Global
 		{527AE686-CD0E-4BC2-9B0F-4BC4CF9621E0}.Release|x64.Build.0 = Release|x64
 		{527AE686-CD0E-4BC2-9B0F-4BC4CF9621E0}.Release|x86.ActiveCfg = Release|Win32
 		{527AE686-CD0E-4BC2-9B0F-4BC4CF9621E0}.Release|x86.Build.0 = Release|Win32
+		{BCA0D09C-9250-4805-9CAE-FFA4FC4A0C96}.Debug|x64.ActiveCfg = Debug|x64
+		{BCA0D09C-9250-4805-9CAE-FFA4FC4A0C96}.Debug|x64.Build.0 = Debug|x64
+		{BCA0D09C-9250-4805-9CAE-FFA4FC4A0C96}.Debug|x86.ActiveCfg = Debug|Win32
+		{BCA0D09C-9250-4805-9CAE-FFA4FC4A0C96}.Debug|x86.Build.0 = Debug|Win32
+		{BCA0D09C-9250-4805-9CAE-FFA4FC4A0C96}.Release|x64.ActiveCfg = Release|x64
+		{BCA0D09C-9250-4805-9CAE-FFA4FC4A0C96}.Release|x64.Build.0 = Release|x64
+		{BCA0D09C-9250-4805-9CAE-FFA4FC4A0C96}.Release|x86.ActiveCfg = Release|Win32
+		{BCA0D09C-9250-4805-9CAE-FFA4FC4A0C96}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -126,6 +136,7 @@ Global
 		{10E88C2B-E98B-4EAA-AA34-9CA59136BBFD} = {85F62316-0A3F-4E70-B425-4302B2562307}
 		{75352A45-BCB8-4774-8C66-3AF9EA6B6B42} = {85F62316-0A3F-4E70-B425-4302B2562307}
 		{527AE686-CD0E-4BC2-9B0F-4BC4CF9621E0} = {85F62316-0A3F-4E70-B425-4302B2562307}
+		{BCA0D09C-9250-4805-9CAE-FFA4FC4A0C96} = {85F62316-0A3F-4E70-B425-4302B2562307}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {22F8E3CD-A6BA-4F08-9695-1B4A2EE751B2}

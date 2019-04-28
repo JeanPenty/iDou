@@ -13,4 +13,5 @@
   <imglist name="skin_connect_dev" src="img:png_connect_dev"/>
   <imglist name="skin_pro_pc_apps" src="img:png_pro_pc_apps"/>
   <imgframe name="skin_menu_bk" src="img:png_menu_bk" margin="16,16,105,16"/>
+  <colorrect name="skin_lable" borderWidth="1" normalBorder="#000000" cornerRadius="2"/>
 </skin>

@@ -9,4 +9,11 @@
     <cmd4 value="待定..."/>
     <cmd5 value="待定..."/>
     <noname value="无法获取设备名"/>
+    <SerialNumber value="序列号"/>
+    <ModelNumber value="设备型号"/>
+    <WiFiAddress value="WIFI地址"/>
+    <BluetoothAddress value="蓝牙地址"/>
+    <HardwareModel value="硬件模型"/>
+    <IMEI value="设备串号"/>
+    <ProductType value="产品类型"/>
   </string>

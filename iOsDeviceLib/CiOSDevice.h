@@ -4,6 +4,7 @@
 #include <vector>
 #include <set>
 #include <string/tstring.h>
+#include "iOSUtils.h"
 using SOUI::SStringT;
 EXTERN_C{
 #include <libimobiledevice/libimobiledevice.h>
@@ -21,6 +22,20 @@ public:
 	virtual void idevice_event_cb_t(const idevice_event_t* event) = NULL;
 };
 
+struct iOSDevInfo
+{
+	SStringT m_strDevName;//设备名
+	SStringT m_strDevWiFiAddress;//wifi地址
+	SStringT m_strDevBluetoothAddress;//蓝牙地址
+	SStringT m_strDevSerialNumber;//序列号
+	SStringT m_strDevModelNumber;//型号
+	SStringT m_strDevHardwareModel;//硬件模型
+	SStringT m_strDevIMEI;
+	SStringT m_strDevCpuarc;
+	SStringT m_strDevProductType;
+	SStringT m_strDevProductName;
+};
+
 class CiOSDevice
 {
 public:
@@ -30,15 +45,21 @@ public:
 	void CloseDevice();
 	bool IsOpen();
 	bool GetDevName(SStringT& outName);
+	bool GetWifiAddress(SStringT& outMac);
+	bool GetBluetoothAddress(SStringT& outMac);
 	bool SetDevName(LPCTSTR newName);
 	template<class T>
-	bool GetBattery(LPCSTR key, T& outValue);	
-	bool GetDeviceInfo();
-
+	bool GetBattery(LPCSTR key, T& outValue);
+	//获取不耗时的信息
+	bool GetDeviceBaseInfo();
+	const iOSDevInfo& GetiOSBaseInfo();
+protected:
+	bool _GetAddress(SStringT& outAddress, LPCSTR nodename);
+	bool diagnostics(diagnostics_cmd_mode cmd);
 private:
 	lockdownd_client_t m_client = NULL;
 	idevice_t m_device = NULL;
-public:	
+public:
 	//设备设备改变回调
 	static idevice_error_t SetCallBack(IDeviceEventCallBack* relCallBack);
 	//设备是否配对
@@ -49,7 +70,7 @@ private:
 	static void idevice_event_cb_t(const idevice_event_t* event, void* user_data);
 
 private:
-	SStringT m_strDevName;
+	iOSDevInfo m_iosInfo;
 };
 
 template<class T>

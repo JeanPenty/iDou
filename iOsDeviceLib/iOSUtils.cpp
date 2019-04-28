@@ -1,6 +1,9 @@
 #include "pch.h"
 #include "iOSUtils.h"
 
+#include <map>
+#include <string>
+
 namespace utils
 {
 
@@ -161,6 +164,94 @@ namespace utils
 			break;
 		default:
 			plist_node_print_to_stringstream(plist, &indent, stream);
+		}
+	}
+
+	std::map<std::wstring, std::wstring> g_mapDevproductType = {
+		//iPhone
+		{L"iphone1,1",L"iPhone"},
+		{L"iphone1,2",L"iPhone3"},
+		{L"iphone2,1",L"iPhone3"},
+		{L"iphone3,1",L"iPhone 4"},
+		{L"iphone3,2", L"iPhone 4"},
+		{L"iphone3,3", L"iPhone 4"},
+		{L"iphone4,1", L"iPhone 4s"},
+		{L"iphone4,2", L"iPhone 4s"},
+		{L"iphone4,3", L"iPhone 4s"},
+		{L"iphone5,1", L"iPhone 5"},
+		{L"iphone5,2", L"iPhone 5"},
+		{L"iphone5,3", L"iPhone 5c"},
+		{L"iphone5,4", L"iPhone 5c"},
+		{L"iphone6,1", L"iPhone 5s"},
+		{L"iphone6,2", L"iPhone 5s"},
+		{L"iphone7,2", L"iPhone 6"},
+		{L"iphone7,1", L"iPhone 6p"},
+		{L"iphone8,1", L"iPhone 6s"},
+		{L"iphone8,2", L"iPhone 6sp"},
+		{L"iphone8,4", L"iPhone se"},
+		{L"iphone9,1", L"iPhone 7"},
+		{L"iphone9,2", L"iPhone 7p"},
+		{L"iphone9,3", L"iPhone 7"},
+		{L"iphone9,4", L"iPhone 7p"},
+		{L"iphone10.1",L"iPhone 8"},
+		{L"iphone10.2",L"iPhone 8 Plus"},
+		{L"iphone10.3",L"iPhone X"},
+		{L"iphone10.4",L"iPhone 8"},
+		{L"iphone10.5",L"iPhone 8 Plus"},
+		{L"iphone10.6",L"iPhone X"},
+		//ipad
+		{L"ipad1,1", L"iPad1"},
+		{L"ipad2,1", L"iPad2"},
+		{L"ipad2,2", L"iPad2"},
+		{L"ipad2,3", L"iPad2"},
+		{L"ipad2,4", L"iPad2"},
+		{L"ipad3,1", L"iPad3"},
+		{L"ipad3,2", L"iPad3"},
+		{L"ipad3,3", L"iPad3"},
+		{L"ipad3,4", L"iPad4"},
+		{L"ipad3,5", L"iPad4"},
+		{L"ipad3,6", L"iPad4"},
+		{L"ipad4,1", L"iPadAir"},
+		{L"ipad4,2", L"iPadAir"},
+		{L"ipad4,3", L"iPadAir"},
+		{L"ipad5,3", L"iPadAir2"},
+		{L"ipad5,4", L"iPadAir2"},
+		{L"ipad2,5", L"iPadMini"},
+		{L"ipad2,6", L"iPadMini"},
+		{L"ipad2,7", L"iPadMini"},
+		{L"ipad4,4", L"iPadMini2"},
+		{L"ipad4,5", L"iPadMini2"},
+		{L"ipad4,6", L"iPadMini2"},
+		{L"ipad4,7", L"iPadMini3"},
+		{L"ipad4,8", L"iPadMini3"},
+		{L"ipad4,9", L"iPadMini3"},
+		{L"ipad5,1", L"iPadMini4"},
+		{L"ipad5,2", L"iPadMini4"},
+		{L"ipad6,3", L"iPadPro"},
+		{L"ipad6,4", L"iPadPro"},
+		{L"ipad6,7", L"iPadPro"},
+		{L"ipad6,8", L"iPadPro"},
+		{L"ipad6,11", L"iPad 9.7-Inch 5th Gen(Wi-Fi Only)"},
+		{L"ipad6,12", L"iPad 9.7-Inch 5th Gen(Wi-Fi/Cellular)"},
+		//ipod
+		{L"ipod1,1", L"iPodTouch1Gen"},
+		{L"ipod2,1", L"iPodTouch2Gen"},
+		{L"ipod3,1", L"iPodTouch3Gen"},
+		{L"ipod4,1", L"iPodTouch4Gen"},
+		{L"ipod5,1", L"iPodTouch5Gen"},
+		{L"ipod7,1", L"iPodTouch6Gen"},
+		//Ä£ÄâÆ÷
+		{L"i386", L"Simulator"},
+		{L"x86_64", L"Simulator"}
+	};
+
+	void productType_to_phonename(SOUI::SStringT& productType)
+	{
+		std::wstring strProductType = productType.MakeLower();
+		auto ite=g_mapDevproductType.find(strProductType);
+		if (ite != g_mapDevproductType.end())
+		{
+			productType = ite->second.c_str();
 		}
 	}
 }

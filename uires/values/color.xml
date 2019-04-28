@@ -4,9 +4,11 @@
   <red value="rgb(255,0,0)"/>
   <green value="rgb(0,255,0)"/>
   <blue value="rgb(0,0,255)"/>
+  <black value="#000000"/>
   <white value="rgb(255,255,255)"/>
   <gray value="#808080"/>
   <mainbk value="#236ee7"/>
   <infotabbk value="#f4f4f4"/>
+  <infoborder value="#dddddd"/>
 </color> 
  

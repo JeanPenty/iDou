@@ -1,5 +1,5 @@
 ﻿<menuRoot itemHeight="38" font="face:微软雅黑,size:14" 
-          maxWidth="260" minWidth="288" 
+          maxWidth="260" minWidth="288"
           skin="skin_menu_bk">
   <menuItem height="207" margin="20,20,20,20">
     <window size="-2,-2" colorBkgnd="#ffffff" layout="vbox" interval="1">

@@ -30,6 +30,9 @@
     <Filter Include="SoUI Resource\layout">
       <UniqueIdentifier>{59dc16cc-0a13-46e3-9879-e18b7d2a917e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="SoUI Resource\value">
+      <UniqueIdentifier>{9e9851d9-978f-41cd-a9c8-82150f94b230}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="license.txt" />
@@ -119,15 +122,6 @@
     <Xml Include="uires\uidef\init.xml">
       <Filter>SoUI Resource</Filter>
     </Xml>
-    <Xml Include="uires\values\color.xml">
-      <Filter>SoUI Resource</Filter>
-    </Xml>
-    <Xml Include="uires\values\skin.xml">
-      <Filter>SoUI Resource</Filter>
-    </Xml>
-    <Xml Include="uires\values\string.xml">
-      <Filter>SoUI Resource</Filter>
-    </Xml>
     <Xml Include="uires\xml\page.xml">
       <Filter>SoUI Resource</Filter>
     </Xml>
@@ -154,6 +148,15 @@
     </Xml>
     <Xml Include="uires\xml\page_mydeviceinfo.xml">
       <Filter>SoUI Resource\layout</Filter>
+    </Xml>
+    <Xml Include="uires\values\color.xml">
+      <Filter>SoUI Resource\value</Filter>
+    </Xml>
+    <Xml Include="uires\values\string.xml">
+      <Filter>SoUI Resource\value</Filter>
+    </Xml>
+    <Xml Include="uires\values\skin.xml">
+      <Filter>SoUI Resource\value</Filter>
     </Xml>
   </ItemGroup>
   <ItemGroup>
