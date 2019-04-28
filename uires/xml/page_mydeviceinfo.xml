@@ -1,17 +1,21 @@
 ﻿<include>
   <window size="-2,-2" colorBkgnd="@color/white">
-    <window pos="0,0,@250,-0" colorBkgnd="#ff0000">
-
+    <window pos="0,0,@250,-0" >
+      <window layout="hbox">
+        <button text="重启" name="btn_reboot" padding="4,4,4,4"/>
+        <button text="关机" name="btn_shutdown" padding="4,4,4,4"/>
+        <button text="睡眠" name="btn_sleep" padding="4,4,4,4"/>
+      </window>
     </window>
-    <window pos="[,0,@458,-0">
-      <window pos="10,10" name="BaseInfoWnd" size="-2,376" margin="1,1,1,1" colorBorder="@color/infoborder" layout="vbox">
-        <window class="info_item">
+    <window pos="[,0,@458,@-1" font="size:12">
+      <window pos="10,10" name="BaseInfoWnd" size="-2,-1" margin="1,1,1,1" colorBorder="@color/infoborder" layout="vbox">
+        <window class="info_item" colorText="@color/black">
           <text text="unknow" name="lable_ProductName" extend_left="10"/>
-          <text text="32G" inset="6,0,6,0" font="size:12" skin="skin_lable"/>
+          <text text="32G" inset="6,0,6,0" skin="skin_lable"/>
           <text text="土豪金"/>
         </window>
         <hr size="-2,1" colorLine="@color/infoborder"/>
-        <window size="-2,0" weight="1" layout="hbox">          
+        <window size="-2,-1" layout="hbox">
           <window size="0,-1" weight="1" padding="10,0,0,0" layout="vbox">
             <window class="info_item">
               <text text="@string/SerialNumber"/>
@@ -45,12 +49,32 @@
             <hr size="-2,1" colorLine="@color/infoborder"/>
             <window class="info_item">
               <text text="@string/ProductType"/>
-              <text name="lable_ProductType"  class="info_lable_item"/>
+              <text name="lable_ProductType" class="info_lable_item"/>
             </window>
           </window>
           <hr size="1,-2" mode="vertical" colorLine="@color/infoborder"/>
           <window size="0,-1" weight="1">
-
+          </window>
+        </window>
+        <hr size="-2,1" colorLine="@color/infoborder"/>
+        <window class="info_item" padding="10,0,10,0">
+          <text text="设备标志(UDID)"/>
+          <text name="lable_UDID" class="info_lable_item"/>
+        </window>
+        <hr size="-2,1" colorLine="@color/infoborder"/>
+        <window size="-2,33" layout="hbox">
+          <window class="info_btn" name="btn_">
+            <text weight="1"/>
+            <img skin="skin_iconarticle"/>
+            <text text="@string/ShowDevCheck"/>
+            <text weight="1"/>
+          </window>
+          <hr size="1,-2" mode="vertical" colorLine="@color/infoborder"/>
+          <window class="info_btn" name="btn_">
+            <text weight="1"/>
+            <img skin="skin_icolist"/>
+            <text text="@string/ShowDevInfo"/>
+            <text weight="1"/>
           </window>
         </window>
       </window>

@@ -26,6 +26,8 @@
     <file name="png_connect_dev" path="image\connect_dev.png"/>
     <file name="png_pro_pc_apps" path="image\pro_pc_apps.png"/>
     <file name="png_menu_bk" path="image\menubk.png"/>
+    <file name="png_icon_list" path="image\icon-list.png"/>
+    <file name="png_icon_article" path="image\icon-article.png"/>
   </IMG>
   <ICON>
     <file name="ICON_LOGO"  path="image\soui.ico"/>

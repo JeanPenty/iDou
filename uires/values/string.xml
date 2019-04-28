@@ -14,6 +14,9 @@
     <WiFiAddress value="WIFI地址"/>
     <BluetoothAddress value="蓝牙地址"/>
     <HardwareModel value="硬件模型"/>
-    <IMEI value="设备串号"/>
+    <IMEI value="IMEI"/>
     <ProductType value="产品类型"/>
+    <ShowDevCheck value="查看验机报告"/>
+    <ShowDevInfo value="查看设备祥情"/>
+    <cantread value="无法读取"/>
   </string>

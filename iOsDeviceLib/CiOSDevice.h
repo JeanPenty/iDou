@@ -24,6 +24,7 @@ public:
 
 struct iOSDevInfo
 {
+	SStringT m_strDevUDID;
 	SStringT m_strDevName;//设备名
 	SStringT m_strDevWiFiAddress;//wifi地址
 	SStringT m_strDevBluetoothAddress;//蓝牙地址
@@ -53,9 +54,10 @@ public:
 	//获取不耗时的信息
 	bool GetDeviceBaseInfo();
 	const iOSDevInfo& GetiOSBaseInfo();
+	bool diagnostics(diagnostics_cmd_mode cmd);
 protected:
 	bool _GetAddress(SStringT& outAddress, LPCSTR nodename);
-	bool diagnostics(diagnostics_cmd_mode cmd);
+	
 private:
 	lockdownd_client_t m_client = NULL;
 	idevice_t m_device = NULL;

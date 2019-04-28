@@ -26,6 +26,10 @@ public:
 	bool UpdataBaseInfo(LPCSTR udid);
 	CDataCenter();
 	~CDataCenter();
-private:
+	void ShutDown(SWindow* pWnd);
+	void Reboot(SWindow* pWnd);
+	void Sleep(SWindow* pWnd);
+private:	
+	void _docmd(SWindow* pWnd, diagnostics_cmd_mode cmd);
 	bool _initdevbaseinfo(const iOSDevInfo&devInfo,SWindow* pInfoWnd);
 };

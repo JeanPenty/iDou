@@ -231,8 +231,8 @@ namespace utils
 		{L"ipad6,4", L"iPadPro"},
 		{L"ipad6,7", L"iPadPro"},
 		{L"ipad6,8", L"iPadPro"},
-		{L"ipad6,11", L"iPad 9.7-Inch 5th Gen(Wi-Fi Only)"},
-		{L"ipad6,12", L"iPad 9.7-Inch 5th Gen(Wi-Fi/Cellular)"},
+		{L"ipad6,11", L"iPad(9.7)"},
+		{L"ipad6,12", L"iPad 9.7)"},
 		//ipod
 		{L"ipod1,1", L"iPodTouch1Gen"},
 		{L"ipod2,1", L"iPodTouch2Gen"},

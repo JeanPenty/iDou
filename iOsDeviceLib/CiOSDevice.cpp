@@ -4,11 +4,11 @@
 #include "iOSUtils.h"
 #include <string/strcpcvt.h>
 #include "libimobiledevice/diagnostics_relay.h"
+#include <souistd.h>
 
 CiOSDevice::CiOSDevice()
 {
 }
-
 
 CiOSDevice::~CiOSDevice()
 {
@@ -20,6 +20,7 @@ bool CiOSDevice::OpenDevice(LPCSTR udid)
 	{
 		if (idevice_new(&m_device, udid) == IDEVICE_E_SUCCESS)
 		{
+			m_iosInfo.m_strDevUDID= SOUI::S_CA2T(udid, CP_UTF8).MakeUpper();
 			return lockdownd_client_new_with_handshake(m_device, &m_client, "my_iOSDevice") == LOCKDOWN_E_SUCCESS;
 		}
 	}
@@ -91,7 +92,7 @@ bool CiOSDevice::_GetAddress(SStringT& outAddress, LPCSTR nodename)
 		address_node = NULL;
 		if (node_value) {
 			using namespace SOUI;
-			outAddress = S_CA2T(node_value, CP_UTF8).MakeUpper();
+			outAddress = S_CA2T(node_value, CP_UTF8);
 			free(node_value);
 			return true;
 		}
@@ -223,8 +224,10 @@ bool CiOSDevice::GetDeviceBaseInfo()
 	_GetAddress(m_iosInfo.m_strDevName, NODE_DEVICENAME);
 	//wifi address
 	_GetAddress(m_iosInfo.m_strDevWiFiAddress, NODE_WIFI_ADDRESS);
+	m_iosInfo.m_strDevWiFiAddress = m_iosInfo.m_strDevWiFiAddress.MakeUpper();
 	//蓝牙地址
 	_GetAddress(m_iosInfo.m_strDevBluetoothAddress, NODE_BLUETOOTH_ADDRESS);
+	m_iosInfo.m_strDevBluetoothAddress = m_iosInfo.m_strDevBluetoothAddress.MakeUpper();
 	//序列号
 	_GetAddress(m_iosInfo.m_strDevSerialNumber, NODE_SERIALNUMBER);
 	//型号
@@ -233,6 +236,8 @@ bool CiOSDevice::GetDeviceBaseInfo()
 	_GetAddress(m_iosInfo.m_strDevHardwareModel, NODE_HARDWAREMODEL);
 	//IMEI
 	_GetAddress(m_iosInfo.m_strDevIMEI, NODE_IMEI);
+	if (m_iosInfo.m_strDevIMEI.IsEmpty())
+		m_iosInfo.m_strDevIMEI = GETSTRING(L"@string/cantread");
 	//CPU类型
 	_GetAddress(m_iosInfo.m_strDevCpuarc, NODE_CPUARC);
 	//产品
