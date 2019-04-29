@@ -130,7 +130,7 @@ void CDataCenter::_docmd(SWindow* pWnd, diagnostics_cmd_mode cmd)
 	{
 		if (iter.second.InfoWnd == pWnd)
 		{
-			iter.second.iOSDevObject.diagnostics(cmd);
+			iter.second.iOSDevObject.DoCmd(cmd);
 			break;
 		}
 	}
@@ -166,12 +166,13 @@ bool CDataCenter::_initdevbaseinfo(const iOSDevInfo& devInfo, SWindow* pInfoWnd)
 		pInfoWnd->FindChildByID(R.id.lable_IMEI)->SetWindowText(devInfo.m_strDevIMEI);
 		pInfoWnd->FindChildByID(R.id.lable_ProductType)->SetWindowText(devInfo.m_strDevProductType);
 		pInfoWnd->FindChildByID(R.id.lable_UDID)->SetWindowText(devInfo.m_strDevUDID);
+		pInfoWnd->FindChildByID(R.id.lable_CycleCount)->SetWindowText(SStringT().Format(L"%d´Î", devInfo.m_sGasGauge.CycleCount));
+
 
 		pInfoWnd->FindChildByID(R.id.btn_reboot)->SetUserData((ULONG_PTR)pInfoWnd);
 		pInfoWnd->FindChildByID(R.id.btn_shutdown)->SetUserData((ULONG_PTR)pInfoWnd);
 		pInfoWnd->FindChildByID(R.id.btn_sleep)->SetUserData((ULONG_PTR)pInfoWnd);
-
-
+		pInfoWnd->FindChildByID(R.id.btn_batteryInfo)->SetUserData((ULONG_PTR)pInfoWnd);
 
 		return true;
 	}

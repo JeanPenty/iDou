@@ -22,6 +22,14 @@ public:
 	virtual void idevice_event_cb_t(const idevice_event_t* event) = NULL;
 };
 
+struct GasGauge
+{
+	int CycleCount;
+	int DesignCapacity;
+	int FullChargeCapacity;
+	
+};
+
 struct iOSDevInfo
 {
 	SStringT m_strDevUDID;
@@ -35,6 +43,7 @@ struct iOSDevInfo
 	SStringT m_strDevCpuarc;
 	SStringT m_strDevProductType;
 	SStringT m_strDevProductName;
+	GasGauge m_sGasGauge;
 };
 
 class CiOSDevice
@@ -54,7 +63,8 @@ public:
 	//获取不耗时的信息
 	bool GetDeviceBaseInfo();
 	const iOSDevInfo& GetiOSBaseInfo();
-	bool diagnostics(diagnostics_cmd_mode cmd);
+	bool DoCmd(diagnostics_cmd_mode cmd);
+	bool GetGasGauge(GasGauge & outasGauge);
 protected:
 	bool _GetAddress(SStringT& outAddress, LPCSTR nodename);
 	

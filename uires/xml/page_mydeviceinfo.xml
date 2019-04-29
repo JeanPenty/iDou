@@ -53,7 +53,18 @@
             </window>
           </window>
           <hr size="1,-2" mode="vertical" colorLine="@color/infoborder"/>
-          <window size="0,-1" weight="1">
+          <window size="0,-1" weight="1"  padding="10,0,0,0" layout="vbox">
+            <window class="info_item">
+              <text text="@string/CycleCount"/>
+              <text name="lable_CycleCount"  class="info_lable_item"/>
+            </window>
+            <hr size="-2,1" colorLine="@color/infoborder"/>
+            <window class="info_item">
+              <text text="@string/CycleLife"/>
+              <text name="lable_CycleLife"  class="info_lable_item"/>
+              <text name="btn_batteryInfo" text="更多详情" class="cls_btn_weblink"/>
+            </window>
+            <hr size="-2,1" colorLine="@color/infoborder"/>
           </window>
         </window>
         <hr size="-2,1" colorLine="@color/infoborder"/>

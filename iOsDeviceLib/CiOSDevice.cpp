@@ -20,7 +20,7 @@ bool CiOSDevice::OpenDevice(LPCSTR udid)
 	{
 		if (idevice_new(&m_device, udid) == IDEVICE_E_SUCCESS)
 		{
-			m_iosInfo.m_strDevUDID= SOUI::S_CA2T(udid, CP_UTF8).MakeUpper();
+			m_iosInfo.m_strDevUDID = SOUI::S_CA2T(udid, CP_UTF8).MakeUpper();
 			return lockdownd_client_new_with_handshake(m_device, &m_client, "my_iOSDevice") == LOCKDOWN_E_SUCCESS;
 		}
 	}
@@ -80,12 +80,12 @@ bool CiOSDevice::_GetAddress(SStringT& outAddress, LPCSTR nodename)
 		{
 			uint8_t boolvalue;
 			plist_get_bool_val(address_node, &boolvalue);
-			node_value =(char*) malloc(10);
+			node_value = (char*)malloc(10);
 			strcpy_s(node_value, 10, boolvalue ? "true" : false);
 		}break;
 		case PLIST_ARRAY:
 		{
-			
+
 		}break;
 		}
 		plist_free(address_node);
@@ -107,7 +107,7 @@ bool CiOSDevice::_GetAddress(SStringT& outAddress, LPCSTR nodename)
 	}
 }
 
-bool CiOSDevice::GetWifiAddress(SStringT& outMac)
+bool CiOSDevice::GetWifiAddress(SStringT & outMac)
 {
 	if (m_iosInfo.m_strDevWiFiAddress.IsEmpty())
 	{
@@ -118,7 +118,7 @@ bool CiOSDevice::GetWifiAddress(SStringT& outMac)
 	return true;
 }
 
-bool CiOSDevice::GetBluetoothAddress(SStringT& outMac)
+bool CiOSDevice::GetBluetoothAddress(SStringT & outMac)
 {
 	if (m_iosInfo.m_strDevBluetoothAddress.IsEmpty())
 	{
@@ -143,7 +143,7 @@ bool CiOSDevice::SetDevName(LPCTSTR newName)
 	return false;
 }
 
-bool _GetAddress(lockdownd_client_t client, SOUI::SStringA& outAddress, LPCSTR nodename)
+bool _GetAddress(lockdownd_client_t client, SOUI::SStringA & outAddress, LPCSTR nodename)
 {
 	plist_t address_node = NULL;
 	if (LOCKDOWN_E_SUCCESS == lockdownd_get_value(client, NULL, nodename, &address_node))
@@ -163,12 +163,12 @@ bool _GetAddress(lockdownd_client_t client, SOUI::SStringA& outAddress, LPCSTR n
 		}break;
 		case PLIST_ARRAY:
 		{
-			plist_array_iter iter =NULL;
-			plist_array_new_iter(address_node,&iter);
+			plist_array_iter iter = NULL;
+			plist_array_new_iter(address_node, &iter);
 			while (iter)
 			{
-				plist_t item=NULL;
-				plist_array_next_item(address_node,iter, &item);
+				plist_t item = NULL;
+				plist_array_next_item(address_node, iter, &item);
 				plist_type itemtype = plist_get_node_type(item);
 				if (PLIST_DICT == plist_get_node_type(item))
 				{
@@ -176,13 +176,13 @@ bool _GetAddress(lockdownd_client_t client, SOUI::SStringA& outAddress, LPCSTR n
 					plist_dict_new_iter(item, &iter2);
 					while (iter2)
 					{
-						plist_t val=NULL;
+						plist_t val = NULL;
 						char* key = NULL;
 						//plist_dict_get_item_key(item, &key);
 						plist_dict_next_item(item, iter2, &key, &val);
 						if (PLIST_STRING == plist_get_node_type(val))
 						{
-							char* item_val=NULL;
+							char* item_val = NULL;
 							plist_get_string_val(val, &item_val);
 							if (item_val)
 								free(item_val);
@@ -245,7 +245,9 @@ bool CiOSDevice::GetDeviceBaseInfo()
 	//尝试转换成电话型号名称
 	m_iosInfo.m_strDevProductName = m_iosInfo.m_strDevProductType;
 	utils::productType_to_phonename(m_iosInfo.m_strDevProductName);
-	//diagnostics(CMD_IOREGISTRY);
+
+	//获取电池信息
+	GetGasGauge(m_iosInfo.m_sGasGauge);
 
 
 	plist_t node = NULL; char* key = NULL;
@@ -289,14 +291,14 @@ const iOSDevInfo& CiOSDevice::GetiOSBaseInfo()
 	return m_iosInfo;
 }
 
-void CiOSDevice::idevice_event_cb_t(const idevice_event_t* event, void* user_data)
+void CiOSDevice::idevice_event_cb_t(const idevice_event_t * event, void* user_data)
 {
 	IDeviceEventCallBack* reCallBack = (IDeviceEventCallBack*)user_data;
 	if (reCallBack)
 		reCallBack->idevice_event_cb_t(event);
 }
 
-idevice_error_t CiOSDevice::SetCallBack(IDeviceEventCallBack* relCallBack)
+idevice_error_t CiOSDevice::SetCallBack(IDeviceEventCallBack * relCallBack)
 {
 	idevice_event_unsubscribe();
 	return idevice_event_subscribe(idevice_event_cb_t, (void*)relCallBack);
@@ -368,7 +370,7 @@ bool CiOSDevice::GetiOSDeviceGUIDList(std::vector<std::string> & iosList)
 	return true;
 }
 
-bool CiOSDevice::diagnostics(diagnostics_cmd_mode cmd)
+bool CiOSDevice::DoCmd(diagnostics_cmd_mode cmd)
 {
 	lockdownd_service_descriptor_t service = NULL;
 	diagnostics_relay_client_t diagnostics_client = NULL;
@@ -408,7 +410,7 @@ bool CiOSDevice::diagnostics(diagnostics_cmd_mode cmd)
 							//result = EXIT_SUCCESS;
 						}
 					}
-					break;*/
+					break;
 			case CMD_IOREGISTRY_ENTRY:
 				if (diagnostics_relay_query_ioregistry_entry(diagnostics_client, "", "", &node) == DIAGNOSTICS_RELAY_E_SUCCESS) {
 					if (node) {
@@ -453,6 +455,74 @@ bool CiOSDevice::diagnostics(diagnostics_cmd_mode cmd)
 						plist_free(node);
 					}
 				}/**/
+			}
+			diagnostics_relay_goodbye(diagnostics_client);
+			diagnostics_relay_client_free(diagnostics_client);
+		}
+	}
+
+	if (service) {
+		lockdownd_service_descriptor_free(service);
+		service = NULL;
+	}
+	return true;
+}
+
+bool CiOSDevice::GetGasGauge(GasGauge& outasGauge)
+{
+	lockdownd_service_descriptor_t service = NULL;
+	diagnostics_relay_client_t diagnostics_client = NULL;
+
+	plist_t node = NULL;
+
+	lockdownd_error_t ret = lockdownd_start_service(m_client, "com.apple.mobile.diagnostics_relay", &service);
+	if (ret != LOCKDOWN_E_SUCCESS) {
+		/*  attempt to use older diagnostics service */
+		ret = lockdownd_start_service(m_client, "com.apple.iosdiagnostics.relay", &service);
+	}
+	bool bRet = false;
+	if ((ret == LOCKDOWN_E_SUCCESS) && service && (service->port > 0)) {
+		if (diagnostics_relay_client_new(m_device, service, &diagnostics_client) == DIAGNOSTICS_RELAY_E_SUCCESS)
+		{
+			/*
+			<key>GasGauge</key>
+	<dict>
+		<key>CycleCount</key>
+		<integer>35</integer>
+		<key>DesignCapacity</key>
+		<integer>1690</integer>
+		<key>FullChargeCapacity</key>
+		<integer>1900</integer>
+		<key>Status</key>
+		<string>Success</string>
+	</dict>			
+			*/
+			if (diagnostics_relay_request_diagnostics(diagnostics_client, "GasGauge", &node) == DIAGNOSTICS_RELAY_E_SUCCESS) {
+				if (node) {
+					plist_t value= plist_dict_get_item(node,"CycleCount");
+					if (PLIST_UINT == plist_get_node_type(value))
+					{						
+						uint64_t item_val;
+						plist_get_uint_val(value, &item_val);
+						outasGauge.CycleCount = (int)item_val;						
+					}
+					value = plist_dict_get_item(node, "DesignCapacity");
+					if (PLIST_UINT == plist_get_node_type(value))
+					{
+						uint64_t item_val;
+						plist_get_uint_val(value, &item_val);
+						outasGauge.DesignCapacity = (int)item_val;
+					}
+					value = plist_dict_get_item(node, "FullChargeCapacity");
+					if (PLIST_UINT == plist_get_node_type(value))
+					{
+						uint64_t item_val;
+						plist_get_uint_val(value, &item_val);
+						outasGauge.FullChargeCapacity = (int)item_val;
+					}
+
+					plist_free(node);
+				}
 			}
 			diagnostics_relay_goodbye(diagnostics_client);
 			diagnostics_relay_client_free(diagnostics_client);

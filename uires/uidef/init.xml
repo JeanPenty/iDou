@@ -8,7 +8,7 @@
 
   <style>
     <class name="normalbtn" font="" colorText="#385e8b" colorTextDisable="#91a7c0" textMode="0x25" cursor="hand" margin-x="0"/>
-    <class name="cls_btn_weblink" cursor="hand" colorText="#1e78d5" colorTextHover="#1e78d5" font="italic:1" fontHover="underline:1,italic:1" />
+    <class name="cls_btn_weblink" msgTransparent="0" cursor="hand" colorText="#1e78d5" colorTextHover="#1e78d5" />
     <class name="tab_btn" size="99,70" skin="skin_colorwnd" layout="vbox" gravity="center"/>
     <class name="skin_wnd" size="0,-2" cursor="hand" weight="1"/>
     <class name="info_item" layout="hbox" interval="4" size="-2,33" padding="0,0,10,0" gravity="center" colorText="@color/gray"/>

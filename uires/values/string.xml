@@ -19,4 +19,6 @@
     <ShowDevCheck value="查看验机报告"/>
     <ShowDevInfo value="查看设备祥情"/>
     <cantread value="无法读取"/>
+    <CycleCount value="充电次数"/>
+    <CycleLife value="电池寿命"/>
   </string>
