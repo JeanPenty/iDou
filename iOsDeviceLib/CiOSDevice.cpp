@@ -499,21 +499,24 @@ bool CiOSDevice::GetGasGauge(GasGauge& outasGauge)
 			*/
 			if (diagnostics_relay_request_diagnostics(diagnostics_client, "GasGauge", &node) == DIAGNOSTICS_RELAY_E_SUCCESS) {
 				if (node) {
-					plist_t value= plist_dict_get_item(node,"CycleCount");
+
+					plist_t nodeGasGauge =plist_dict_get_item(node, "GasGauge");
+
+					plist_t value= plist_dict_get_item(nodeGasGauge,"CycleCount");
 					if (PLIST_UINT == plist_get_node_type(value))
 					{						
 						uint64_t item_val;
 						plist_get_uint_val(value, &item_val);
 						outasGauge.CycleCount = (int)item_val;						
 					}
-					value = plist_dict_get_item(node, "DesignCapacity");
+					value = plist_dict_get_item(nodeGasGauge, "DesignCapacity");
 					if (PLIST_UINT == plist_get_node_type(value))
 					{
 						uint64_t item_val;
 						plist_get_uint_val(value, &item_val);
 						outasGauge.DesignCapacity = (int)item_val;
 					}
-					value = plist_dict_get_item(node, "FullChargeCapacity");
+					value = plist_dict_get_item(nodeGasGauge, "FullChargeCapacity");
 					if (PLIST_UINT == plist_get_node_type(value))
 					{
 						uint64_t item_val;
