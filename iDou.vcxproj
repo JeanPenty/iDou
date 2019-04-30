@@ -186,6 +186,7 @@
     <Text Include="readme.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="CBaseInfoDlg.cpp" />
     <ClCompile Include="CDataCenter.cpp" />
     <ClCompile Include="controls\STabCtrlHeaderBinder.cpp" />
     <ClCompile Include="controls\STabCtrlTemplate.cpp" />
@@ -206,6 +207,7 @@
     <ResourceCompile Include="iDou.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CBaseInfoDlg.h" />
     <ClInclude Include="CDataCenter.h" />
     <ClInclude Include="controls\STabCtrlHeaderBinder.h" />
     <ClInclude Include="controls\STabCtrlTemplate.h" />
@@ -246,6 +248,7 @@
     </Xml>
     <Xml Include="uires\values\skin.xml" />
     <Xml Include="uires\values\string.xml" />
+    <Xml Include="uires\xml\dlg_battry.xml" />
     <Xml Include="uires\xml\dlg_main.xml">
       <SubType>Designer</SubType>
     </Xml>

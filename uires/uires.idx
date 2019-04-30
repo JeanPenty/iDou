@@ -7,6 +7,7 @@
     <file name="XML_page" path="xml\page.xml"/>
     <file name="XML_MyDevice" path="xml\page_mydevice.xml"/>
     <file name="XML_MyDevice_Info" path="xml\page_mydeviceinfo.xml"/>
+    <file name="XML_dlg_battry" path="xml\dlg_battry.xml"/>
   </LAYOUT>
   
   <values>
@@ -28,6 +29,7 @@
     <file name="png_menu_bk" path="image\menubk.png"/>
     <file name="png_icon_list" path="image\icon-list.png"/>
     <file name="png_icon_article" path="image\icon-article.png"/>
+    <file name="png_iphonescreen" path="image\iphone.png"/>
   </IMG>
   <ICON>
     <file name="ICON_LOGO"  path="image\soui.ico"/>

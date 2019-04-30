@@ -21,4 +21,7 @@
     <cantread value="无法读取"/>
     <CycleCount value="充电次数"/>
     <CycleLife value="电池寿命"/>
+    <ActuallyCapacity value="实际容量"/>
+    <DesignCapacity value="设计容量"/>
+    <BattaryInfo value="电池祥情"/>
   </string>

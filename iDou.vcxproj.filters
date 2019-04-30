@@ -69,6 +69,9 @@
     <ClCompile Include="controls\STabCtrlTemplate.cpp">
       <Filter>ctrls</Filter>
     </ClCompile>
+    <ClCompile Include="CBaseInfoDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="iDou.rc">
@@ -108,6 +111,9 @@
     </ClInclude>
     <ClInclude Include="controls\STabCtrlTemplate.h">
       <Filter>ctrls</Filter>
+    </ClInclude>
+    <ClInclude Include="CBaseInfoDlg.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -157,6 +163,9 @@
     </Xml>
     <Xml Include="uires\values\skin.xml">
       <Filter>SoUI Resource\value</Filter>
+    </Xml>
+    <Xml Include="uires\xml\dlg_battry.xml">
+      <Filter>SoUI Resource\layout</Filter>
     </Xml>
   </ItemGroup>
   <ItemGroup>

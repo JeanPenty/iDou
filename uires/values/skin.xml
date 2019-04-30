@@ -17,4 +17,5 @@
   <colorrect name="skin_btninfo" normal="@color/infotabbknor" hover="@color/white" pushdown="@color/infotabbkpush"/>
   <imglist name="skin_icolist" src="img:png_icon_list"/>
   <imglist name="skin_iconarticle" src="img:png_icon_article"/>
+  <imglist name="skin_iphonescreen" src="img:png_iphonescreen"/>
 </skin>

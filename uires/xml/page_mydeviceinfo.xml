@@ -1,10 +1,17 @@
 ﻿<include>
   <window size="-2,-2" colorBkgnd="@color/white">
-    <window pos="0,0,@250,-0" >
-      <window layout="hbox">
-        <button text="重启" name="btn_reboot" padding="4,4,4,4"/>
-        <button text="关机" name="btn_shutdown" padding="4,4,4,4"/>
-        <button text="睡眠" name="btn_sleep" padding="4,4,4,4"/>
+    <window pos="38,10,@250,-0" >
+      <window layout="vbox" gravity="center" interval="8">
+        <img name="img_srceenshot" skin="skin_iphonescreen" colorBkgnd="#ff00ff"/>
+        <window size="-1,18" layout="hbox">
+          <edit focusable="0" name="devname" size="120,-2"/>
+          <img skin="skin_iconarticle"/>
+        </window>
+        <window layout="hbox" size="-1,-1">
+          <button text="重启" name="btn_reboot" padding="4,4,4,4"/>
+          <button text="关机" name="btn_shutdown" padding="4,4,4,4"/>
+          <button text="睡眠" name="btn_sleep" padding="4,4,4,4"/>
+        </window>
       </window>
     </window>
     <window pos="[,0,@458,@-1" font="size:12">
@@ -62,7 +69,7 @@
             <window class="info_item">
               <text text="@string/CycleLife"/>
               <text name="lable_CycleLife"  class="info_lable_item"/>
-              <text name="btn_batteryInfo" text="更多详情" class="cls_btn_weblink"/>
+              <text name="btn_batteryInfo" text="@string/BattaryInfo" class="cls_btn_weblink"/>
             </window>
             <hr size="-2,1" colorLine="@color/infoborder"/>
           </window>

@@ -1,3 +1,4 @@
+#include "CiOSDevice.h"
 #include "pch.h"
 #include "CiOSDevice.h"
 #include "../../libimobiledevice-vs/libimobiledevice/common/utils.c"
@@ -5,6 +6,9 @@
 #include <string/strcpcvt.h>
 #include "libimobiledevice/diagnostics_relay.h"
 #include <souistd.h>
+#include <libimobiledevice/screenshotr.h>
+
+#include <event/NotifyCenter.h>
 
 CiOSDevice::CiOSDevice()
 {
@@ -12,6 +16,7 @@ CiOSDevice::CiOSDevice()
 
 CiOSDevice::~CiOSDevice()
 {
+	CloseDevice();
 }
 
 bool CiOSDevice::OpenDevice(LPCSTR udid)
@@ -29,6 +34,11 @@ bool CiOSDevice::OpenDevice(LPCSTR udid)
 
 void CiOSDevice::CloseDevice()
 {
+	if (m_capThread.joinable())
+	{
+		m_bCap = false;
+		m_capThread.join();
+	}
 	if (m_device)
 	{
 		idevice_free(m_device);
@@ -81,7 +91,7 @@ bool CiOSDevice::_GetAddress(SStringT& outAddress, LPCSTR nodename)
 			uint8_t boolvalue;
 			plist_get_bool_val(address_node, &boolvalue);
 			node_value = (char*)malloc(10);
-			strcpy_s(node_value, 10, boolvalue ? "true" : false);
+			strcpy_s(node_value, 10, boolvalue ? "true" : "false");
 		}break;
 		case PLIST_ARRAY:
 		{
@@ -245,17 +255,17 @@ bool CiOSDevice::GetDeviceBaseInfo()
 	//尝试转换成电话型号名称
 	m_iosInfo.m_strDevProductName = m_iosInfo.m_strDevProductType;
 	utils::productType_to_phonename(m_iosInfo.m_strDevProductName);
-
 	//获取电池信息
-	GetGasGauge(m_iosInfo.m_sGasGauge);
-
+	_GetGasGauge(m_iosInfo.m_sGasGauge);
+	//ScreenShot();
+	m_capThread=std::thread(&CiOSDevice::ScreenShot,this);
 
 	plist_t node = NULL; char* key = NULL;
 	char* xml_doc = NULL;
 	int i = 0;
 	FILE* out;
 	out = fopen("e:\\abc.txt", "w+");//CarrierBundleInfoArray
-	const char* id[] = { "Exclu-siveChipID", "ExcluSiveChipID", "ExclusiveChipID","CFBundleVersion","InternationalMobileSubscriberIdentity","MCC","MNC",NULL
+	const char* id[] = { "firmware", "firmwareVersion", "FirmWare","CFBundleVersion","InternationalMobileSubscriberIdentity","MCC","MNC",NULL
 	};
 	while (id[i] != NULL)
 	{
@@ -269,7 +279,7 @@ bool CiOSDevice::GetDeviceBaseInfo()
 			fprintf(out, "-----------%s-------------:%s\n", id[i], "no_value");
 		}
 		++i;
-	}/*
+	}
 	i = 0;
 	while (domains[i] != NULL) {
 		if (lockdownd_get_value(m_client, domains[i], NULL, &node) == LOCKDOWN_E_SUCCESS) {
@@ -281,7 +291,7 @@ bool CiOSDevice::GetDeviceBaseInfo()
 			}
 		}
 		++i;
-	}*/
+	}/**/
 	fclose(out);
 	return true;
 }
@@ -468,7 +478,12 @@ bool CiOSDevice::DoCmd(diagnostics_cmd_mode cmd)
 	return true;
 }
 
-bool CiOSDevice::GetGasGauge(GasGauge& outasGauge)
+void CiOSDevice::GetGasGauge(GasGauge & outasGauge)
+{
+	outasGauge = m_iosInfo.m_sGasGauge;
+}
+
+bool CiOSDevice::_GetGasGauge(GasGauge & outasGauge)
 {
 	lockdownd_service_descriptor_t service = NULL;
 	diagnostics_relay_client_t diagnostics_client = NULL;
@@ -495,19 +510,19 @@ bool CiOSDevice::GetGasGauge(GasGauge& outasGauge)
 		<integer>1900</integer>
 		<key>Status</key>
 		<string>Success</string>
-	</dict>			
+	</dict>
 			*/
 			if (diagnostics_relay_request_diagnostics(diagnostics_client, "GasGauge", &node) == DIAGNOSTICS_RELAY_E_SUCCESS) {
 				if (node) {
 
-					plist_t nodeGasGauge =plist_dict_get_item(node, "GasGauge");
+					plist_t nodeGasGauge = plist_dict_get_item(node, "GasGauge");
 
-					plist_t value= plist_dict_get_item(nodeGasGauge,"CycleCount");
+					plist_t value = plist_dict_get_item(nodeGasGauge, "CycleCount");
 					if (PLIST_UINT == plist_get_node_type(value))
-					{						
+					{
 						uint64_t item_val;
 						plist_get_uint_val(value, &item_val);
-						outasGauge.CycleCount = (int)item_val;						
+						outasGauge.CycleCount = (int)item_val;
 					}
 					value = plist_dict_get_item(nodeGasGauge, "DesignCapacity");
 					if (PLIST_UINT == plist_get_node_type(value))
@@ -527,6 +542,22 @@ bool CiOSDevice::GetGasGauge(GasGauge& outasGauge)
 					plist_free(node);
 				}
 			}
+			node = NULL;
+			if (diagnostics_relay_query_ioregistry_entry(diagnostics_client, "", "", &node) == DIAGNOSTICS_RELAY_E_SUCCESS) {
+				if (node) {
+					char* xml = NULL;
+					uint32_t len = 0;
+					plist_to_xml(node, &xml, &len);
+					if (xml) {
+						puts(xml);
+					}
+					free(xml);
+					plist_free(node);
+					//print_xml(node);
+					//result = EXIT_SUCCESS;
+				}
+			}
+
 			diagnostics_relay_goodbye(diagnostics_client);
 			diagnostics_relay_client_free(diagnostics_client);
 		}
@@ -537,4 +568,43 @@ bool CiOSDevice::GetGasGauge(GasGauge& outasGauge)
 		service = NULL;
 	}
 	return true;
+}
+
+void CiOSDevice::ScreenShot()
+{
+	m_bCap = true;
+
+	lockdownd_service_descriptor_t service = NULL;;
+	lockdownd_start_service(m_client, "com.apple.mobile.screenshotr", &service);
+
+	if (service && service->port > 0) {
+		screenshotr_client_t shotr = NULL;
+		if (screenshotr_client_new(m_device, service, &shotr) != SCREENSHOTR_E_SUCCESS) {
+			goto clear;
+		}
+		else {
+			char* imgdata = NULL;
+			uint64_t imgsize = 0;
+
+			while (m_bCap)
+			{
+				if (screenshotr_take_screenshot(shotr, &imgdata, &imgsize) == SCREENSHOTR_E_SUCCESS) {
+					EventScreenShot* pScreenshotEvt = new EventScreenShot(NULL);					
+					pScreenshotEvt->code = 0;
+					pScreenshotEvt->bufsize = imgsize;
+					pScreenshotEvt->imgbuf = imgdata;
+					SOUI::SNotifyCenter::getSingleton().FireEventAsync(pScreenshotEvt);
+					pScreenshotEvt->Release();
+				}
+				std::this_thread::sleep_for(std::chrono::seconds(5));
+			}
+			screenshotr_client_free(shotr);
+		}
+	}
+
+
+clear:
+	if (service)
+		lockdownd_service_descriptor_free(service);
+
 }

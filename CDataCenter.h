@@ -6,6 +6,8 @@
 #include "iOsDeviceLib/CiOSDevice.h"
 class CiOSDeviceTreeViewAdapter;
 
+
+
 struct iOS {
 	SWindow* InfoWnd;
 	CiOSDevice iOSDevObject;
@@ -16,6 +18,8 @@ class CDataCenter:public SSingleton<CDataCenter>
 protected:
 	std::map<std::string, iOS> m_listDev;
 public:
+	CDataCenter();
+	~CDataCenter();
 	bool IsExistDev(LPCSTR guid);
 	bool GetDevName(LPCSTR udid, SStringT& outName);
 	bool AddDevGUID(LPCSTR guid, CiOSDeviceTreeViewAdapter *pAdapter);
@@ -24,12 +28,14 @@ public:
 	bool PairDev(LPCSTR id, CiOSDeviceTreeViewAdapter* pAdapter);
 	bool BindInfoWindow(LPCSTR udid, SWindow* pInfoWnd);
 	bool UpdataBaseInfo(LPCSTR udid);
-	CDataCenter();
-	~CDataCenter();
 	void ShutDown(SWindow* pWnd);
 	void Reboot(SWindow* pWnd);
 	void Sleep(SWindow* pWnd);
+	std::string GetUDIDByWindow(SWindow* pWnd);
+	const CiOSDevice* GetDevByUDID(LPCSTR udid);
+	bool GetGasGauge(LPCSTR udid, GasGauge& out);
 private:	
 	void _docmd(SWindow* pWnd, diagnostics_cmd_mode cmd);
+
 	bool _initdevbaseinfo(const iOSDevInfo&devInfo,SWindow* pInfoWnd);
 };

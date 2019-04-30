@@ -5,6 +5,9 @@
 #include <set>
 #include <string/tstring.h>
 #include "iOSUtils.h"
+#include <thread>
+#include <atomic>
+
 using SOUI::SStringT;
 EXTERN_C{
 #include <libimobiledevice/libimobiledevice.h>
@@ -27,7 +30,6 @@ struct GasGauge
 	int CycleCount;
 	int DesignCapacity;
 	int FullChargeCapacity;
-	
 };
 
 struct iOSDevInfo
@@ -64,11 +66,13 @@ public:
 	bool GetDeviceBaseInfo();
 	const iOSDevInfo& GetiOSBaseInfo();
 	bool DoCmd(diagnostics_cmd_mode cmd);
-	bool GetGasGauge(GasGauge & outasGauge);
+	void GetGasGauge(GasGauge& outasGauge);
 protected:
 	bool _GetAddress(SStringT& outAddress, LPCSTR nodename);
+	bool _GetGasGauge(GasGauge & outasGauge);
 	
 private:
+	void ScreenShot();
 	lockdownd_client_t m_client = NULL;
 	idevice_t m_device = NULL;
 public:
@@ -80,7 +84,8 @@ public:
 	static bool GetiOSDeviceGUIDList(std::vector<std::string>& iosList);
 private:
 	static void idevice_event_cb_t(const idevice_event_t* event, void* user_data);
-
+	std::thread m_capThread;
+	std::atomic_bool m_bCap=false;
 private:
 	iOSDevInfo m_iosInfo;
 };

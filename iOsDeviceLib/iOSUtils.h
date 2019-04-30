@@ -1,6 +1,10 @@
+
 #pragma once
 #ifndef __IOS_UTILS_HH__
 #define __IOS_UTILS_HH__
+
+#include <souistd.h>
+#include <event/Events.h>
 
 static const char* domains[] = {
 	"com.apple.disk_usage",
@@ -69,6 +73,20 @@ enum diagnostics_cmd_mode {
 #define NODE_IMEI "InternationalMobileEquipmentIdentity"
 #define NODE_CPUARC "CPUArchitecture"
 #define NODE_PRODUCTTYPE "ProductType"
+
+//---------------------AsyncEventStart-----------------------
+
+enum {
+	EVT_SCREEN_SHOT = SOUI::EVT_EXTERNAL_BEGIN,
+};
+
+SEVENT_BEGIN(EventScreenShot, EVT_SCREEN_SHOT)
+char* imgbuf;
+uint64_t bufsize;
+int code;
+SEVENT_END()
+
+//---------------------AsyncEventEnd-----------------------
 
 
 enum DomainsID
