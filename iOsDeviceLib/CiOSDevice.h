@@ -32,9 +32,28 @@ struct GasGauge
 	int FullChargeCapacity;
 };
 
+struct DiskInfo
+{
+	//com.apple.disk_usage
+	uint64_t TotalDataAvailable;
+	uint64_t TotalDataCapacity;
+	uint64_t TotalDiskCapacity;
+	uint64_t TotalSystemAvailable;
+	uint64_t TotalSystemCapacity;
+};
+
+enum DevType
+{
+	Type_iPhone=0,
+	Type_iPad=1,
+};
+
 struct iOSDevInfo
 {
-	SStringT m_strDevUDID;
+	DevType	 m_type;
+	SStringT m_strFirmwareVersion;//固件版本
+	SStringT m_strActivationState;//激活状态
+	SStringT m_strDevUDID;//UDID
 	SStringT m_strDevName;//设备名
 	SStringT m_strDevWiFiAddress;//wifi地址
 	SStringT m_strDevBluetoothAddress;//蓝牙地址
@@ -45,7 +64,17 @@ struct iOSDevInfo
 	SStringT m_strDevCpuarc;
 	SStringT m_strDevProductType;
 	SStringT m_strDevProductName;
+	SStringT m_strProductVersion;
+	SStringT m_strBuildVersion;
+	SStringT m_strICCD;
+	SStringT m_strMLBSerialNumber;
+	SStringT m_strUniqueChipID;
+	SStringT m_strHardwarePlatform;
+	SStringT m_strEthernetAddress;
+	SStringT m_strDeviceColor;
+	SStringT m_strRegionInfo;
 	GasGauge m_sGasGauge;
+	DiskInfo m_diskInfo;
 };
 
 class CiOSDevice
@@ -62,6 +91,7 @@ public:
 	bool SetDevName(LPCTSTR newName);
 	template<class T>
 	bool GetBattery(LPCSTR key, T& outValue);
+	
 	//获取不耗时的信息
 	bool GetDeviceBaseInfo();
 	const iOSDevInfo& GetiOSBaseInfo();
@@ -69,8 +99,10 @@ public:
 	void GetGasGauge(GasGauge& outasGauge);
 protected:
 	bool _GetAddress(SStringT& outAddress, LPCSTR nodename);
+	bool _GetDiskAddress(uint64_t& outAddress, LPCSTR nodename);
 	bool _GetGasGauge(GasGauge & outasGauge);
-	
+	void _GetTypeFromProductName();
+	void _GetDiskInfo();
 private:
 	void ScreenShot();
 	lockdownd_client_t m_client = NULL;
@@ -89,25 +121,3 @@ private:
 private:
 	iOSDevInfo m_iosInfo;
 };
-
-template<class T>
-bool CiOSDevice::GetBattery(LPCSTR key, T& outValue)
-{
-	if (!IsOpen())
-		return false;
-	plist_t node = NULL;
-	std::stringstream out;
-	if (lockdownd_get_value(m_client, domains[BATTERY], key, &node) == LOCKDOWN_E_SUCCESS) {
-		if (node) {
-			utils::plist_print_to_stringstream(node, out);
-			plist_free(node);
-			node = NULL;
-		}
-	}
-	else
-	{
-		return false;
-	}
-	out >> outValue;
-	return true;
-}

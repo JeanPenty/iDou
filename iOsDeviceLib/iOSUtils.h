@@ -73,6 +73,20 @@ enum diagnostics_cmd_mode {
 #define NODE_IMEI "InternationalMobileEquipmentIdentity"
 #define NODE_CPUARC "CPUArchitecture"
 #define NODE_PRODUCTTYPE "ProductType"
+#define NODE_PRODUCTVER "ProductVersion"
+#define NODE_FIRMWAREVER "FirmwareVersion"
+#define NODE_ACTIVATIONSTATE "ActivationState"
+#define NODE_ACTIVATIONSTATEACK "ActivationStateAcknowledged"
+#define NODE_BASEBANDVER "BasebandVersion"
+#define NODE_BUILDVERSION "BuildVersion"
+#define NODE_ICCD "IntegratedCircuitCardIdentity"
+#define NODE_MLBSN "MLBSerialNumber"
+#define NODE_UCID "UniqueChipID"
+#define NODE_HardwarePlatform "HardwarePlatform"
+#define NODE_EthernetAddress "EthernetAddress"
+#define NODE_DeviceColor "DeviceColor"
+#define NODE_RegionInfo "RegionInfo"
+#define NODE_DeviceEnclosureColor "DeviceEnclosureColor"
 
 //---------------------AsyncEventStart-----------------------
 

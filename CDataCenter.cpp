@@ -188,23 +188,41 @@ bool CDataCenter::_initdevbaseinfo(const iOSDevInfo & devInfo, SWindow * pInfoWn
 	if (pWnd)
 	{
 		pInfoWnd->FindChildByID(R.id.lable_ProductName)->SetWindowText(devInfo.m_strDevProductName);
-
+		pInfoWnd->FindChildByID(R.id.lable_FirmwareVersion)->SetWindowText(devInfo.m_strProductVersion+L"("+ devInfo.m_strBuildVersion+L")");
 		pInfoWnd->FindChildByID(R.id.lable_SerialNumber)->SetWindowText(devInfo.m_strDevSerialNumber);
-		pInfoWnd->FindChildByID(R.id.lable_ModelNumber)->SetWindowText(devInfo.m_strDevModelNumber);
-		pInfoWnd->FindChildByID(R.id.lable_WiFiAddress)->SetWindowText(devInfo.m_strDevWiFiAddress);
-		pInfoWnd->FindChildByID(R.id.lable_BluetoothAddress)->SetWindowText(devInfo.m_strDevBluetoothAddress);
+		pInfoWnd->FindChildByID(R.id.lable_ModelNumber)->SetWindowText(devInfo.m_strDevModelNumber+L" "+devInfo.m_strRegionInfo);
+		
 		pInfoWnd->FindChildByID(R.id.lable_HardwareModel)->SetWindowText(devInfo.m_strDevHardwareModel);
 		pInfoWnd->FindChildByID(R.id.lable_IMEI)->SetWindowText(devInfo.m_strDevIMEI);
 		pInfoWnd->FindChildByID(R.id.lable_ProductType)->SetWindowText(devInfo.m_strDevProductType);
 		pInfoWnd->FindChildByID(R.id.lable_UDID)->SetWindowText(devInfo.m_strDevUDID);
 		pInfoWnd->FindChildByID(R.id.lable_CycleCount)->SetWindowText(SStringT().Format(L"%d次", devInfo.m_sGasGauge.CycleCount));
 
+		pInfoWnd->FindChildByID(R.id.lable_ActivationState)->SetWindowText(devInfo.m_strActivationState==L"Activated"?L"已激活":L"未激活");
+
 		pInfoWnd->FindChildByID(R.id.btn_reboot)->SetUserData((ULONG_PTR)pInfoWnd);
 		pInfoWnd->FindChildByID(R.id.btn_shutdown)->SetUserData((ULONG_PTR)pInfoWnd);
 		pInfoWnd->FindChildByID(R.id.btn_sleep)->SetUserData((ULONG_PTR)pInfoWnd);
 		pInfoWnd->FindChildByID(R.id.btn_batteryInfo)->SetUserData((ULONG_PTR)pInfoWnd);
 
+		const WCHAR* screenskin[] = {  L"skin_iphonescreen",L"skin_ipadscreen", };
+		pInfoWnd->FindChildByID(R.id.img_srceenshot)->SetAttribute(L"skin", screenskin[devInfo.m_type]);
+
+		//pInfoWnd->FindChildByID(R.id.BaseInfoWnd)->SetAttribute(L"colorBorder", devInfo.m_strDeviceColor);
+		//换算成百分比
+		int sys = devInfo.m_diskInfo.TotalSystemAvailable * 100 / devInfo.m_diskInfo.TotalDiskCapacity;
+
+		pInfoWnd->FindChildByID(R.id.disk_sys)->GetLayoutParam()->SetAttribute(L"weight", L"",FALSE);
+		pInfoWnd->FindChildByID(R.id.disk_app)->GetLayoutParam()->SetAttribute(L"weight", L"", FALSE);
+		pInfoWnd->FindChildByID(R.id.disk_photo)->GetLayoutParam()->SetAttribute(L"weight", L"", FALSE);
+		pInfoWnd->FindChildByID(R.id.disk_av)->GetLayoutParam()->SetAttribute(L"weight", L"", FALSE);
+		pInfoWnd->FindChildByID(R.id.disk_u)->GetLayoutParam()->SetAttribute(L"weight", L"", FALSE);
+		pInfoWnd->FindChildByID(R.id.disk_other)->GetLayoutParam()->SetAttribute(L"weight", L"", FALSE);
+		pInfoWnd->FindChildByID(R.id.disk_free)->GetLayoutParam()->SetAttribute(L"weight", L"", FALSE);
+
 		return true;
 	}
 	return false;
 }
+
+

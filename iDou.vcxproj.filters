@@ -167,6 +167,9 @@
     <Xml Include="uires\xml\dlg_battry.xml">
       <Filter>SoUI Resource\layout</Filter>
     </Xml>
+    <Xml Include="uires\values\template.xml">
+      <Filter>SoUI Resource\value</Filter>
+    </Xml>
   </ItemGroup>
   <ItemGroup>
     <Image Include="uires\image\tab_main.png">

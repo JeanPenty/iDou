@@ -14,8 +14,8 @@
         </window>
       </window>
     </window>
-    <window pos="[,0,@458,@-1" font="size:12">
-      <window pos="10,10" name="BaseInfoWnd" size="-2,-1" margin="1,1,1,1" colorBorder="@color/infoborder" layout="vbox">
+    <window pos="[,0,@458,@-1" layout="vbox" font="size:12">
+      <window name="BaseInfoWnd" size="-2,-1" margin="1,1,1,1" colorBorder="@color/infoborder" layout="vbox">
         <window class="info_item" colorText="@color/black">
           <text text="unknow" name="lable_ProductName" extend_left="10"/>
           <text text="32G" inset="6,0,6,0" skin="skin_lable"/>
@@ -24,54 +24,50 @@
         <hr size="-2,1" colorLine="@color/infoborder"/>
         <window size="-2,-1" layout="hbox">
           <window size="0,-1" weight="1" padding="10,0,0,0" layout="vbox">
-            <window class="info_item">
-              <text text="@string/SerialNumber"/>
-              <text name="lable_SerialNumber" class="info_lable_item"/>
-            </window>
-            <hr size="-2,1" colorLine="@color/infoborder"/>
-            <window class="info_item">
-              <text text="@string/ModelNumber"/>
-              <text name="lable_ModelNumber"  class="info_lable_item"/>
-            </window>
-            <hr size="-2,1" colorLine="@color/infoborder"/>
-            <window class="info_item">
-              <text text="@string/WiFiAddress"/>
-              <text name="lable_WiFiAddress"  class="info_lable_item"/>
-            </window>
-            <hr size="-2,1" colorLine="@color/infoborder"/>
-            <window class="info_item">
-              <text text="@string/BluetoothAddress"/>
-              <text name="lable_BluetoothAddress"  class="info_lable_item"/>
-            </window>
-            <hr size="-2,1" colorLine="@color/infoborder"/>
-            <window class="info_item">
-              <text text="@string/HardwareModel"/>
-              <text name="lable_HardwareModel"  class="info_lable_item"/>
-            </window>
-            <hr size="-2,1" colorLine="@color/infoborder"/>
-            <window class="info_item">
-              <text text="@string/IMEI"/>
-              <text name="lable_IMEI"  class="info_lable_item"/>
-            </window>
-            <hr size="-2,1" colorLine="@color/infoborder"/>
-            <window class="info_item">
-              <text text="@string/ProductType"/>
-              <text name="lable_ProductType" class="info_lable_item"/>
-            </window>
+            <t:info_item>
+              <data title="@string/FirmwareVersion" name="lable_FirmwareVersion"/>
+            </t:info_item>
+            <hr class="hr_vcss"/>
+            <t:info_item>
+              <data title="@string/cyda" name="lable_FirmwareVersion"/>
+            </t:info_item>
+            <hr class="hr_vcss"/>
+            <t:info_item>
+              <data title="@string/ActivationState" name="lable_ActivationState"/>
+            </t:info_item>
+            <hr class="hr_vcss"/>
+            <t:info_item>
+              <data title="@string/ProductType" name="lable_ProductType"/>
+            </t:info_item>
+            <hr class="hr_vcss"/>           
+            <t:info_item>
+              <data title="@string/ModelNumber" name="lable_ModelNumber"/>
+            </t:info_item>
+            <hr class="hr_vcss"/>
+            <t:info_item>
+              <data title="@string/IMEI" name="lable_IMEI"/>
+            </t:info_item>           
+             <hr class="hr_vcss"/>
+            <t:info_item>
+              <data title="@string/SerialNumber" name="lable_SerialNumber"/>
+            </t:info_item>
+            <hr class="hr_vcss"/>           
+            <t:info_item>
+              <data title="@string/HardwareModel" name="lable_HardwareModel"/>
+            </t:info_item>
           </window>
           <hr size="1,-2" mode="vertical" colorLine="@color/infoborder"/>
           <window size="0,-1" weight="1"  padding="10,0,0,0" layout="vbox">
-            <window class="info_item">
-              <text text="@string/CycleCount"/>
-              <text name="lable_CycleCount"  class="info_lable_item"/>
-            </window>
-            <hr size="-2,1" colorLine="@color/infoborder"/>
+            <t:info_item>
+              <data  title="@string/CycleCount" name="lable_CycleCount"/>
+            </t:info_item>
+            <hr  class="hr_vcss"/>
             <window class="info_item">
               <text text="@string/CycleLife"/>
               <text name="lable_CycleLife"  class="info_lable_item"/>
               <text name="btn_batteryInfo" text="@string/BattaryInfo" class="cls_btn_weblink"/>
             </window>
-            <hr size="-2,1" colorLine="@color/infoborder"/>
+            <hr class="hr_vcss"/>
           </window>
         </window>
         <hr size="-2,1" colorLine="@color/infoborder"/>
@@ -95,6 +91,48 @@
             <text weight="1"/>
           </window>
         </window>
+      </window>
+      <window extend_top="10" size="-2,-1" layout="hbox">
+        <text text="硬盘容量"/>
+        <text weight="1"/>
+        <text text="xxxGB/XXXGB"/>
+      </window>
+      <window size="-2,-1" display="0" layout="vbox">
+        <window size="-2,9" layout="hbox">
+          <window name="disk_sys" size="0,-2" weight="22" colorBkgnd="@color/disk_sys" />
+          <window name="disk_app"  size="0,-2" weight="22" colorBkgnd="@color/disk_app"/>
+          <window name="disk_photo"  size="0,-2" weight="10" colorBkgnd="@color/disk_photo"/>
+          <window name="disk_av"  size="0,-2" weight="7" colorBkgnd="@color/disk_av"/>
+          <window name="disk_u"  size="0,-2" weight="0" colorBkgnd="@color/disk_u"/>
+          <window name="disk_other"  size="0,-2" weight="23" colorBkgnd="@color/disk_other"/>
+          <window name="disk_free"  size="0,-2" weight="22" colorBkgnd="@color/disk_free"/>
+        </window>
+        <window size="-2,-1" layout="hbox" extend_top="6">
+          <t:dsk_info>
+            <data colorBkgnd="@color/disk_sys" title="@string/system"/>
+          </t:dsk_info>
+          <t:dsk_info>
+            <data colorBkgnd="@color/disk_app" title="@string/app"/>
+          </t:dsk_info>
+          <t:dsk_info>
+            <data colorBkgnd="@color/disk_photo" title="@string/photo"/>
+          </t:dsk_info>
+          <t:dsk_info>
+            <data colorBkgnd="@color/disk_av" title="@string/av"/>
+          </t:dsk_info>
+          <t:dsk_info>
+            <data colorBkgnd="@color/disk_u" title="@string/udisk"/>
+          </t:dsk_info>
+          <t:dsk_info>
+            <data colorBkgnd="@color/disk_other" title="@string/other"/>
+          </t:dsk_info>
+          <t:dsk_info>
+            <data colorBkgnd="@color/disk_free" title="@string/free"/>
+          </t:dsk_info>
+        </window>
+      </window>
+      <window size="-2,-1" display="0">
+
       </window>
     </window>
   </window>

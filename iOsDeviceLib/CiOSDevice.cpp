@@ -1,4 +1,5 @@
 #include "CiOSDevice.h"
+#include "CiOSDevice.h"
 #include "pch.h"
 #include "CiOSDevice.h"
 #include "../../libimobiledevice-vs/libimobiledevice/common/utils.c"
@@ -117,6 +118,20 @@ bool CiOSDevice::_GetAddress(SStringT& outAddress, LPCSTR nodename)
 	}
 }
 
+bool CiOSDevice::_GetDiskAddress(uint64_t & outAddress, LPCSTR nodename)
+{
+	plist_t address_node = NULL;
+	if (LOCKDOWN_E_SUCCESS == lockdownd_get_value(m_client, domains[0], nodename, &address_node))
+	{
+		plist_type type = plist_get_node_type(address_node);
+		plist_get_uint_val(address_node, &outAddress);
+		plist_free(address_node);
+		address_node = NULL;
+		return true;
+	}
+	return false;
+}
+
 bool CiOSDevice::GetWifiAddress(SStringT & outMac)
 {
 	if (m_iosInfo.m_strDevWiFiAddress.IsEmpty())
@@ -226,12 +241,53 @@ bool _GetAddress(lockdownd_client_t client, SOUI::SStringA & outAddress, LPCSTR 
 	}
 }
 
+void CiOSDevice::_GetTypeFromProductName()
+{
+	m_iosInfo.m_type = Type_iPhone;
+
+	SStringT dev = m_iosInfo.m_strDevProductName;
+	dev.MakeLower();
+	if (dev.Find(L"iphone") != -1)
+	{
+		m_iosInfo.m_type = Type_iPhone;
+		return;
+	}
+	if (dev.Find(L"ipad") != -1)
+	{
+		m_iosInfo.m_type = Type_iPad;
+		return;
+	}
+}
+
+void CiOSDevice::_GetDiskInfo()
+{
+	_GetDiskAddress(m_iosInfo.m_diskInfo.TotalDiskCapacity, "TotalDiskCapacity");
+	_GetDiskAddress(m_iosInfo.m_diskInfo.TotalDataAvailable, "TotalDataAvailable");
+	_GetDiskAddress(m_iosInfo.m_diskInfo.TotalDataCapacity, "TotalDataCapacity");
+	_GetDiskAddress(m_iosInfo.m_diskInfo.TotalSystemCapacity, "TotalSystemCapacity");
+}
+
 bool CiOSDevice::GetDeviceBaseInfo()
 {
 	if (!IsOpen())
 		return false;
 	//设备名
 	_GetAddress(m_iosInfo.m_strDevName, NODE_DEVICENAME);
+
+	_GetAddress(m_iosInfo.m_strFirmwareVersion, NODE_FIRMWAREVER);
+
+	_GetAddress(m_iosInfo.m_strActivationState, NODE_ACTIVATIONSTATE);
+
+	_GetAddress(m_iosInfo.m_strProductVersion, NODE_PRODUCTVER);
+	_GetAddress(m_iosInfo.m_strBuildVersion, NODE_BUILDVERSION);
+	_GetAddress(m_iosInfo.m_strICCD, NODE_ICCD);
+
+	_GetAddress(m_iosInfo.m_strMLBSerialNumber, NODE_MLBSN);
+	_GetAddress(m_iosInfo.m_strUniqueChipID, NODE_UCID);
+	_GetAddress(m_iosInfo.m_strHardwarePlatform, NODE_HardwarePlatform);
+	_GetAddress(m_iosInfo.m_strEthernetAddress, NODE_EthernetAddress);
+	_GetAddress(m_iosInfo.m_strDeviceColor, NODE_DeviceColor);
+	_GetAddress(m_iosInfo.m_strRegionInfo, NODE_RegionInfo);
 	//wifi address
 	_GetAddress(m_iosInfo.m_strDevWiFiAddress, NODE_WIFI_ADDRESS);
 	m_iosInfo.m_strDevWiFiAddress = m_iosInfo.m_strDevWiFiAddress.MakeUpper();
@@ -254,32 +310,24 @@ bool CiOSDevice::GetDeviceBaseInfo()
 	_GetAddress(m_iosInfo.m_strDevProductType, NODE_PRODUCTTYPE);
 	//尝试转换成电话型号名称
 	m_iosInfo.m_strDevProductName = m_iosInfo.m_strDevProductType;
+
+	_GetTypeFromProductName();
+
 	utils::productType_to_phonename(m_iosInfo.m_strDevProductName);
 	//获取电池信息
 	_GetGasGauge(m_iosInfo.m_sGasGauge);
-	//ScreenShot();
-	m_capThread=std::thread(&CiOSDevice::ScreenShot,this);
 
+	_GetDiskInfo();
+
+	//ScreenShot();
 	plist_t node = NULL; char* key = NULL;
 	char* xml_doc = NULL;
 	int i = 0;
 	FILE* out;
 	out = fopen("e:\\abc.txt", "w+");//CarrierBundleInfoArray
-	const char* id[] = { "firmware", "firmwareVersion", "FirmWare","CFBundleVersion","InternationalMobileSubscriberIdentity","MCC","MNC",NULL
+	const char* id[] = { "ProductVersion", "FirmwareVersion", "ActivationState","ActivationStateAcknowledged","BasebandVersion","BuildVersion","IntegratedCircuitCardIdentity",NULL
 	};
-	while (id[i] != NULL)
-	{
-		SOUI::SStringA strout;
-		if (::_GetAddress(m_client, strout, id[i]))
-		{
-			fprintf(out, "-----------%s-------------:%s\n", id[i], strout);
-		}
-		else
-		{
-			fprintf(out, "-----------%s-------------:%s\n", id[i], "no_value");
-		}
-		++i;
-	}
+
 	i = 0;
 	while (domains[i] != NULL) {
 		if (lockdownd_get_value(m_client, domains[i], NULL, &node) == LOCKDOWN_E_SUCCESS) {
@@ -293,6 +341,9 @@ bool CiOSDevice::GetDeviceBaseInfo()
 		++i;
 	}/**/
 	fclose(out);
+
+	m_capThread = std::thread(&CiOSDevice::ScreenShot, this);
+
 	return true;
 }
 
@@ -589,7 +640,7 @@ void CiOSDevice::ScreenShot()
 			while (m_bCap)
 			{
 				if (screenshotr_take_screenshot(shotr, &imgdata, &imgsize) == SCREENSHOTR_E_SUCCESS) {
-					EventScreenShot* pScreenshotEvt = new EventScreenShot(NULL);					
+					EventScreenShot* pScreenshotEvt = new EventScreenShot(NULL);
 					pScreenshotEvt->code = 0;
 					pScreenshotEvt->bufsize = imgsize;
 					pScreenshotEvt->imgbuf = imgdata;
@@ -607,4 +658,26 @@ clear:
 	if (service)
 		lockdownd_service_descriptor_free(service);
 
+}
+
+template<class T>
+bool CiOSDevice::GetBattery(LPCSTR key, T & outValue)
+{
+	if (!IsOpen())
+		return false;
+	plist_t node = NULL;
+	std::stringstream out;
+	if (lockdownd_get_value(m_client, domains[BATTERY], key, &node) == LOCKDOWN_E_SUCCESS) {
+		if (node) {
+			utils::plist_print_to_stringstream(node, out);
+			plist_free(node);
+			node = NULL;
+		}
+	}
+	else
+	{
+		return false;
+	}
+	out >> outValue;
+	return true;
 }

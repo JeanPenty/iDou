@@ -11,5 +11,12 @@
   <infotabbkpush value="#f4f4f4"/>
   <infotabbknor value="#f0f0f0"/>
   <infoborder value="#dddddd"/>
+  <disk_sys value="#8dcf66"/>
+  <disk_app value="#3d9aff"/>
+  <disk_photo value="#ef70a8"/>
+  <disk_other value="#26c9c5"/>
+  <disk_u value="#a962ff"/>
+  <disk_av value="#e5c750"/>
+  <disk_free value="#e6e6e6"/>
 </color> 
  

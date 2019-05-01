@@ -18,4 +18,5 @@
   <imglist name="skin_icolist" src="img:png_icon_list"/>
   <imglist name="skin_iconarticle" src="img:png_icon_article"/>
   <imglist name="skin_iphonescreen" src="img:png_iphonescreen"/>
+  <imglist name="skin_ipadscreen" src="img:png_ipadscreen"/>
 </skin>
