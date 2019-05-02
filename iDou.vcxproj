@@ -249,6 +249,7 @@
     <Xml Include="uires\values\skin.xml" />
     <Xml Include="uires\values\string.xml" />
     <Xml Include="uires\values\template.xml" />
+    <Xml Include="uires\xml\dlg_all.xml" />
     <Xml Include="uires\xml\dlg_battry.xml" />
     <Xml Include="uires\xml\dlg_main.xml">
       <SubType>Designer</SubType>

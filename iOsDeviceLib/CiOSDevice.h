@@ -72,9 +72,14 @@ struct iOSDevInfo
 	SStringT m_strHardwarePlatform;
 	SStringT m_strEthernetAddress;
 	SStringT m_strDeviceColor;
+	SStringT m_strDeviceEnclosureColor;
 	SStringT m_strRegionInfo;
+	SStringT m_strPhoneNum;
+
+
 	GasGauge m_sGasGauge;
 	DiskInfo m_diskInfo;
+
 };
 
 class CiOSDevice

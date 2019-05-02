@@ -45,7 +45,7 @@ namespace utils
 			key = NULL;
 			plist_node_print_to_stringstream(subnode, indent_level, stream);
 			plist_dict_next_item(node, it, &key, &subnode);
-			if(subnode)
+			if (subnode)
 				stream << std::endl;
 		}
 		free(it);
@@ -75,17 +75,17 @@ namespace utils
 
 		case PLIST_UINT:
 			plist_get_uint_val(node, &u);
-			stream << u ;
+			stream << u;
 			break;
 
 		case PLIST_REAL:
 			plist_get_real_val(node, &d);
-			stream << d ;
+			stream << d;
 			break;
 
 		case PLIST_STRING:
 			plist_get_string_val(node, &s);
-			stream << s ;
+			stream << s;
 			free(s);
 			break;
 
@@ -122,7 +122,7 @@ namespace utils
 				}
 			}
 			if (s) {
-				stream << s ;
+				stream << s;
 				free(s);
 			}
 			break;
@@ -166,6 +166,7 @@ namespace utils
 			plist_node_print_to_stringstream(plist, &indent, stream);
 		}
 	}
+
 
 	std::map<std::wstring, std::wstring> g_mapDevproductType = {
 		//iPhone
@@ -245,13 +246,305 @@ namespace utils
 		{L"x86_64", L"Simulator"}
 	};
 
-	void productType_to_phonename(SOUI::SStringT& productType)
+	void productType_to_phonename(SOUI::SStringT &productType)
 	{
 		std::wstring strProductType = productType.MakeLower();
-		auto ite=g_mapDevproductType.find(strProductType);
+		auto ite = g_mapDevproductType.find(strProductType);
 		if (ite != g_mapDevproductType.end())
 		{
 			productType = ite->second.c_str();
 		}
+	}
+
+	std::map<std::wstring, int> g_mapDevID = {
+		//iPhone
+		{L"iphone1,1",0},
+		{L"iphone1,2",1},
+		{L"iphone2,1",1},
+		{L"iphone3,1",2},
+		{L"iphone3,2",2},
+		{L"iphone3,3",2},
+		{L"iphone4,1",2},
+		{L"iphone4,2",2},
+		{L"iphone4,3",2},
+		{L"iphone5,1",3},//ip5
+		{L"iphone5,2",3},
+		{L"iphone5,3",4},//ip5c
+		{L"iphone5,4",4},
+		{L"iphone6,1",5},//ip5s
+		{L"iphone6,2",5},
+		{L"iphone7,2",6},//ip6/6p
+		{L"iphone7,1",6},
+		{L"iphone8,1",7},//ip6s/6sp
+		{L"iphone8,2",7},
+		{L"iphone8,4",8},//se
+		{L"iphone9,1",9},//ip7/7p
+		{L"iphone9,2",9},
+		{L"iphone9,3",9},
+		{L"iphone9,4",9},
+		{L"iphone10.1",10},//8 X
+		{L"iphone10.2",10},
+		{L"iphone10.3",11},
+		{L"iphone10.4",10},
+		{L"iphone10.5",10},
+		{L"iphone10.6",11},
+	};
+
+	SOUI::SStringT getphonecolor(SOUI::SStringT DevProductType, const SOUI::SStringT & DeviceColor, const SOUI::SStringT & DeviceEnclosureColor,
+		SOUI::SStringT & outDeviceColor, SOUI::SStringT & outDeviceEnclosureColor)
+	{
+		std::wstring strProductType = DevProductType.MakeLower();
+		auto ite = g_mapDevID.find(strProductType);
+		SOUI::SStringT ouColor = L"#ffffff";
+		outDeviceColor = L"未知色";
+		outDeviceEnclosureColor = L"未知色";
+		if (ite != g_mapDevID.end())
+		{
+			switch (ite->second)
+			{
+			case 3://ip5
+			{
+				//#3b3b3c #99989b
+				if (DeviceEnclosureColor == L"#99989b")
+				{
+					outDeviceColor = L"黑色";
+					outDeviceEnclosureColor = L"黑色";
+					ouColor = L"#000000";
+				}
+				//#e1e4e3 #d7d9d8
+				else if (DeviceEnclosureColor == L"#d7d9d8")
+				{
+					outDeviceColor = L"白色";
+					outDeviceEnclosureColor = L"白色";
+				}
+			}break;
+			case 4://ip5c
+			{
+				//#f5f4f7
+				if (DeviceEnclosureColor == L"#f5f4f7")
+				{
+					outDeviceColor = L"白色";
+					outDeviceEnclosureColor = L"白色";
+				}
+				//#fe767a
+				else if (DeviceEnclosureColor == L"#fe767a")
+				{
+					outDeviceColor = L"粉色";
+					outDeviceEnclosureColor = L"粉色";
+					ouColor = L"#fe767a";
+				}
+				//#faf189
+				else if (DeviceEnclosureColor == L"#faf189")
+				{
+					outDeviceColor = L"黄色";
+					outDeviceEnclosureColor = L"黄色";
+					ouColor = L"#faf189";
+				}
+				//#46abe0
+				else if (DeviceEnclosureColor == L"#46abe0")
+				{
+					outDeviceColor = L"蓝色";
+					outDeviceEnclosureColor = L"蓝色";
+					ouColor = L"#46abe0";
+
+				}
+				//#a1e877
+				else if (DeviceEnclosureColor == L"#a1e877")
+				{
+					outDeviceColor = L"绿色";
+					outDeviceEnclosureColor = L"绿色";
+					ouColor = L"#a1e877";
+
+				}
+			}break;
+			case 5://ip5s
+			{
+				//#99989b
+				if (DeviceEnclosureColor == L"#99989b")
+				{
+					outDeviceColor = L"黑色";
+					outDeviceEnclosureColor = L"太空灰";
+					ouColor = L"#99989b";
+				}
+
+				//#d7d9d8
+				else if (DeviceEnclosureColor == L"#d7d9d8")
+				{
+					outDeviceColor = L"白色";
+					outDeviceEnclosureColor = L"银白色";
+					ouColor = L"#d7d9d8";
+				}
+				//#d4c5b3
+				else if (DeviceEnclosureColor == L"#d4c5b3")
+				{
+					outDeviceColor = L"太空灰";
+					outDeviceEnclosureColor = L"金色";
+					ouColor = L"#d4c5b3";
+				}
+			}break;
+			case 6://ip6/6p
+			{
+				//#b4b5b9
+				if (DeviceEnclosureColor == L"#b4b5b9")
+				{
+					outDeviceColor = L"黑色";
+					outDeviceEnclosureColor = L"太空灰";
+					ouColor = L"#b4b5b9";
+				}
+				//#d7d9d8
+				else if (DeviceEnclosureColor == L"#d7d9d8")
+				{
+					outDeviceColor = L"白色";
+					outDeviceEnclosureColor = L"银白色";
+					ouColor = L"#99989b";
+				}
+				//#e1ccb5
+				else if (DeviceEnclosureColor == L"#e1ccb5")
+				{
+					outDeviceColor = L"白色";
+					outDeviceEnclosureColor = L"金色";
+					ouColor = L"#99989b";
+				}
+			}break;
+			case 7://ip6s/6sp
+			{
+				//#b9b7ba
+				if (DeviceEnclosureColor == L"#b9b7ba")
+				{
+					outDeviceColor = L"黑色";
+					outDeviceEnclosureColor = L"太空灰";
+					ouColor = L"#b9b7ba";
+				}
+				//#dadcdb
+				else if (DeviceEnclosureColor == L"#dadcdb")
+				{
+					outDeviceColor = L"白色";
+					outDeviceEnclosureColor = L"银白色";
+					ouColor = L"#dadcdb";
+				}
+				//#e1ccb7
+				else if (DeviceEnclosureColor == L"#e1ccb7")
+				{
+					outDeviceColor = L"白色";
+					outDeviceEnclosureColor = L"金色";
+					ouColor = L"#e1ccb7";
+				}
+				//#e4c1b9
+				else if (DeviceEnclosureColor == L"#e4c1b9")
+				{
+					outDeviceColor = L"白色";
+					outDeviceEnclosureColor = L"玫瑰金色";
+					ouColor = L"#e4c1b9";
+				}
+			}break;
+			case 8://ip se
+			{
+				//#aeb1b8
+				if (DeviceEnclosureColor == L"#aeb1b8")
+				{
+					outDeviceColor = L"黑色";
+					outDeviceEnclosureColor = L"太空灰";
+					ouColor = L"#aeb1b8";
+				}
+				//#dcdede
+				else if (DeviceEnclosureColor == L"#dcdede")
+				{
+					outDeviceColor = L"白色";
+					outDeviceEnclosureColor = L"银白色";
+					ouColor = L"#dcdede";
+				}
+				//#d6c8b9
+				else if (DeviceEnclosureColor == L"#d6c8b9")
+				{
+					outDeviceColor = L"白色";
+					outDeviceEnclosureColor = L"金色";
+					ouColor = L"#d6c8b9";
+				}
+				//#e5bdb5
+				else if (DeviceEnclosureColor == L"#e5bdb5")
+				{
+					outDeviceColor = L"白色";
+					outDeviceEnclosureColor = L"玫瑰金色";
+					ouColor = L"#e5bdb5";
+				}
+			}break;
+			case 9://ip 7
+			{
+				if (DeviceEnclosureColor == L"2")
+				{
+					outDeviceColor = L"黑色";
+					outDeviceEnclosureColor = L"太空灰";
+					ouColor = L"#aeb1b8";
+				}
+				else if (DeviceEnclosureColor == L"3")
+				{
+					outDeviceColor = L"白色";
+					outDeviceEnclosureColor = L"银白色";
+					ouColor = L"#d6c8b9";
+				}
+				else if (DeviceEnclosureColor == L"4")
+				{
+					outDeviceColor = L"白色";
+					outDeviceEnclosureColor = L"金色";
+					ouColor = L"#e5bdb5";
+				}
+				else if (DeviceEnclosureColor == L"1")
+				{
+					outDeviceColor = L"黑色";
+					outDeviceEnclosureColor = L"黑色";
+					ouColor = L"#000000";
+				}
+				else if (DeviceEnclosureColor == L"5")
+				{
+					outDeviceColor = L"黑色";
+					outDeviceEnclosureColor = L"乌黑色";
+					ouColor = L"#000000";
+				}
+				else if (DeviceEnclosureColor == L"6")
+				{
+					outDeviceColor = L"银色";
+					outDeviceEnclosureColor = L"红色";
+					ouColor = L"#ff0000";
+				}
+			}break;
+			case 10://ip 8
+			{
+				if (DeviceEnclosureColor == L"1")
+				{
+					outDeviceColor = L"黑色";
+					outDeviceEnclosureColor = L"太空灰";
+					ouColor = L"#aeb1b8";
+				}
+				else if (DeviceEnclosureColor == L"2")
+				{
+					outDeviceColor = L"白色";
+					outDeviceEnclosureColor = L"银白色";
+					ouColor = L"#dcdede";
+				}
+				else if (DeviceEnclosureColor == L"3")
+				{
+					outDeviceColor = L"白色";
+					outDeviceEnclosureColor = L"金色";
+					ouColor = L"#d6c8b9";
+				}
+			}break;
+			case 11://ip x
+			{
+				if (DeviceEnclosureColor == L"1")
+				{
+					outDeviceColor = L"黑色";
+					outDeviceEnclosureColor = L"太空灰";
+					ouColor = L"#aeb1b8";
+				}
+				else if (DeviceEnclosureColor == L"2")
+				{
+					outDeviceColor = L"白色";
+					outDeviceEnclosureColor = L"银白色";
+					ouColor = L"#dcdede";
+				}
+			}break;			
+			}
+		}
+		return ouColor;
 	}
 }

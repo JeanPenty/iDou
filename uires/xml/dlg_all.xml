@@ -1,0 +1,42 @@
+﻿<SOUI width="388" height="-1"  margin="5,5,5,5"  resizable="0" toolWindow="1" translucent="1">
+  <root skin="skin_bk" cache="1">
+    <window size="-2,-1" layout="vbox" padding="1,1,1,1">
+    <caption size="-2,38" layout="hbox" gravity="top" colorText="#ffffff">
+      <text extend_left="10" text="@string/DevInfo" layout_gravity="center"/>
+      <text weight="1"/>
+      <imgbtn id="IDOK" skin="_skin.sys.btn.close" tip="close" animate="1"/>
+    </caption>
+      <window size="-2,-1" layout="vbox" colorBkgnd="#ffffff" padding="10,10,10,10">
+        <t:info_item>
+          <data title="@string/CycleCount" name="lable_CycleCount"/>
+        </t:info_item>
+        <hr size="-2,1" colorLine="@color/infoborder"/>
+        <t:info_item>
+          <data title="@string/ActuallyCapacity" name="lable_ActuallyCapacity"/>
+        </t:info_item>
+        <hr size="-2,1" colorLine="@color/infoborder"/>
+        <t:info_item>
+          <data title="@string/DesignCapacity" name="lable_DesignCapacity"/>
+        </t:info_item>
+        <hr size="-2,1" colorLine="@color/infoborder"/>
+        <t:info_item>
+          <data title="@string/CycleLife" name="lable_CycleLife"/>
+        </t:info_item>
+        <hr size="-2,1" colorLine="@color/infoborder"/>
+        <t:info_item>
+          <data title="@string/HardwareModel" name="lable_HardwareModel"/>
+        </t:info_item>
+        <hr size="-2,1" colorLine="@color/infoborder"/>
+        <t:info_item>
+          <data title="@string/CycleLife" name="lable_CycleLife"/>
+        </t:info_item>
+
+        <hr size="-2,1" colorLine="@color/infoborder"/>
+        <t:info_item>
+          <data title="@string/CycleLife" name="lable_CycleLife"/>
+        </t:info_item>
+
+      </window>
+    </window>
+  </root>
+</SOUI>

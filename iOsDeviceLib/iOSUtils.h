@@ -81,13 +81,13 @@ enum diagnostics_cmd_mode {
 #define NODE_BUILDVERSION "BuildVersion"
 #define NODE_ICCD "IntegratedCircuitCardIdentity"
 #define NODE_MLBSN "MLBSerialNumber"
-#define NODE_UCID "UniqueChipID"
+#define NODE_DID "DieID"
 #define NODE_HardwarePlatform "HardwarePlatform"
 #define NODE_EthernetAddress "EthernetAddress"
 #define NODE_DeviceColor "DeviceColor"
 #define NODE_RegionInfo "RegionInfo"
 #define NODE_DeviceEnclosureColor "DeviceEnclosureColor"
-
+#define NODE_PhoneNumber "PhoneNumber"
 //---------------------AsyncEventStart-----------------------
 
 enum {
@@ -117,6 +117,8 @@ namespace utils
 {
 	void productType_to_phonename(SOUI::SStringT &productType);
 	void plist_print_to_stringstream(plist_t plist, std::stringstream& stream);
+	SOUI::SStringT getphonecolor(SOUI::SStringT DevProductType,const SOUI::SStringT& DeviceColor,
+		const SOUI::SStringT& DeviceEnclosureColor, SOUI::SStringT& outDeviceColor, SOUI::SStringT& outDeviceEnclosureColor);
 }
 
 

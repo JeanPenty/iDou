@@ -20,6 +20,7 @@
     <ProductType value="产品类型"/>
     <ShowDevCheck value="查看验机报告"/>
     <ShowDevInfo value="查看设备祥情"/>
+    <DevInfo value="设备祥情"/>
     <cantread value="无"/>
     <CycleCount value="充电次数"/>
     <CycleLife value="电池寿命"/>

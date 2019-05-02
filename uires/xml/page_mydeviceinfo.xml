@@ -18,8 +18,8 @@
       <window name="BaseInfoWnd" size="-2,-1" margin="1,1,1,1" colorBorder="@color/infoborder" layout="vbox">
         <window class="info_item" colorText="@color/black">
           <text text="unknow" name="lable_ProductName" extend_left="10"/>
-          <text text="32G" inset="6,0,6,0" skin="skin_lable"/>
-          <text text="土豪金"/>
+          <text text="32G" name="lable_DiskSize" inset="12,0,12,0" skin="skin_lable"/>
+          <text extend_left="8" text="土豪金" name="lable_DevColor"/>
         </window>
         <hr size="-2,1" colorLine="@color/infoborder"/>
         <window size="-2,-1" layout="hbox">
@@ -39,19 +39,19 @@
             <t:info_item>
               <data title="@string/ProductType" name="lable_ProductType"/>
             </t:info_item>
-            <hr class="hr_vcss"/>           
+            <hr class="hr_vcss"/>
             <t:info_item>
               <data title="@string/ModelNumber" name="lable_ModelNumber"/>
             </t:info_item>
             <hr class="hr_vcss"/>
             <t:info_item>
               <data title="@string/IMEI" name="lable_IMEI"/>
-            </t:info_item>           
-             <hr class="hr_vcss"/>
+            </t:info_item>
+            <hr class="hr_vcss"/>
             <t:info_item>
               <data title="@string/SerialNumber" name="lable_SerialNumber"/>
             </t:info_item>
-            <hr class="hr_vcss"/>           
+            <hr class="hr_vcss"/>
             <t:info_item>
               <data title="@string/HardwareModel" name="lable_HardwareModel"/>
             </t:info_item>
@@ -84,7 +84,7 @@
             <text weight="1"/>
           </window>
           <hr size="1,-2" mode="vertical" colorLine="@color/infoborder"/>
-          <window class="info_btn" name="btn_">
+          <window class="info_btn" name="btn_showDevInfo">
             <text weight="1"/>
             <img skin="skin_icolist"/>
             <text text="@string/ShowDevInfo"/>
@@ -92,12 +92,13 @@
           </window>
         </window>
       </window>
-      <window extend_top="10" size="-2,-1" layout="hbox">
-        <text text="硬盘容量"/>
-        <text weight="1"/>
-        <text text="xxxGB/XXXGB"/>
-      </window>
-      <window size="-2,-1" display="0" layout="vbox">
+      
+      <window name="wnd_ipaddsk" size="-2,-1" display="0" layout="vbox">
+        <window extend_top="10" size="-2,-1" layout="hbox">
+          <text text="硬盘容量"/>
+          <text weight="1"/>
+          <text text="xxxGB/XXXGB" name="lable_fudisk"/>
+        </window>
         <window size="-2,9" layout="hbox">
           <window name="disk_sys" size="0,-2" weight="22" colorBkgnd="@color/disk_sys" />
           <window name="disk_app"  size="0,-2" weight="22" colorBkgnd="@color/disk_app"/>
@@ -131,9 +132,60 @@
           </t:dsk_info>
         </window>
       </window>
-      <window size="-2,-1" display="0">
-
+      <window name="wnd_iphonedsk" size="-2,-1" display="0" layout="hbox">
+        <window size="0,-1" weight="1" layout="vbox" inset="0,0,10,0">
+          <window extend_top="10" size="-2,-1" layout="hbox">
+            <text text="系统区"/>
+            <text weight="1"/>
+            <text text="xxxGB/XXXGB" name="lable_sysdisk"/>
+          </window>
+          <window size="-2,9" layout="hbox">
+            <window name="disk_sys" size="0,-2" weight="22" colorBkgnd="@color/disk_sys" />            
+            <window name="disk_free"  size="0,-2" weight="22" colorBkgnd="@color/disk_free"/>
+          </window>
+          <window size="-2,-1" layout="hbox" extend_top="6">
+            <t:dsk_info>
+              <data colorBkgnd="@color/disk_sys" title="@string/system"/>
+            </t:dsk_info>
+            <t:dsk_info>
+              <data colorBkgnd="@color/disk_free" title="@string/free"/>
+            </t:dsk_info>
+          </window>          
+        </window>
+        <window size="0,-1" weight="1" layout="vbox"  inset="10,0,0,0">
+          <window extend_top="10" size="-2,-1" layout="hbox">
+            <text text="数据区"/>
+            <text weight="1"/>
+            <text text="xxxGB/XXXGB" name="lable_datadisk"/>
+          </window>
+          <window size="-2,9" layout="hbox">
+            <window name="disk_app"  size="0,-2" weight="22" colorBkgnd="@color/disk_app"/>
+            <window name="disk_photo"  size="0,-2" weight="10" colorBkgnd="@color/disk_photo"/>
+            <window name="disk_av"  size="0,-2" weight="7" colorBkgnd="@color/disk_av"/>
+            <window name="disk_u"  size="0,-2" weight="0" colorBkgnd="@color/disk_u"/>
+            <window name="disk_other"  size="0,-2" weight="23" colorBkgnd="@color/disk_other"/>
+            <window name="disk_free"  size="0,-2" weight="22" colorBkgnd="@color/disk_free"/>
+          </window>
+          <window size="-2,-1" layout="hbox" extend_top="6">            
+            <t:dsk_info>
+              <data colorBkgnd="@color/disk_app" title="@string/app"/>
+            </t:dsk_info>
+            <t:dsk_info>
+              <data colorBkgnd="@color/disk_photo" title="@string/photo"/>
+            </t:dsk_info>
+            <t:dsk_info>
+              <data colorBkgnd="@color/disk_av" title="@string/av"/>
+            </t:dsk_info>
+            <t:dsk_info>
+              <data colorBkgnd="@color/disk_u" title="@string/udisk"/>
+            </t:dsk_info>
+            <t:dsk_info>
+              <data colorBkgnd="@color/disk_other" title="@string/other"/>
+            </t:dsk_info>
+          </window>
+        </window>       
       </window>
+
     </window>
   </window>
 </include>

@@ -8,6 +8,7 @@
     <file name="XML_MyDevice" path="xml\page_mydevice.xml"/>
     <file name="XML_MyDevice_Info" path="xml\page_mydeviceinfo.xml"/>
     <file name="XML_dlg_battry" path="xml\dlg_battry.xml"/>
+    <file name="XML_dlg_all" path="xml\dlg_all.xml"/>
   </LAYOUT>
   
   <values>

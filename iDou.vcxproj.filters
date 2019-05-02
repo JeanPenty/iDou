@@ -170,6 +170,9 @@
     <Xml Include="uires\values\template.xml">
       <Filter>SoUI Resource\value</Filter>
     </Xml>
+    <Xml Include="uires\xml\dlg_all.xml">
+      <Filter>SoUI Resource\layout</Filter>
+    </Xml>
   </ItemGroup>
   <ItemGroup>
     <Image Include="uires\image\tab_main.png">

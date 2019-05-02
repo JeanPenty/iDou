@@ -283,11 +283,13 @@ bool CiOSDevice::GetDeviceBaseInfo()
 	_GetAddress(m_iosInfo.m_strICCD, NODE_ICCD);
 
 	_GetAddress(m_iosInfo.m_strMLBSerialNumber, NODE_MLBSN);
-	_GetAddress(m_iosInfo.m_strUniqueChipID, NODE_UCID);
+	_GetAddress(m_iosInfo.m_strUniqueChipID, NODE_DID);
 	_GetAddress(m_iosInfo.m_strHardwarePlatform, NODE_HardwarePlatform);
 	_GetAddress(m_iosInfo.m_strEthernetAddress, NODE_EthernetAddress);
 	_GetAddress(m_iosInfo.m_strDeviceColor, NODE_DeviceColor);
+	_GetAddress(m_iosInfo.m_strDeviceEnclosureColor, NODE_DeviceEnclosureColor);
 	_GetAddress(m_iosInfo.m_strRegionInfo, NODE_RegionInfo);
+	_GetAddress(m_iosInfo.m_strPhoneNum, NODE_PhoneNumber);
 	//wifi address
 	_GetAddress(m_iosInfo.m_strDevWiFiAddress, NODE_WIFI_ADDRESS);
 	m_iosInfo.m_strDevWiFiAddress = m_iosInfo.m_strDevWiFiAddress.MakeUpper();
