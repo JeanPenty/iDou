@@ -121,7 +121,7 @@ bool CiOSDevice::_GetAddress(SStringT& outAddress, LPCSTR nodename)
 bool CiOSDevice::_GetDiskAddress(uint64_t & outAddress, LPCSTR nodename)
 {
 	plist_t address_node = NULL;
-	if (LOCKDOWN_E_SUCCESS == lockdownd_get_value(m_client, domains[0], nodename, &address_node))
+	if (LOCKDOWN_E_SUCCESS == lockdownd_get_value(m_client, domains[1], nodename, &address_node))
 	{
 		plist_type type = plist_get_node_type(address_node);
 		plist_get_uint_val(address_node, &outAddress);
@@ -265,6 +265,9 @@ void CiOSDevice::_GetDiskInfo()
 	_GetDiskAddress(m_iosInfo.m_diskInfo.TotalDataAvailable, "TotalDataAvailable");
 	_GetDiskAddress(m_iosInfo.m_diskInfo.TotalDataCapacity, "TotalDataCapacity");
 	_GetDiskAddress(m_iosInfo.m_diskInfo.TotalSystemCapacity, "TotalSystemCapacity");
+	_GetDiskAddress(m_iosInfo.m_diskInfo.TotalSystemAvailable, "TotalSystemAvailable");
+	_GetDiskAddress(m_iosInfo.m_diskInfo.PhotoUsage, "PhotoUsage");
+	_GetDiskAddress(m_iosInfo.m_diskInfo.AppUsage, "MobileApplicationUsage");
 }
 
 bool CiOSDevice::GetDeviceBaseInfo()

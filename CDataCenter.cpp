@@ -185,7 +185,7 @@ void _initdiskspase(SWindow * pWnd, const uint64_t & size, const uint64_t & tsiz
 {
 	if (pWnd)
 	{
-		int percentage = size * 100 / tsize;
+		int percentage = size * 1000 / tsize;
 		double gb = (double)size / 1024 / 1024 / 1024 + 0.005;
 		pWnd->GetLayoutParam()->SetAttribute(L"weight", SStringT().Format(L"%d", percentage), FALSE);
 		pWnd->SetAttribute(L"tip", SStringT().Format(L"%0.2fGB", gb), FALSE);
@@ -300,22 +300,27 @@ void _initiphonediskinfo(SWindow * pInfoWnd, const DiskInfo & diskInfo)
 
 
 		gb = (double)diskInfo.TotalSystemCapacity / 1024 / 1024 / 1024 + 0.005;
-		double gbu = (double)diskInfo.TotalSystemAvailable / 1024 / 1024 / 1024 + 0.005;
+		double gbu = (double)(diskInfo.TotalSystemCapacity-diskInfo.TotalSystemAvailable) / 1024 / 1024 / 1024 + 0.005;
 		lable->SetWindowText(SStringT().Format(L"%0.2fGB", gbu) + L"/" + SStringT().Format(L"%0.2fGB", gb));
 
 		lable = pIphoneWnd->FindChildByID(R.id.lable_datadisk);
 		SASSERT(lable);
 
 		gb = (double)diskInfo.TotalDataCapacity / 1024 / 1024 / 1024 + 0.005;
-		gbu = (double)diskInfo.TotalDataAvailable / 1024 / 1024 / 1024 + 0.005;
-		lable->SetWindowText(SStringT().Format(L"%0.2fGB", gbu) + L"/" + SStringT().Format(L"%0.2fGB", gb));
-
-		uint64_t use = diskInfo.TotalDiskCapacity - diskInfo.TotalDataAvailable - diskInfo.TotalSystemAvailable;
-		_initdiskspase(pIphoneWnd->FindChildByID(R.id.disk_sys), diskInfo.TotalSystemCapacity, diskInfo.TotalDiskCapacity);
-		_initdiskspase(pIphoneWnd->FindChildByID(R.id.disk_app), diskInfo.TotalSystemCapacity, diskInfo.TotalDiskCapacity);
-		//_initdiskspase(pInfoWnd->FindChildByID(R.id.disk_sys), devInfo.m_diskInfo.TotalSystemCapacity, devInfo.m_diskInfo.TotalDiskCapacity);
-		//_initdiskspase(pInfoWnd->FindChildByID(R.id.disk_free), diskInfo.TotalSystemCapacity, diskInfo.TotalDiskCapacity);
-		_initdiskspase(pIphoneWnd->FindChildByID(R.id.disk_free), diskInfo.TotalDataAvailable + diskInfo.TotalSystemAvailable, diskInfo.TotalDiskCapacity);
+		gbu = (double)(diskInfo.TotalDataCapacity-diskInfo.TotalDataAvailable) / 1024 / 1024 / 1024 + 0.005;
+		lable->SetWindowText(SStringT().Format(L"%0.2fGB", gbu) + L"/" + SStringT().Format(L"%0.2fGB", gb));		
+		//系统区
+		_initdiskspase(pIphoneWnd->FindChildByID(R.id.disk_sys), diskInfo.TotalSystemCapacity- diskInfo.TotalSystemAvailable, diskInfo.TotalSystemCapacity);
+		_initdiskspase(pIphoneWnd->FindChildByID(R.id.disk_free1), diskInfo.TotalSystemAvailable, diskInfo.TotalSystemCapacity);
+		//数据区
+		_initdiskspase(pIphoneWnd->FindChildByID(R.id.disk_app), diskInfo.AppUsage, diskInfo.TotalDataCapacity);
+		uint64_t other = diskInfo.TotalDataCapacity- diskInfo.TotalDataAvailable - diskInfo.AppUsage;
+		_initdiskspase(pIphoneWnd->FindChildByID(R.id.disk_photo), diskInfo.PhotoUsage, diskInfo.TotalDataCapacity);
+		other -= diskInfo.PhotoUsage;
+		_initdiskspase(pIphoneWnd->FindChildByID(R.id.disk_udisk), 0, diskInfo.TotalDataCapacity);
+		other -= 0;
+		_initdiskspase(pIphoneWnd->FindChildByID(R.id.disk_other), other, diskInfo.TotalDataCapacity);
+		_initdiskspase(pIphoneWnd->FindChildByID(R.id.disk_free2), diskInfo.TotalDataAvailable, diskInfo.TotalDataCapacity);
 	}
 }
 bool CDataCenter::_initdevbaseinfo(const iOSDevInfo & devInfo, SWindow * pInfoWnd)
