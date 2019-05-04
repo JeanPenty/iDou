@@ -4,23 +4,31 @@
       <window size="-2,-2" layout="hbox">
         <treeview size="190,-2" name="tv_ios" indent="0">
           <template >
-            <item_group focusable="0" layout="vbox" size="-2,36"  colorHover="#dddbda" colorSelected="#c9c7c6">
+            <item_group focusable="0" layout="vbox" size="-2,36"  colorHover="@color/gray3" colorSelected="#c9c7c6">
               <text extend_left="12" weight="1" size="-2,0" align="bottom" name="Name" text="iPhone 11"/>
+              <hr size="-2,1" colorLine="@color/gray4"/>
             </item_group>
-            <item_data size="-2,36" layout="hbox" gravity="center" colorHover="#dddbda" colorSelected="#c9c7c6">
+            <item_firstdata size="-2,43" colorHover="@color/gray3" margin="0,7,0,0" colorSelected="#c9c7c6">
+              <window name="bkwnd" size="-2,-2" layout="hbox" gravity="center" alpha="128">
+                <img extend_left="12" size="12,12" name="face"/>
+                <text extend_left="12" name="Name" text="寶寶"/>
+              </window>
+            </item_firstdata>
+            <item_data size="-2,36" colorHover="@color/gray3" colorSelected="#c9c7c6">
+              <window name="bkwnd" size="-2,-2" layout="hbox" gravity="center" alpha="128">
               <img extend_left="12" size="12,12" name="face"/>
               <text extend_left="12" name="Name" text="寶寶"/>
+              </window>
             </item_data>
           </template>
         </treeview>
-        <tabctrltemplate name="nav_dev_cmd" tabHeight="0" size="0,-2" weight="1" colorBkgnd="@color/infotabbk">
+        <hr size="1,-2" colorLine="@color/gray2" mode="vertical"/>
+        <tabctrltemplate name="nav_dev_cmd" tabHeight="0" size="0,-2" weight="1" colorBkgnd="@color/infotabbkpush" clipClient="1">
           <pageTemplate>
             <page>
               <tabctrl size="-2,-2" name="tab_dev_cmd" tabHeight="0" curSel="0">
-                <page size="-2,-2" layout="hbox" gravity="center" clipClient="true">
-                  <window weight="1"/>
+                <page size="-2,-2">
                   <include src="layout:XML_MyDevice_Info"/>
-                  <window weight="1"/>
                 </page>
                 <page layout="hbox" gravity="center">
                   <text text="cmd2"/>
@@ -40,7 +48,7 @@
         </tabctrltemplate>
       </window>
     </page>
-    <page layout="vbox" gravity="center" colorText="@color/gray" colorBkgnd="@color/white">
+    <page  size="-2,-2" layout="vbox" gravity="center" colorText="@color/gray" colorBkgnd="@color/white"  clipClient="1">
       <window weight="1"/>
       <img skin="skin_connect_dev"/>
       <text name="Txt_Tip" font="adding:12" text="欢迎使用爱豆助手，请用数据线将苹果设备连接到电脑"/>

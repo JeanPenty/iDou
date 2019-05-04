@@ -7,6 +7,9 @@
   <black value="#000000"/>
   <white value="rgb(255,255,255)"/>
   <gray value="#888888"/>
+  <gray2 value="#cccccc"/>
+  <gray3 value="#eeeeee"/>
+  <gray4 value="#ececec"/>
   <mainbk value="#236ee7"/>
   <infotabbkpush value="#f4f4f4"/>
   <infotabbknor value="#f0f0f0"/>

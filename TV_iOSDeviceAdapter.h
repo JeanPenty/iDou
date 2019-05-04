@@ -49,7 +49,9 @@ public:
 			{
 			case 0:xmlTemplate = xmlTemplate.child(L"item_group");
 				break;
-			case 1:xmlTemplate = xmlTemplate.child(L"item_data");
+			case 1:xmlTemplate = xmlTemplate.child(L"item_firstdata");
+				break;
+			case 2:xmlTemplate = xmlTemplate.child(L"item_data");
 				break;
 			}
 			pItem->InitFromXml(xmlTemplate);
@@ -115,6 +117,16 @@ public:
 			default:
 				break;
 			}
+			if (pItem->GetState() & WndState_Check)
+			{
+				//pItem->FindChildByID(R.id.bkwnd)->SetAttribute(L"skin", L"skin_bk");
+				((SItemPanel*)pItem)->SetSkin(GETSKIN(L"skin_bk",100));
+			}
+			else
+			{
+				//pItem->FindChildByID(R.id.bkwnd)->SetAttribute(L"skin", L"");
+				((SItemPanel*)pItem)->SetSkin(NULL);
+			}			
 		}
 	}
 
@@ -180,12 +192,12 @@ public:
 	virtual int getViewType(SOUI::HTREEITEM hItem) const
 	{
 		ItemInfo& ii = m_tree.GetItemRef((HSTREEITEM)hItem);
-		return (ii.data.nCmd == 0) ? 0 : 1;
+		return (ii.data.nCmd == 0) ? 0 : (ii.data.nCmd == 1)?1:2;
 	}
 
 	virtual int getViewTypeCount() const
 	{
-		return 2;
+		return 3;
 	}
 
 protected:

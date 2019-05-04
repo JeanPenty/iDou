@@ -166,8 +166,7 @@ namespace utils
 			plist_node_print_to_stringstream(plist, &indent, stream);
 		}
 	}
-
-
+	
 	std::map<std::wstring, std::wstring> g_mapDevproductType = {
 		//iPhone
 		{L"iphone1,1",L"iPhone"},

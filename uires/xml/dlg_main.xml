@@ -1,5 +1,5 @@
-﻿<SOUI name="mainWindow" title="@string/title" bigIcon="ICON_LOGO:32" smallIcon="ICON_LOGO:16" width="1000" height="752"  margin="5,5,5,5"  resizable="1" wndType="appMain"
-toolWindow="1" minSize="1000,752"
+﻿<SOUI name="mainWindow" title="@string/title" bigIcon="ICON_LOGO:32" smallIcon="ICON_LOGO:16" width="1000" height="720"  margin="5,5,5,5"  resizable="1" wndType="appMain"
+toolWindow="1" minSize="1000,720"
 translucent="1"
 >
   <root skin="skin_bk" cache="1">
@@ -34,8 +34,8 @@ translucent="1"
         <imgbtn name="btn_close" skin="_skin.sys.btn.close" tip="close" animate="1"/>
       </window>
     </caption>
-    <tabctrl name="tab_main" pos="1,[,-1,]" curSel="0" animateSteps="10" tabHeight="0">
-      <page title="我的设备" colorBkgnd="#dae9f2">
+    <tabctrl name="tab_main" pos="1,[,-1,]" curSel="0" animateSteps="10" tabHeight="0" colorBkgnd="@color/white">
+      <page title="我的设备">
         <include src="layout:XML_MyDevice"/>
       </page>
       <page title="page2" colorBkgnd="#dae9f2">
