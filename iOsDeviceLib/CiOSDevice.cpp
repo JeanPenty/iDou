@@ -1,14 +1,20 @@
 #include "CiOSDevice.h"
 #include "CiOSDevice.h"
+#include "CiOSDevice.h"
 #include "pch.h"
 #include "CiOSDevice.h"
-#include "../../libimobiledevice-vs/libimobiledevice/common/utils.c"
+#include <common/utils.c>
 #include "iOSUtils.h"
 #include <string/strcpcvt.h>
 #include "libimobiledevice/diagnostics_relay.h"
 #include <souistd.h>
 #include <libimobiledevice/screenshotr.h>
 
+#include <libimobiledevice/mobilebackup2.h>
+#include <libimobiledevice/notification_proxy.h>
+#include <libimobiledevice/afc.h>
+#include <libimobiledevice/installation_proxy.h>
+#include <libimobiledevice/sbservices.h>
 #include <event/NotifyCenter.h>
 
 CiOSDevice::CiOSDevice()
@@ -35,10 +41,20 @@ bool CiOSDevice::OpenDevice(LPCSTR udid)
 
 void CiOSDevice::CloseDevice()
 {
-	if (m_capThread.joinable())
+	if (m_capThread[Thread_Cap].joinable())
 	{
 		m_bCap = false;
-		m_capThread.join();
+		m_capThread[Thread_Cap].join();
+	}
+	if (m_capThread[Thread_Updata].joinable())
+	{
+		m_bUpdata = false;
+		m_capThread[Thread_Updata].join();
+	}
+	if (m_capThread[Thread_UpdataBattreyInfo].joinable())
+	{
+		m_bUpdataBattreyInfo = false;
+		m_capThread[Thread_UpdataBattreyInfo].join();
 	}
 	if (m_device)
 	{
@@ -94,9 +110,12 @@ bool CiOSDevice::_GetAddress(SStringT& outAddress, LPCSTR nodename)
 			node_value = (char*)malloc(10);
 			strcpy_s(node_value, 10, boolvalue ? "true" : "false");
 		}break;
-		case PLIST_ARRAY:
+		case PLIST_UINT:
 		{
-
+			uint64_t u64value;
+			plist_get_uint_val(address_node, &u64value);
+			node_value = (char*)malloc(66);
+			sprintf_s(node_value, 66, "%llX", u64value);
 		}break;
 		}
 		plist_free(address_node);
@@ -156,7 +175,7 @@ bool CiOSDevice::GetBluetoothAddress(SStringT & outMac)
 
 bool CiOSDevice::SetDevName(LPCTSTR newName)
 {
-	if (newName)
+	if (newName && (m_iosInfo.m_strDevName != newName))
 	{
 		using namespace SOUI;
 		SStringA strU8Name = S_CT2A(newName, CP_UTF8);
@@ -274,6 +293,7 @@ bool CiOSDevice::GetDeviceBaseInfo()
 {
 	if (!IsOpen())
 		return false;
+
 	//设备名
 	_GetAddress(m_iosInfo.m_strDevName, NODE_DEVICENAME);
 
@@ -286,7 +306,7 @@ bool CiOSDevice::GetDeviceBaseInfo()
 	_GetAddress(m_iosInfo.m_strICCD, NODE_ICCD);
 
 	_GetAddress(m_iosInfo.m_strMLBSerialNumber, NODE_MLBSN);
-	_GetAddress(m_iosInfo.m_strUniqueChipID, NODE_DID);
+	_GetAddress(m_iosInfo.m_strECID, NODE_ECID);
 	_GetAddress(m_iosInfo.m_strHardwarePlatform, NODE_HardwarePlatform);
 	_GetAddress(m_iosInfo.m_strEthernetAddress, NODE_EthernetAddress);
 	_GetAddress(m_iosInfo.m_strDeviceColor, NODE_DeviceColor);
@@ -320,36 +340,24 @@ bool CiOSDevice::GetDeviceBaseInfo()
 
 	utils::productType_to_phonename(m_iosInfo.m_strDevProductName);
 	//获取电池信息
-	_GetGasGauge(m_iosInfo.m_sGasGauge);
+	_GetBatteryBaseInfo(m_iosInfo.m_sGasGauge);
 
 	_GetDiskInfo();
-
-	//ScreenShot();
-	plist_t node = NULL; char* key = NULL;
-	char* xml_doc = NULL;
-	int i = 0;
-	FILE* out;
-	out = fopen("e:\\abc.txt", "w+");//CarrierBundleInfoArray
-	const char* id[] = { "ProductVersion", "FirmwareVersion", "ActivationState","ActivationStateAcknowledged","BasebandVersion","BuildVersion","IntegratedCircuitCardIdentity",NULL
-	};
-
-	i = 0;
-	while (domains[i] != NULL) {
-		if (lockdownd_get_value(m_client, domains[i], NULL, &node) == LOCKDOWN_E_SUCCESS) {
-			if (node) {
-				fprintf(out, "-----------%s-------------\n", domains[i]);
-				plist_print_to_stream(node, out);
-				plist_free(node);
-				node = NULL;
-			}
-		}
-		++i;
-	}/**/
-	fclose(out);
-
-	m_capThread = std::thread(&CiOSDevice::ScreenShot, this);
+	//
 
 	return true;
+}
+
+void CiOSDevice::StartUpdata()
+{
+	if (!(m_capThread[Thread_Updata].joinable()))
+		m_capThread[Thread_Updata] = std::thread(&CiOSDevice::_Updata, this);
+}
+
+void CiOSDevice::StartCapshot()
+{
+	if (!(m_capThread[Thread_Cap].joinable()))
+		m_capThread[Thread_Cap] = std::thread(&CiOSDevice::_ScreenShot, this);
 }
 
 const iOSDevInfo& CiOSDevice::GetiOSBaseInfo()
@@ -534,40 +542,32 @@ bool CiOSDevice::DoCmd(diagnostics_cmd_mode cmd)
 	return true;
 }
 
-void CiOSDevice::GetGasGauge(GasGauge & outasGauge)
+void CiOSDevice::GetBatteryBaseInfo(BatteryBaseInfo & outasGauge)
 {
 	outasGauge = m_iosInfo.m_sGasGauge;
 }
 
-bool CiOSDevice::_GetGasGauge(GasGauge & outasGauge)
+bool CiOSDevice::_GetBatteryBaseInfo(BatteryBaseInfo & outInfo)
 {
 	lockdownd_service_descriptor_t service = NULL;
 	diagnostics_relay_client_t diagnostics_client = NULL;
-
+	/*lockdownd_client_t _Client = NULL;
+	if (lockdownd_client_new_with_handshake(m_device, &_Client, "tmpClient") != LOCKDOWN_E_SUCCESS)
+	{
+		return false;
+	}*/
 	plist_t node = NULL;
-
 	lockdownd_error_t ret = lockdownd_start_service(m_client, "com.apple.mobile.diagnostics_relay", &service);
 	if (ret != LOCKDOWN_E_SUCCESS) {
 		/*  attempt to use older diagnostics service */
 		ret = lockdownd_start_service(m_client, "com.apple.iosdiagnostics.relay", &service);
 	}
+	//lockdownd_client_free(_Client);
+
 	bool bRet = false;
 	if ((ret == LOCKDOWN_E_SUCCESS) && service && (service->port > 0)) {
 		if (diagnostics_relay_client_new(m_device, service, &diagnostics_client) == DIAGNOSTICS_RELAY_E_SUCCESS)
 		{
-			/*
-			<key>GasGauge</key>
-	<dict>
-		<key>CycleCount</key>
-		<integer>35</integer>
-		<key>DesignCapacity</key>
-		<integer>1690</integer>
-		<key>FullChargeCapacity</key>
-		<integer>1900</integer>
-		<key>Status</key>
-		<string>Success</string>
-	</dict>
-			*/
 			if (diagnostics_relay_request_diagnostics(diagnostics_client, "GasGauge", &node) == DIAGNOSTICS_RELAY_E_SUCCESS) {
 				if (node) {
 
@@ -578,39 +578,70 @@ bool CiOSDevice::_GetGasGauge(GasGauge & outasGauge)
 					{
 						uint64_t item_val;
 						plist_get_uint_val(value, &item_val);
-						outasGauge.CycleCount = (int)item_val;
+						outInfo.CycleCount = (int)item_val;
 					}
 					value = plist_dict_get_item(nodeGasGauge, "DesignCapacity");
 					if (PLIST_UINT == plist_get_node_type(value))
 					{
 						uint64_t item_val;
 						plist_get_uint_val(value, &item_val);
-						outasGauge.DesignCapacity = (int)item_val;
+						outInfo.DesignCapacity = (int)item_val;
 					}
+					/*
 					value = plist_dict_get_item(nodeGasGauge, "FullChargeCapacity");
 					if (PLIST_UINT == plist_get_node_type(value))
 					{
 						uint64_t item_val;
 						plist_get_uint_val(value, &item_val);
-						outasGauge.FullChargeCapacity = (int)item_val;
-					}
-
+						outInfo.FullChargeCapacity = (int)item_val;
+					}*/
 					plist_free(node);
 				}
 			}
 			node = NULL;
-			if (diagnostics_relay_query_ioregistry_entry(diagnostics_client, "", "", &node) == DIAGNOSTICS_RELAY_E_SUCCESS) {
+			if (diagnostics_relay_query_ioregistry_entry(diagnostics_client, "AppleARMPMUCharger", "", &node) == DIAGNOSTICS_RELAY_E_SUCCESS) {
 				if (node) {
-					char* xml = NULL;
-					uint32_t len = 0;
-					plist_to_xml(node, &xml, &len);
-					if (xml) {
-						puts(xml);
+
+					using namespace SOUI;
+					plist_t batterysnnode = plist_dict_get_item(plist_dict_get_item(node, "IORegistry"), "Serial");
+					if (batterysnnode)
+					{
+						char* strBatterySerialNumber = NULL;
+						plist_get_string_val(batterysnnode, &strBatterySerialNumber);
+						if (strBatterySerialNumber)
+						{
+							outInfo.BatterySerialNumber = S_CA2T(strBatterySerialNumber, CP_UTF8);
+							free(strBatterySerialNumber);
+						}
 					}
-					free(xml);
+					//NominalChargeCapacity
+					plist_t batterynccnode = plist_dict_get_item(plist_dict_get_item(node, "IORegistry"), "NominalChargeCapacity");
+					if (batterynccnode)
+					{
+						plist_get_uint_val(batterynccnode, &outInfo.NominalChargeCapacity);
+					}
+
+					plist_t BootVoltageNode = plist_dict_get_item(plist_dict_get_item(node, "IORegistry"), "BootVoltage");
+					if (BootVoltageNode)
+					{
+						plist_get_uint_val(BootVoltageNode, &outInfo.BootVoltage);
+					}
+					plist_t batterydatanode = plist_dict_get_item(plist_dict_get_item(node, "IORegistry"), "BatteryData");
+					if (batterydatanode)
+					{
+						plist_t ManufactureDateNode = plist_dict_get_item(batterydatanode, "ManufactureDate");
+						if (ManufactureDateNode)
+						{
+							char* date = NULL;
+							plist_get_string_val(ManufactureDateNode, &date);
+							if (date)
+							{
+								utils::getbatteryManufactureDate(date, outInfo.Origin, outInfo.ManufactureDate);
+								free(date);
+							}
+						}
+					}
 					plist_free(node);
-					//print_xml(node);
-					//result = EXIT_SUCCESS;
 				}
 			}
 
@@ -626,12 +657,17 @@ bool CiOSDevice::_GetGasGauge(GasGauge & outasGauge)
 	return true;
 }
 
-void CiOSDevice::ScreenShot()
+void CiOSDevice::_ScreenShot()
 {
+	lockdownd_client_t syncClient = NULL;
+	if (lockdownd_client_new_with_handshake(m_device, &syncClient, "my_iOSDeviceScreenShot") != LOCKDOWN_E_SUCCESS)
+	{
+		return;
+	}
 	m_bCap = true;
-
 	lockdownd_service_descriptor_t service = NULL;;
 	lockdownd_start_service(m_client, "com.apple.mobile.screenshotr", &service);
+	lockdownd_client_free(syncClient);
 
 	if (service && service->port > 0) {
 		screenshotr_client_t shotr = NULL;
@@ -652,17 +688,509 @@ void CiOSDevice::ScreenShot()
 					SOUI::SNotifyCenter::getSingleton().FireEventAsync(pScreenshotEvt);
 					pScreenshotEvt->Release();
 				}
-				std::this_thread::sleep_for(std::chrono::seconds(5));
+				std::this_thread::sleep_for(std::chrono::seconds(1));
 			}
 			screenshotr_client_free(shotr);
 		}
 	}
-
-
 clear:
 	if (service)
 		lockdownd_service_descriptor_free(service);
+}
 
+void CiOSDevice::_Updata()
+{
+	lockdownd_client_t updataClient = NULL;
+	if (lockdownd_client_new_with_handshake(m_device, &updataClient, "my_iOSDeviceUpdata") != LOCKDOWN_E_SUCCESS)
+	{
+		return;
+	}
+	m_bUpdata = true;
+
+	SOUI::SStringT udid = m_iosInfo.m_strDevUDID;
+	udid.MakeLower();
+	while (m_bUpdata)
+	{
+		//"com.apple.mobile.battery"
+		EventUpdataInfo* e = new EventUpdataInfo(NULL);
+		e->udid = udid;
+		plist_t address_node = NULL;
+		if (LOCKDOWN_E_SUCCESS == lockdownd_get_value(updataClient, "com.apple.mobile.battery", "BatteryCurrentCapacity", &address_node))
+		{
+			plist_get_uint_val(address_node, &(e->BatteryCurrentCapacity));
+		}
+		if (LOCKDOWN_E_SUCCESS == lockdownd_get_value(updataClient, "com.apple.mobile.battery", "BatteryIsCharging", &address_node))
+		{
+			plist_get_bool_val(address_node, &(e->BatteryIsCharging));
+		}
+		SOUI::SNotifyCenter::getSingleton().FireEventAsync(e);
+		e->Release();
+		std::this_thread::sleep_for(std::chrono::seconds(1));
+	}
+}
+
+//Library/AddressBook/AddressBook.sqlitedb
+void notify_cb(const char* notification, void* userdata)
+{
+	if (strlen(notification) == 0) {
+		return;
+	}
+	if (!strcmp(notification, NP_SYNC_CANCEL_REQUEST)) {
+		//PRINT_VERBOSE(1, "User has cancelled the backup process on the device.\n");
+		//quit_flag++;
+	}
+	else if (!strcmp(notification, NP_BACKUP_DOMAIN_CHANGED)) {
+		//backup_domain_changed = 1;
+	}
+	else {
+		//PRINT_VERBOSE(1, "Unhandled notification '%s' (TODO: implement)\n", notification);
+	}
+}
+
+void CiOSDevice::_Backup(LPCSTR pDir)
+{
+	lockdownd_client_t backupClient = NULL;
+	uint8_t willEncrypt = 0;
+	plist_t node_tmp = NULL;
+
+	if (lockdownd_client_new_with_handshake(m_device, &backupClient, "my_iOSDeviceBackup2") != LOCKDOWN_E_SUCCESS)
+	{
+		return;
+	}
+
+	node_tmp = NULL;
+	lockdownd_get_value(backupClient, "com.apple.mobile.backup", "WillEncrypt", &node_tmp);
+	if (node_tmp) {
+		if (plist_get_node_type(node_tmp) == PLIST_BOOLEAN) {
+			plist_get_bool_val(node_tmp, &willEncrypt);
+		}
+		plist_free(node_tmp);
+		node_tmp = NULL;
+	}
+	lockdownd_service_descriptor_t service = NULL;
+	//* start notification_proxy 
+	np_client_t np = NULL;
+	lockdownd_start_service(backupClient, NP_SERVICE_NAME, &service);
+	if (service && service->port) {
+		np_client_new(m_device, service, &np);
+		np_set_notify_callback(np, notify_cb, this);
+		const char* noties[5] = {
+			NP_SYNC_CANCEL_REQUEST,
+			NP_SYNC_SUSPEND_REQUEST,
+			NP_SYNC_RESUME_REQUEST,
+			NP_BACKUP_DOMAIN_CHANGED,
+			NULL
+		};
+		np_observe_notifications(np, noties);
+
+	}
+	else {
+		return;
+	}
+	if (service) {
+		lockdownd_service_descriptor_free(service);
+		service = NULL;
+	}
+	afc_client_t afc = NULL;
+	//* start AFC, we need this for the lock file
+	lockdownd_start_service(backupClient, AFC_SERVICE_NAME, &service);
+	if (service && service->port) {
+		afc_client_new(m_device, service, &afc);
+	}
+	if (service) {
+		lockdownd_service_descriptor_free(service);
+		service = NULL;
+	}
+	//* start mobilebackup service and retrieve port
+	mobilebackup2_client_t mobilebackup2 = NULL;
+	lockdownd_start_service_with_escrow_bag(backupClient, MOBILEBACKUP2_SERVICE_NAME, &service);
+	lockdownd_client_free(backupClient);
+	backupClient = NULL;
+	if (service && service->port) {
+		mobilebackup2_client_new(m_device, service, &mobilebackup2);
+		if (service) {
+			lockdownd_service_descriptor_free(service);
+			service = NULL;
+		}
+
+		//* send Hello message 
+		double local_versions[2] = { 2.0, 2.1 };
+		double remote_version = 0.0;
+		mobilebackup2_error_t err = mobilebackup2_version_exchange(mobilebackup2, local_versions, 2, &remote_version);
+		if (err != MOBILEBACKUP2_E_SUCCESS) {
+
+			goto checkpoint;
+		}
+
+		uint64_t lockfile = 0;
+		utils::do_post_notification(m_device, NP_SYNC_WILL_START);
+		afc_file_open(afc, "/com.apple.itunes.lock_sync", AFC_FOPEN_RW, &lockfile);
+
+		if (lockfile) {
+			afc_error_t aerr;
+			utils::do_post_notification(m_device, NP_SYNC_LOCK_REQUEST);
+			int i = 0;
+			for (; i < LOCK_ATTEMPTS; i++) {
+				aerr = afc_file_lock(afc, lockfile, AFC_LOCK_EX);
+				if (aerr == AFC_E_SUCCESS) {
+					utils::do_post_notification(m_device, NP_SYNC_DID_START);
+					break;
+				}
+				else if (aerr == AFC_E_OP_WOULD_BLOCK) {
+					Sleep(LOCK_WAIT / 1000);
+					continue;
+				}
+				else {
+					afc_file_close(afc, lockfile);
+					lockfile = 0;
+				}
+			}
+			if (i == LOCK_ATTEMPTS) {
+				afc_file_close(afc, lockfile);
+				lockfile = 0;
+			}
+		}
+		SOUI::SStringA udid = SOUI::S_CW2A(m_iosInfo.m_strDevUDID);
+
+		if (lockfile)
+		{
+			//Starting backup..
+
+			/* TODO: check domain com.apple.mobile.backup key RequiresEncrypt and WillEncrypt with lockdown */
+			/* TODO: verify battery on AC enough battery remaining */
+
+			/* re-create Info.plist (Device infos, IC-Info.sidb, photos, app_ids, iTunesPrefs) */
+
+			plist_t info_plist = utils::mobilebackup_factory_info_plist_new(udid, m_device, afc);
+			if (!info_plist) {
+			}
+			plist_write_to_filename(info_plist, "path", PLIST_FORMAT_XML);
+
+			plist_free(info_plist);
+			info_plist = NULL;
+			plist_t opts = NULL;
+			if (false) {
+
+				opts = plist_new_dict();
+				plist_dict_set_item(opts, "ForceFullBackup", plist_new_bool(1));
+			}
+
+			err = mobilebackup2_send_request(mobilebackup2, "Backup", udid, NULL, opts);
+			if (opts)
+				plist_free(opts);
+			if (err == MOBILEBACKUP2_E_SUCCESS) {
+
+			}
+		}
+		if (true) {
+			/* reset operation success status */
+			int operation_ok = 0;
+			plist_t message = NULL;
+
+			char* dlmsg = NULL;
+			int file_count = 0;
+			int errcode = 0;
+			const char* errdesc = NULL;
+			int progress_finished = 0;
+			struct stat st;
+
+			char* backup_directory = NULL;
+			/* process series of DLMessage* operations */
+			do {
+				free(dlmsg);
+				dlmsg = NULL;
+				mobilebackup2_receive_message(mobilebackup2, &message, &dlmsg);
+				if (!message || !dlmsg) {
+					Sleep(2);
+					goto files_out;
+				}
+
+				if (!strcmp(dlmsg, "DLMessageDownloadFiles")) {
+					/* device wants to download files from the computer */
+					utils::mb2_set_overall_progress_from_message(message, dlmsg);
+					utils::mb2_handle_send_files(mobilebackup2, message, backup_directory);
+				}
+				else if (!strcmp(dlmsg, "DLMessageUploadFiles")) {
+					/* device wants to send files to the computer */
+					utils::mb2_set_overall_progress_from_message(message, dlmsg);
+					file_count += utils::mb2_handle_receive_files(mobilebackup2, message, backup_directory);
+				}
+				else if (!strcmp(dlmsg, "DLMessageGetFreeDiskSpace")) {
+					/* device wants to know how much disk space is available on the computer */
+					uint64_t freespace = 0;
+					int res = -1;
+					if (GetDiskFreeSpaceExA(backup_directory, (PULARGE_INTEGER)& freespace, NULL, NULL)) {
+						res = 0;
+					}
+					plist_t freespace_item = plist_new_uint(freespace);
+					mobilebackup2_send_status_response(mobilebackup2, res, NULL, freespace_item);
+					plist_free(freespace_item);
+				}
+				else if (!strcmp(dlmsg, "DLContentsOfDirectory")) {
+					/* list directory contents */
+					utils::mb2_handle_list_directory(mobilebackup2, message, backup_directory);
+				}
+				else if (!strcmp(dlmsg, "DLMessageCreateDirectory")) {
+					/* make a directory */
+					utils::mb2_handle_make_directory(mobilebackup2, message, backup_directory);
+				}
+				else if (!strcmp(dlmsg, "DLMessageMoveFiles") || !strcmp(dlmsg, "DLMessageMoveItems")) {
+					/* perform a series of rename operations */
+					utils::mb2_set_overall_progress_from_message(message, dlmsg);
+					plist_t moves = plist_array_get_item(message, 1);
+					uint32_t cnt = plist_dict_get_size(moves);
+					//PRINT_VERBOSE(1, "Moving %d file%s\n", cnt, (cnt == 1) ? "" : "s");
+					plist_dict_iter iter = NULL;
+					plist_dict_new_iter(moves, &iter);
+					errcode = 0;
+					errdesc = NULL;
+					if (iter) {
+						char* key = NULL;
+						plist_t val = NULL;
+						do {
+							plist_dict_next_item(moves, iter, &key, &val);
+							if (key && (plist_get_node_type(val) == PLIST_STRING)) {
+								char* str = NULL;
+								plist_get_string_val(val, &str);
+								if (str) {
+									char* newpath = string_build_path(backup_directory, str, NULL);
+									free(str);
+									char* oldpath = string_build_path(backup_directory, key, NULL);
+
+									if ((stat(newpath, &st) == 0) && S_ISDIR(st.st_mode))
+										utils::rmdir_recursive(newpath);
+									else
+										utils::remove_file(newpath);
+									if (rename(oldpath, newpath) < 0) {
+										printf("Renameing '%s' to '%s' failed: %s (%d)\n", oldpath, newpath, strerror(errno), errno);
+										errcode = utils::errno_to_device_error(errno);
+										errdesc = strerror(errno);
+										break;
+									}
+									free(oldpath);
+									free(newpath);
+								}
+								free(key);
+								key = NULL;
+							}
+						} while (val);
+						free(iter);
+					}
+					else {
+						errcode = -1;
+						errdesc = "Could not create dict iterator";
+						printf("Could not create dict iterator\n");
+					}
+					plist_t empty_dict = plist_new_dict();
+					err = mobilebackup2_send_status_response(mobilebackup2, errcode, errdesc, empty_dict);
+					plist_free(empty_dict);
+					if (err != MOBILEBACKUP2_E_SUCCESS) {
+						printf("Could not send status response, error %d\n", err);
+					}
+				}
+				else if (!strcmp(dlmsg, "DLMessageRemoveFiles") || !strcmp(dlmsg, "DLMessageRemoveItems")) {
+					utils::mb2_set_overall_progress_from_message(message, dlmsg);
+					plist_t removes = plist_array_get_item(message, 1);
+					uint32_t cnt = plist_array_get_size(removes);
+					//PRINT_VERBOSE(1, "Removing %d file%s\n", cnt, (cnt == 1) ? "" : "s");
+					uint32_t ii = 0;
+					errcode = 0;
+					errdesc = NULL;
+					for (ii = 0; ii < cnt; ii++) {
+						plist_t val = plist_array_get_item(removes, ii);
+						if (plist_get_node_type(val) == PLIST_STRING) {
+							char* str = NULL;
+							plist_get_string_val(val, &str);
+							if (str) {
+								const char* checkfile = strchr(str, '/');
+								int suppress_warning = 0;
+								if (checkfile) {
+									if (strcmp(checkfile + 1, "Manifest.mbdx") == 0) {
+										suppress_warning = 1;
+									}
+								}
+								char* newpath = string_build_path(backup_directory, str, NULL);
+								free(str);
+								int res = 0;
+								if ((stat(newpath, &st) == 0) && S_ISDIR(st.st_mode)) {
+									res = utils::rmdir_recursive(newpath);
+								}
+								else {
+									res = utils::remove_file(newpath);
+								}
+								if (res != 0 && res != ENOENT) {
+									if (!suppress_warning)
+										printf("Could not remove '%s': %s (%d)\n", newpath, strerror(res), res);
+									errcode = utils::errno_to_device_error(res);
+									errdesc = strerror(res);
+								}
+								free(newpath);
+							}
+						}
+					}
+					plist_t empty_dict = plist_new_dict();
+					err = mobilebackup2_send_status_response(mobilebackup2, errcode, errdesc, empty_dict);
+					plist_free(empty_dict);
+					if (err != MOBILEBACKUP2_E_SUCCESS) {
+						printf("Could not send status response, error %d\n", err);
+					}
+				}
+				else if (!strcmp(dlmsg, "DLMessageCopyItem")) {
+					plist_t srcpath = plist_array_get_item(message, 1);
+					plist_t dstpath = plist_array_get_item(message, 2);
+					errcode = 0;
+					errdesc = NULL;
+					if ((plist_get_node_type(srcpath) == PLIST_STRING) && (plist_get_node_type(dstpath) == PLIST_STRING)) {
+						char* src = NULL;
+						char* dst = NULL;
+						plist_get_string_val(srcpath, &src);
+						plist_get_string_val(dstpath, &dst);
+						if (src && dst) {
+							char* oldpath = string_build_path(backup_directory, src, NULL);
+							char* newpath = string_build_path(backup_directory, dst, NULL);
+
+							//PRINT_VERBOSE(1, "Copying '%s' to '%s'\n", src, dst);
+
+							/* check that src exists */
+							if ((stat(oldpath, &st) == 0) && S_ISDIR(st.st_mode)) {
+								utils::mb2_copy_directory_by_path(oldpath, newpath);
+							}
+							else if ((stat(oldpath, &st) == 0) && S_ISREG(st.st_mode)) {
+								utils::mb2_copy_file_by_path(oldpath, newpath);
+							}
+
+							free(newpath);
+							free(oldpath);
+						}
+						free(src);
+						free(dst);
+					}
+					plist_t empty_dict = plist_new_dict();
+					err = mobilebackup2_send_status_response(mobilebackup2, errcode, errdesc, empty_dict);
+					plist_free(empty_dict);
+					if (err != MOBILEBACKUP2_E_SUCCESS) {
+						printf("Could not send status response, error %d\n", err);
+					}
+				}
+				else if (!strcmp(dlmsg, "DLMessageDisconnect")) {
+					break;
+				}
+				else if (!strcmp(dlmsg, "DLMessageProcessMessage")) {
+					node_tmp = plist_array_get_item(message, 1);
+					if (plist_get_node_type(node_tmp) != PLIST_DICT) {
+						printf("Unknown message received!\n");
+					}
+					plist_t nn;
+					int error_code = -1;
+					nn = plist_dict_get_item(node_tmp, "ErrorCode");
+					if (nn && (plist_get_node_type(nn) == PLIST_UINT)) {
+						uint64_t ec = 0;
+						plist_get_uint_val(nn, &ec);
+						error_code = (uint32_t)ec;
+						if (error_code == 0) {
+							operation_ok = 1;
+						}
+					}
+					nn = plist_dict_get_item(node_tmp, "ErrorDescription");
+					char* str = NULL;
+					if (nn && (plist_get_node_type(nn) == PLIST_STRING)) {
+						plist_get_string_val(nn, &str);
+					}
+					if (error_code != 0) {
+						if (str) {
+							printf("ErrorCode %d: %s\n", error_code, str);
+						}
+						else {
+							printf("ErrorCode %d: (Unknown)\n", error_code);
+						}
+					}
+					if (str) {
+						free(str);
+					}
+					nn = plist_dict_get_item(node_tmp, "Content");
+					if (nn && (plist_get_node_type(nn) == PLIST_STRING)) {
+						str = NULL;
+						plist_get_string_val(nn, &str);
+						//PRINT_VERBOSE(1, "Content:\n");
+						printf("%s", str);
+						free(str);
+					}
+					break;
+				}
+
+				/* print status */
+				//if ((utils::overall_progress > 0) && !progress_finished) {
+				//	if (utils::overall_progress >= 100.0f) {
+				//		progress_finished = 1;
+				//	}
+				//	utils::print_progress_real(utils::overall_progress, 0);
+					//PRINT_VERBOSE(1, " Finished\n");
+				//}
+
+			files_out:
+				plist_free(message);
+				message = NULL;
+				free(dlmsg);
+				dlmsg = NULL;
+
+				//if (utils::quit_flag > 0) {
+					/* need to cancel the backup here */
+					//mobilebackup_send_error(mobilebackup, "Cancelling DLSendFile");
+
+					/* remove any atomic Manifest.plist.tmp */
+
+					/*manifest_path = mobilebackup_build_path(backup_directory, "Manifest", ".plist.tmp");
+					if (stat(manifest_path, &st) == 0)
+						remove(manifest_path);*/
+						//	break;
+						//}
+			} while (1);
+
+			plist_free(message);
+			free(dlmsg);
+
+			/* report operation status to user */
+
+			if (operation_ok && utils::mb2_status_check_snapshot_state(backup_directory, udid, "finished")) {
+				//PRINT_VERBOSE(1, "Backup Successful.\n");
+			}
+			else {
+				//if (utils::quit_flag) {
+					//PRINT_VERBOSE(1, "Backup Aborted.\n");
+				//}
+				//else {
+					//PRINT_VERBOSE(1, "Backup Failed (Error Code %d).\n", -result_code);
+				//}
+			}
+		}
+		if (lockfile) {
+			afc_file_lock(afc, lockfile, AFC_LOCK_UN);
+			afc_file_close(afc, lockfile);
+			lockfile = 0;
+			utils::do_post_notification(m_device, NP_SYNC_DID_FINISH);
+		}
+	}
+checkpoint:
+	lockdownd_client_free(backupClient);
+	if (service) {
+		lockdownd_service_descriptor_free(service);
+		service = NULL;
+	}
+
+	if (mobilebackup2) {
+		mobilebackup2_client_free(mobilebackup2);
+		mobilebackup2 = NULL;
+	}
+
+	if (afc) {
+		afc_client_free(afc);
+		afc = NULL;
+	}
+
+	if (np) {
+		np_client_free(np);
+		np = NULL;
+	}
 }
 
 template<class T>
@@ -685,4 +1213,85 @@ bool CiOSDevice::GetBattery(LPCSTR key, T & outValue)
 	}
 	out >> outValue;
 	return true;
+}
+
+void CiOSDevice::StartUpdataBatteryInfo()
+{
+	if (!(m_capThread[Thread_UpdataBattreyInfo].joinable()))
+		m_capThread[Thread_UpdataBattreyInfo] = std::thread(&CiOSDevice::_UpdataBatteryInfo, this);
+}
+
+void CiOSDevice::StopUpdataBatteryInfo()
+{
+	if (m_capThread[Thread_UpdataBattreyInfo].joinable())
+	{
+		m_bUpdataBattreyInfo = false;
+		m_capThread[Thread_UpdataBattreyInfo].join();
+	}
+}
+
+void CiOSDevice::_UpdataBatteryInfo()
+{
+	m_bUpdataBattreyInfo = true;
+
+	lockdownd_service_descriptor_t service = NULL;
+	diagnostics_relay_client_t diagnostics_client = NULL;
+	lockdownd_client_t updataBatteryClient = NULL;
+	if (lockdownd_client_new_with_handshake(m_device, &updataBatteryClient, "tmpClient") != LOCKDOWN_E_SUCCESS)
+	{
+		return;
+	}
+	plist_t node = NULL;
+	lockdownd_error_t ret = lockdownd_start_service(updataBatteryClient, "com.apple.mobile.diagnostics_relay", &service);
+	if (ret != LOCKDOWN_E_SUCCESS) {
+		/*  attempt to use older diagnostics service */
+		ret = lockdownd_start_service(updataBatteryClient, "com.apple.iosdiagnostics.relay", &service);
+	}
+	lockdownd_client_free(updataBatteryClient);
+	if ((ret == LOCKDOWN_E_SUCCESS) && service && (service->port > 0)) {
+		if (diagnostics_relay_client_new(m_device, service, &diagnostics_client) == DIAGNOSTICS_RELAY_E_SUCCESS)
+		{
+			SOUI::SStringT udid = m_iosInfo.m_strDevUDID;
+			udid.MakeLower();
+			while (m_bUpdataBattreyInfo)
+			{
+				if (diagnostics_relay_query_ioregistry_entry(diagnostics_client, "AppleARMPMUCharger", "", &node) == DIAGNOSTICS_RELAY_E_SUCCESS) {
+					if (node) {
+						using namespace SOUI;
+						EventUpdataBattreyInfo* e = new EventUpdataBattreyInfo(NULL);
+						e->udid = udid;
+						//Temperature
+						plist_t TemperatureNode = plist_dict_get_item(plist_dict_get_item(node, "IORegistry"), "Temperature");
+						if (TemperatureNode)
+						{
+							plist_get_uint_val(TemperatureNode, &(e->Temperature));
+						}
+						//Voltage
+						plist_t VoltageNode = plist_dict_get_item(plist_dict_get_item(node, "IORegistry"), "Voltage");
+						if (VoltageNode)
+						{
+							plist_get_uint_val(VoltageNode, &(e->Voltage));
+						}
+						//Current
+						plist_t CurrentCapacityNode = plist_dict_get_item(plist_dict_get_item(node, "IORegistry"), "InstantAmperage");
+						if (CurrentCapacityNode)
+						{
+							plist_get_uint_val(CurrentCapacityNode, &(e->Current));
+						}
+
+						plist_free(node);
+						SOUI::SNotifyCenter::getSingleton().FireEventAsync(e);
+						e->Release();
+					}
+				}std::this_thread::sleep_for(std::chrono::seconds(1));
+			}
+
+			diagnostics_relay_goodbye(diagnostics_client);
+			diagnostics_relay_client_free(diagnostics_client);
+		}
+	}
+	if (service) {
+		lockdownd_service_descriptor_free(service);
+		service = NULL;
+	}
 }

@@ -25,11 +25,16 @@ public:
 	virtual void idevice_event_cb_t(const idevice_event_t* event) = NULL;
 };
 
-struct GasGauge
+struct BatteryBaseInfo
 {
 	int CycleCount;
 	int DesignCapacity;
-	int FullChargeCapacity;
+	//int FullChargeCapacity;
+	SStringT BatterySerialNumber;
+	uint64_t NominalChargeCapacity;
+	uint64_t BootVoltage;
+	SStringT ManufactureDate;
+	SStringT Origin;
 };
 
 struct DiskInfo
@@ -70,7 +75,7 @@ struct iOSDevInfo
 	SStringT m_strBuildVersion;
 	SStringT m_strICCD;
 	SStringT m_strMLBSerialNumber;
-	SStringT m_strUniqueChipID;
+	SStringT m_strECID;
 	SStringT m_strHardwarePlatform;
 	SStringT m_strEthernetAddress;
 	SStringT m_strDeviceColor;
@@ -79,7 +84,7 @@ struct iOSDevInfo
 	SStringT m_strPhoneNum;
 
 
-	GasGauge m_sGasGauge;
+	BatteryBaseInfo m_sGasGauge;
 	DiskInfo m_diskInfo;
 
 };
@@ -101,17 +106,25 @@ public:
 	
 	//获取不耗时的信息
 	bool GetDeviceBaseInfo();
+	void StartUpdata();
+	void StartCapshot();
+	void StartUpdataBatteryInfo();
+	void StopUpdataBatteryInfo();
 	const iOSDevInfo& GetiOSBaseInfo();
 	bool DoCmd(diagnostics_cmd_mode cmd);
-	void GetGasGauge(GasGauge& outasGauge);
+	void GetBatteryBaseInfo(BatteryBaseInfo& outasGauge);
 protected:
 	bool _GetAddress(SStringT& outAddress, LPCSTR nodename);
 	bool _GetDiskAddress(uint64_t& outAddress, LPCSTR nodename);
-	bool _GetGasGauge(GasGauge & outasGauge);
+	bool _GetBatteryBaseInfo(BatteryBaseInfo & outasGauge);
 	void _GetTypeFromProductName();
 	void _GetDiskInfo();
 private:
-	void ScreenShot();
+	void _ScreenShot();
+	void _Updata();
+	void _Backup(LPCSTR pDir);
+	
+	void _UpdataBatteryInfo();
 	lockdownd_client_t m_client = NULL;
 	idevice_t m_device = NULL;
 public:
@@ -122,9 +135,18 @@ public:
 	//获取设备列表。不需要。直接处理callback就OK了。即使先插入的设备。在程序启动后仍然会有通知
 	static bool GetiOSDeviceGUIDList(std::vector<std::string>& iosList);
 private:
+	enum {
+		Thread_Cap = 0,
+		Thread_Updata = 1,
+		Thread_UpdataBattreyInfo = 2,
+		Thread_end
+	};
+
 	static void idevice_event_cb_t(const idevice_event_t* event, void* user_data);
-	std::thread m_capThread;
+	std::thread m_capThread[Thread_end];
 	std::atomic_bool m_bCap=false;
+	std::atomic_bool m_bUpdata = false;
+	std::atomic_bool m_bUpdataBattreyInfo = false;
 private:
 	iOSDevInfo m_iosInfo;
 };

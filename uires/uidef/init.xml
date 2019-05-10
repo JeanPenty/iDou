@@ -15,8 +15,10 @@
     <class name="info_lable_item"  weight="1" align="right" colorText="@color/black"/>
     <class name="info_btn" size="0,-2" weight="1" skin="skin_btninfo" interval="4" layout="hbox" gravity="center"/>
     <class name="hr_vcss" size="-2,1" colorLine="@color/infoborder"/>
+    <class name="cls_edit" margin="1,1,1,1"/>
   </style>
 
   <objattr>
+    <button skin="skin_button" drawFocusRect="0"/>
   </objattr>
 </UIDEF>

@@ -24,19 +24,38 @@
       </t:info_item>
       <hr size="-2,1" colorLine="@color/infoborder"/>
       <t:info_item>
-        <data title="@string/HardwareModel" name="lable_HardwareModel"/>
+        <data title="@string/BatterySerialNumber" name="lable_BatterySerialNumber"/>
       </t:info_item>
       <hr size="-2,1" colorLine="@color/infoborder"/>
       <t:info_item>
-        <data title="@string/CycleLife" name="lable_CycleLife"/>
-      </t:info_item>
-     
+        <data title="@string/BatteryVoltage" name="lable_BatteryVoltage"/>
+      </t:info_item>     
       <hr size="-2,1" colorLine="@color/infoborder"/>
       <t:info_item>
-        <data title="@string/CycleLife" name="lable_CycleLife"/>
-      </t:info_item>      
-     
+        <data title="@string/BatteryBootVoltage" name="lable_BatteryBootVoltage"/>
+      </t:info_item>
+      <hr size="-2,1" colorLine="@color/infoborder"/>
+      <t:info_item>
+        <data title="@string/BatteryTemperature" name="lable_BatteryTemperature"/>
+      </t:info_item>
+      <hr size="-2,1" colorLine="@color/infoborder"/>
+      <t:info_item>
+        <data title="@string/BatteryCurrentCapacity" name="lable_BatteryCurrentCapacity"/>
+      </t:info_item>
+      <hr size="-2,1" colorLine="@color/infoborder"/>
+      <t:info_item>
+        <data title="@string/BatteryOrigin" name="lable_BatteryOrigin"/>
+      </t:info_item>
+      <hr size="-2,1" colorLine="@color/infoborder"/>
+      <t:info_item>
+        <data title="@string/BatteryDate" name="lable_BatteryDate"/>
+      </t:info_item>
+      <hr size="-2,1" colorLine="@color/infoborder"/>
     </window>
+      <window size="-2,66" layout="hbox" gravity="center" colorBkgnd="#ffffff" padding="10,10,10,10">
+        <text weight="1"/>
+        <button id="IDOK" text="确定" inset="22,3,22,3"/>
+      </window>
     </window>
   </root>
 </SOUI>

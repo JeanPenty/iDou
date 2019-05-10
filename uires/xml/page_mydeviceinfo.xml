@@ -5,9 +5,10 @@
       <window size="-1,-2">
         <window layout="vbox" gravity="center" interval="8">
           <img name="img_srceenshot" skin="skin_iphonescreen" colorBkgnd="#ff00ff"/>
-          <window size="-1,18" layout="hbox">
-            <edit focusable="0" name="devname" size="120,-2"/>
-            <img skin="skin_iconarticle"/>
+          <window size="-1,-1" layout="hbox" gravity="center" interval="4">
+            <text name="txt_devname" size="-1,-1" maxWidth="120" dotted="1" display="0"/>
+            <edit name="et_devname" size="120,-2" class="cls_edit" show="0" align="center" display="0"/>
+            <img skin="skin_iconarticle" name="btn_etdevname" msgTransparent="0"/>
           </window>
           <window layout="hbox" size="-1,-1">
             <button text="重启" name="btn_reboot" padding="4,4,4,4"/>
@@ -20,8 +21,10 @@
         <window name="BaseInfoWnd" size="-2,-1" margin="1,1,1,1" colorBorder="@color/infoborder" layout="vbox">
           <window class="info_item" colorText="@color/black">
             <text text="unknow" name="lable_ProductName" extend_left="10"/>
-            <text text="32G" name="lable_DiskSize" inset="12,0,12,0" skin="skin_lable"/>
+            <text text="32G" name="lable_DiskSize" inset="8,0,8,0" skin="skin_lable"/>
             <text extend_left="8" text="土豪金" name="lable_DevColor"/>
+            <text weight="1"/>
+            <text name="lable_BatteryCurrentCapacity"/>
           </window>
           <hr size="-2,1" colorLine="@color/infoborder"/>
           <window size="-2,-1" layout="hbox">
@@ -31,7 +34,7 @@
               </t:info_item>
               <hr class="hr_vcss"/>
               <t:info_item>
-                <data title="@string/cyda" name="lable_FirmwareVersion"/>
+                <data title="@string/IsCydia" name="lable_IsCydia"/>
               </t:info_item>
               <hr class="hr_vcss"/>
               <t:info_item>
@@ -55,7 +58,7 @@
               </t:info_item>
               <hr class="hr_vcss"/>
               <t:info_item>
-                <data title="@string/HardwareModel" name="lable_HardwareModel"/>
+                <data title="@string/ECID" name="lable_ECID"/>
               </t:info_item>
               <hr class="hr_vcss"/>
               <t:info_item>
@@ -64,6 +67,34 @@
             </window>
             <hr size="1,-2" mode="vertical" colorLine="@color/infoborder"/>
             <window size="0,-1" weight="1"  padding="10,0,0,0" layout="vbox">
+              <t:info_item>
+                <data  title="@string/AppleIDLock" name="lable_AppleIDLock"/>
+              </t:info_item>
+              <hr  class="hr_vcss"/>
+              <t:info_item>
+                <data  title="@string/iCloud" name="lable_iCloud"/>
+              </t:info_item>
+              <hr  class="hr_vcss"/>
+              <t:info_item>
+                <data  title="@string/ProductDate" name="lable_ProductDate"/>
+              </t:info_item>
+              <hr  class="hr_vcss"/>
+              <t:info_item>
+                <data  title="@string/WARRANTYEXPIRATIONDATE" name="lable_WARRANTYEXPIRATIONDATE"/>
+              </t:info_item>
+              <hr  class="hr_vcss"/>
+              <t:info_item>
+                <data  title="@string/LOC" name="lable_LOC"/>
+              </t:info_item>
+              <hr  class="hr_vcss"/>
+              <t:info_item>
+                <data  title="@string/CPU" name="lable_CPU"/>
+              </t:info_item>
+              <hr  class="hr_vcss"/>
+              <t:info_item>
+                <data  title="@string/DiskType" name="lable_DiskType"/>
+              </t:info_item>
+              <hr  class="hr_vcss"/>
               <t:info_item>
                 <data  title="@string/CycleCount" name="lable_CycleCount"/>
               </t:info_item>

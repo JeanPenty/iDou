@@ -72,6 +72,7 @@ bool CDataCenter::AddDevGUID(LPCSTR udid, CiOSDeviceTreeViewAdapter * pAdapter)
 			if (m_listDev[udid].iOSDevObject.OpenDevice(udid))
 			{
 				m_listDev[udid].iOSDevObject.GetDeviceBaseInfo();
+				m_listDev[udid].iOSDevObject.StartUpdata();
 				bCan = true;
 			}
 		}
@@ -119,6 +120,8 @@ bool CDataCenter::UpdataBaseInfo(LPCSTR udid)
 CDataCenter::CDataCenter()
 {
 	SNotifyCenter::getSingleton().addEvent(EVENTID(EventScreenShot));
+	SNotifyCenter::getSingleton().addEvent(EVENTID(EventUpdataInfo)); 
+		SNotifyCenter::getSingleton().addEvent(EVENTID(EventUpdataBattreyInfo));
 }
 
 CDataCenter::~CDataCenter()
@@ -137,13 +140,13 @@ void CDataCenter::_docmd(SWindow * pWnd, diagnostics_cmd_mode cmd)
 	}
 }
 
-bool CDataCenter::GetGasGauge(LPCSTR udid, GasGauge & out)
+bool CDataCenter::GetGasGauge(LPCSTR udid, BatteryBaseInfo& out)
 {
 	bool bRet = false;
 	auto iter = m_listDev.find(udid);
 	if (iter == m_listDev.end())
 		return false;
-	iter->second.iOSDevObject.GetGasGauge(out);
+	iter->second.iOSDevObject.GetBatteryBaseInfo(out);
 	return true;
 }
 
@@ -159,7 +162,7 @@ std::string CDataCenter::GetUDIDByWindow(SWindow * pWnd)
 	return "";
 }
 
-const CiOSDevice* CDataCenter::GetDevByUDID(LPCSTR udid)
+CiOSDevice* CDataCenter::GetDevByUDID(LPCSTR udid)
 {
 	auto iter = m_listDev.find(udid);
 	if (iter == m_listDev.end())
@@ -185,7 +188,7 @@ void _initdiskspase(SWindow * pWnd, const uint64_t & size, const uint64_t & tsiz
 {
 	if (pWnd)
 	{
-		int percentage = size * 1000 / tsize;
+		int percentage = (int)(size * 1000 / tsize);
 		double gb = (double)size / 1024 / 1024 / 1024 + 0.005;
 		pWnd->GetLayoutParam()->SetAttribute(L"weight", SStringT().Format(L"%d", percentage), FALSE);
 		pWnd->SetAttribute(L"tip", SStringT().Format(L"%0.2fGB", gb), FALSE);
@@ -300,21 +303,21 @@ void _initiphonediskinfo(SWindow * pInfoWnd, const DiskInfo & diskInfo)
 
 
 		gb = (double)diskInfo.TotalSystemCapacity / 1024 / 1024 / 1024 + 0.005;
-		double gbu = (double)(diskInfo.TotalSystemCapacity-diskInfo.TotalSystemAvailable) / 1024 / 1024 / 1024 + 0.005;
+		double gbu = (double)(diskInfo.TotalSystemCapacity - diskInfo.TotalSystemAvailable) / 1024 / 1024 / 1024 + 0.005;
 		lable->SetWindowText(SStringT().Format(L"%0.2fGB", gbu) + L"/" + SStringT().Format(L"%0.2fGB", gb));
 
 		lable = pIphoneWnd->FindChildByID(R.id.lable_datadisk);
 		SASSERT(lable);
 
 		gb = (double)diskInfo.TotalDataCapacity / 1024 / 1024 / 1024 + 0.005;
-		gbu = (double)(diskInfo.TotalDataCapacity-diskInfo.TotalDataAvailable) / 1024 / 1024 / 1024 + 0.005;
-		lable->SetWindowText(SStringT().Format(L"%0.2fGB", gbu) + L"/" + SStringT().Format(L"%0.2fGB", gb));		
+		gbu = (double)(diskInfo.TotalDataCapacity - diskInfo.TotalDataAvailable) / 1024 / 1024 / 1024 + 0.005;
+		lable->SetWindowText(SStringT().Format(L"%0.2fGB", gbu) + L"/" + SStringT().Format(L"%0.2fGB", gb));
 		//系统区
-		_initdiskspase(pIphoneWnd->FindChildByID(R.id.disk_sys), diskInfo.TotalSystemCapacity- diskInfo.TotalSystemAvailable, diskInfo.TotalSystemCapacity);
+		_initdiskspase(pIphoneWnd->FindChildByID(R.id.disk_sys), diskInfo.TotalSystemCapacity - diskInfo.TotalSystemAvailable, diskInfo.TotalSystemCapacity);
 		_initdiskspase(pIphoneWnd->FindChildByID(R.id.disk_free1), diskInfo.TotalSystemAvailable, diskInfo.TotalSystemCapacity);
 		//数据区
 		_initdiskspase(pIphoneWnd->FindChildByID(R.id.disk_app), diskInfo.AppUsage, diskInfo.TotalDataCapacity);
-		uint64_t other = diskInfo.TotalDataCapacity- diskInfo.TotalDataAvailable - diskInfo.AppUsage;
+		uint64_t other = diskInfo.TotalDataCapacity - diskInfo.TotalDataAvailable - diskInfo.AppUsage;
 		_initdiskspase(pIphoneWnd->FindChildByID(R.id.disk_photo), diskInfo.PhotoUsage, diskInfo.TotalDataCapacity);
 		other -= diskInfo.PhotoUsage;
 		_initdiskspase(pIphoneWnd->FindChildByID(R.id.disk_udisk), 0, diskInfo.TotalDataCapacity);
@@ -330,24 +333,31 @@ bool CDataCenter::_initdevbaseinfo(const iOSDevInfo & devInfo, SWindow * pInfoWn
 	SASSERT(pWnd);
 	if (pWnd)
 	{
-		pInfoWnd->FindChildByID(R.id.lable_ProductName)->SetWindowText(devInfo.m_strDevProductName);
-		pInfoWnd->FindChildByID(R.id.lable_FirmwareVersion)->SetWindowText(devInfo.m_strProductVersion + L"(" + devInfo.m_strBuildVersion + L")");
-		pInfoWnd->FindChildByID(R.id.lable_SerialNumber)->SetWindowText(devInfo.m_strDevSerialNumber);
-		pInfoWnd->FindChildByID(R.id.lable_ModelNumber)->SetWindowText(devInfo.m_strDevModelNumber + L" " + devInfo.m_strRegionInfo);
+		pWnd->FindChildByID(R.id.lable_ProductName)->SetWindowText(devInfo.m_strDevProductName);
+		pWnd->FindChildByID(R.id.lable_FirmwareVersion)->SetWindowText(devInfo.m_strProductVersion + L"(" + devInfo.m_strBuildVersion + L")");
+		pWnd->FindChildByID(R.id.lable_SerialNumber)->SetWindowText(devInfo.m_strDevSerialNumber);
+		pWnd->FindChildByID(R.id.lable_ModelNumber)->SetWindowText(devInfo.m_strDevModelNumber + L" " + devInfo.m_strRegionInfo);
 
-		pInfoWnd->FindChildByID(R.id.lable_HardwareModel)->SetWindowText(devInfo.m_strDevHardwareModel);
-		pInfoWnd->FindChildByID(R.id.lable_IMEI)->SetWindowText(devInfo.m_strDevIMEI);
-		pInfoWnd->FindChildByID(R.id.lable_ProductType)->SetWindowText(devInfo.m_strDevProductType);
-		pInfoWnd->FindChildByID(R.id.lable_UDID)->SetWindowText(devInfo.m_strDevUDID);
-		pInfoWnd->FindChildByID(R.id.lable_CycleCount)->SetWindowText(SStringT().Format(L"%d次", devInfo.m_sGasGauge.CycleCount));
+		pWnd->FindChildByID(R.id.lable_HardwareModel)->SetWindowText(devInfo.m_strDevHardwareModel);
+		pWnd->FindChildByID(R.id.lable_IMEI)->SetWindowText(devInfo.m_strDevIMEI);
+		pWnd->FindChildByID(R.id.lable_ProductType)->SetWindowText(devInfo.m_strDevProductType);
+		pWnd->FindChildByID(R.id.lable_UDID)->SetWindowText(devInfo.m_strDevUDID);
+		pWnd->FindChildByID(R.id.lable_CycleCount)->SetWindowText(SStringT().Format(L"%d次", devInfo.m_sGasGauge.CycleCount));
 
-		pInfoWnd->FindChildByID(R.id.lable_ActivationState)->SetWindowText(devInfo.m_strActivationState == L"Activated" ? L"已激活" : L"未激活");
+		pWnd->FindChildByID(R.id.lable_ECID)->SetWindowText(devInfo.m_strECID);
+		pWnd->FindChildByID(R.id.lable_IsCydia)->SetWindowText(L"否");
+		pWnd->FindChildByID(R.id.lable_ActivationState)->SetWindowText(devInfo.m_strActivationState == L"Activated" ? L"已激活" : L"未激活");
+
+		pInfoWnd->FindChildByID(R.id.txt_devname)->SetWindowText(devInfo.m_strDevName);
+		pInfoWnd->FindChildByID(R.id.et_devname)->SetUserData((ULONG_PTR)pInfoWnd);
+
+
+		pWnd->FindChildByID(R.id.btn_batteryInfo)->SetUserData((ULONG_PTR)pInfoWnd);
+		pWnd->FindChildByID(R.id.btn_showDevInfo)->SetUserData((ULONG_PTR)pInfoWnd);
 
 		pInfoWnd->FindChildByID(R.id.btn_reboot)->SetUserData((ULONG_PTR)pInfoWnd);
 		pInfoWnd->FindChildByID(R.id.btn_shutdown)->SetUserData((ULONG_PTR)pInfoWnd);
-		pInfoWnd->FindChildByID(R.id.btn_showDevInfo)->SetUserData((ULONG_PTR)pInfoWnd);
 		pInfoWnd->FindChildByID(R.id.btn_sleep)->SetUserData((ULONG_PTR)pInfoWnd);
-		pInfoWnd->FindChildByID(R.id.btn_batteryInfo)->SetUserData((ULONG_PTR)pInfoWnd);
 
 		switch (devInfo.m_type)
 		{

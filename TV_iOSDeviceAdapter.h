@@ -199,7 +199,19 @@ public:
 	{
 		return 3;
 	}
-
+	void UnDataDev(LPCSTR id)
+	{
+		HSTREEITEM node = m_tree.GetChildItem(ITEM_ROOT);
+		while (node)
+		{
+			if (m_tree.GetItem(node).data.guid == id)
+			{				
+				notifyBranchInvalidated(node);
+				break;
+			}
+			node = m_tree.GetNextSiblingItem(node);
+		}
+	}
 protected:
 	//添加一个设备id:udid can:是否可操作
 	void AddDev(LPCSTR id, bool can)

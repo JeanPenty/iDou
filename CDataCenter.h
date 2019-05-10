@@ -32,8 +32,8 @@ public:
 	void Reboot(SWindow* pWnd);
 	void Sleep(SWindow* pWnd);
 	std::string GetUDIDByWindow(SWindow* pWnd);
-	const CiOSDevice* GetDevByUDID(LPCSTR udid);
-	bool GetGasGauge(LPCSTR udid, GasGauge& out);
+	CiOSDevice* GetDevByUDID(LPCSTR udid);
+	bool GetGasGauge(LPCSTR udid, BatteryBaseInfo& out);
 private:	
 	void _docmd(SWindow* pWnd, diagnostics_cmd_mode cmd);
 

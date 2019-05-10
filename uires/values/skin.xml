@@ -13,10 +13,13 @@
   <imglist name="skin_connect_dev" src="img:png_connect_dev"/>
   <imglist name="skin_pro_pc_apps" src="img:png_pro_pc_apps"/>
   <imgframe name="skin_menu_bk" src="img:png_menu_bk" margin="16,16,105,16"/>
-  <colorrect name="skin_lable" borderWidth="1" normalBorder="@color/black" cornerRadius="2"/>
+  <colorrect name="skin_lable" borderWidth="1" normalBorder="@color/gray2" cornerRadius="2"/>
   <colorrect name="skin_btninfo" normal="@color/infotabbknor" hover="@color/white" pushdown="@color/infotabbkpush"/>
   <imglist name="skin_icolist" src="img:png_icon_list"/>
   <imglist name="skin_iconarticle" src="img:png_icon_article"/>
   <imglist name="skin_iphonescreen" src="img:png_iphonescreen"/>
   <imglist name="skin_ipadscreen" src="img:png_ipadscreen"/>
+
+  <colorrect name="skin_button" normal="@color/white" hover="@color/infotabbkpush" pushdown="@color/gray3"
+             borderWidth="1" hoverBorder="@color/gray2" pushdownBorder="@color/gray2" normalBorder="@color/gray2"/>
 </skin>
