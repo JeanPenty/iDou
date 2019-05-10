@@ -167,7 +167,7 @@ namespace utils
 			plist_node_print_to_stringstream(plist, &indent, stream);
 		}
 	}
-	
+
 	std::map<std::wstring, std::wstring> g_mapDevproductType = {
 		//iPhone
 		{L"iphone1,1",L"iPhone"},
@@ -246,7 +246,7 @@ namespace utils
 		{L"x86_64", L"Simulator"}
 	};
 
-	void productType_to_phonename(SOUI::SStringT &productType)
+	void productType_to_phonename(SOUI::SStringT & productType)
 	{
 		std::wstring strProductType = productType.MakeLower();
 		auto ite = g_mapDevproductType.find(strProductType);
@@ -542,7 +542,7 @@ namespace utils
 					outDeviceEnclosureColor = L"银白色";
 					ouColor = L"#dcdede";
 				}
-			}break;			
+			}break;
 			}
 		}
 		return ouColor;
@@ -557,7 +557,103 @@ namespace utils
 		return e;
 	}
 
-	void getbatteryManufactureDate(LPCSTR date, SOUI::SStringT& outOrigin, SOUI::SStringT& outDate)
+	time_t FormatTime2(LPCWSTR szTime)
+	{
+		struct tm tm1;
+		time_t time1;
+		swscanf(szTime, L"%4d%2d%2d%2d%2d%2d",
+			&tm1.tm_year,
+			&tm1.tm_mon,
+			&tm1.tm_mday,
+			&tm1.tm_hour,
+			&tm1.tm_min,
+			&tm1.tm_sec);
+
+		tm1.tm_year -= 1900;
+		tm1.tm_mon--;
+
+		tm1.tm_isdst = -1;
+
+		time1 = mktime(&tm1);
+		return time1;
+	}
+
+	void FormatTime(time_t time1, SOUI::SStringT & szTime)
+	{
+		struct tm tm1;
+
+#ifdef WIN32
+		tm1 = *localtime(&time1);
+#else
+		localtime_r(&time1, &tm1);
+#endif
+		szTime.Format(L"%4.4d-%2.2d-%2.2d",
+			tm1.tm_year + 1900, tm1.tm_mon + 1, tm1.tm_mday);
+	}
+
+	std::map<SOUI::SStringT, SOUI::SStringT> OriginID = {
+		{L"F5D",L"惠州德赛"},
+		{L"F9G",L"东莞华普"},
+		{L"F8Y",L"欣旺达"},
+		{L"ABY",L"欣旺达"},
+		{L"C01",L"苏州顺达"},
+	};
+
+	int CaculateFirstDayWeekDay(int y)
+	{
+		int m = 13, d = 1;	
+		y--;
+		//周是从星期天开始算的。。。。
+		return ((d + 2 * m + 3 * (m + 1) / 5 + y + y / 4 - y / 100 + y / 400)+1) % 7;
+	}
+
+
+	void getbatteryManufactureDateFormeSN(const SOUI::SStringT & SN, SOUI::SStringT & outOrigin, SOUI::SStringT & outDate)
+	{		
+		//XXX X XX X
+		//厂家 年 周 日
+		if (SN.GetLength() > 7)
+		{
+			SOUI::SStringT origin = SN.Mid(0, 3);
+			SOUI::SStringT year = SN.Mid(3, 1);
+			SOUI::SStringT week = SN.Mid(4, 2);
+			SOUI::SStringT day = SN.Mid(6, 1);
+
+			auto iter=OriginID.find(origin);
+			if (iter != OriginID.end())
+			{
+				outOrigin = iter->second;
+			}
+			else
+			{
+				outOrigin= L"未知厂家";
+			}
+
+			if (year[0] > L'0' && year[0] < L'9')
+			{				
+				year.Format(L"201%c",year[0]);
+			}
+			else if (year[0] > L'A' && year[0] < L'Z')
+			{
+				year.Format(L"20%2.d", 10 + (year[0] - L'A'));
+			}
+			else
+				return;
+			int iyear=0;
+			swscanf(year, L"%d", &iyear);
+			year.Format(L"%s0101010101",(LPCTSTR) year);
+			time_t firstdate = FormatTime2(year);
+			int iweek = 0;
+			swscanf(week, L"%d", &iweek);
+			int iday = 0;
+			swscanf(day, L"%d", &iday);
+			
+			time_t reldate= firstdate+ ((iweek-1)*7+ iday - CaculateFirstDayWeekDay(iyear))* 86400;
+			FormatTime(reldate,outDate);
+		}
+	}
+
+	void getbatteryManufactureDate(LPCSTR date, SOUI::SStringT & outOrigin, SOUI::SStringT & outDate)
 	{
 		//C（顺达电子）、D（德赛电子）、F（常熟电子）
 		if (date && strlen(date) == 4)
@@ -581,7 +677,7 @@ namespace utils
 	}
 
 	//
-	void mobilebackup_afc_get_file_contents(afc_client_t afc, const char* filename, char** data, uint64_t* size)
+	void mobilebackup_afc_get_file_contents(afc_client_t afc, const char* filename, char** data, uint64_t * size)
 	{
 		if (!afc || !data || !size) {
 			return;
@@ -687,7 +783,7 @@ namespace utils
 		}
 	}
 
-	int mb2_handle_send_file(mobilebackup2_client_t mobilebackup2, const char* backup_dir, const char* path, plist_t* errplist)
+	int mb2_handle_send_file(mobilebackup2_client_t mobilebackup2, const char* backup_dir, const char* path, plist_t * errplist)
 	{
 		uint32_t nlen = 0;
 		uint32_t pathlen = strlen(path);
@@ -1195,7 +1291,7 @@ namespace utils
 			memcpy(buffer, path, len - 1);
 		}
 		return buffer;
-	}
+		}
 
 	void scan_directory(const char* path, struct entry** files, struct entry** directories)
 	{
@@ -1398,7 +1494,7 @@ namespace utils
 
 		fflush(stdout);
 		if (progress == 100);
-			//PRINT_VERBOSE(1, "\n");
+		//PRINT_VERBOSE(1, "\n");
 	}
 
 	void print_progress_real(double progress, int flush)
@@ -1418,7 +1514,7 @@ namespace utils
 		if (flush > 0) {
 			fflush(stdout);
 			if (progress == 100);
-				//PRINT_VERBOSE(1, "\n");
+			//PRINT_VERBOSE(1, "\n");
 		}
 	}
 
@@ -1754,7 +1850,7 @@ namespace utils
 
 		return uuid;
 	}
-	
+
 	int remove_file(const char* path)
 	{
 		int e = 0;
@@ -1816,4 +1912,4 @@ namespace utils
 
 		return res;
 	}
-}
+	}

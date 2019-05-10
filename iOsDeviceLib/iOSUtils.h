@@ -160,6 +160,8 @@ namespace utils
 		struct entry* next;
 	};
 
+	void getbatteryManufactureDateFormeSN(const SOUI::SStringT& SN, SOUI::SStringT& outOrigin, SOUI::SStringT& outDate);
+
 	void getbatteryManufactureDate(LPCSTR date, SOUI::SStringT& outOrigin, SOUI::SStringT& outDate);
 	//
 	void mobilebackup_afc_get_file_contents(afc_client_t afc, const char* filename, char** data, uint64_t* size);

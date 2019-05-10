@@ -33,6 +33,9 @@
     <file name="png_icon_article" path="image\icon-article.png"/>
     <file name="png_iphonescreen" path="image\iphone.png"/>
     <file name="png_ipadscreen" path="image\ipad.png"/>
+    <file name="png_battery" path="image\battery.png"/>
+    <file name="png_batterybk" path="image\batterybk.png"/>
+    <file name="png_BatteryCurrentCapacity" path="image\BatteryCurrentCapacity.png"/>
   </IMG>
   <ICON>
     <file name="ICON_LOGO"  path="image\soui.ico"/>

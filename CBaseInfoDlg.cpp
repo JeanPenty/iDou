@@ -24,7 +24,11 @@ BOOL CBattryInfoDlg::OnInitDialog(HWND wndFocus, LPARAM lInitParam)
 		FindChildByID(R.id.lable_BatteryBootVoltage)->SetWindowText(SStringT().Format(L"%0.2fV", (double)batteryBaseInfo.BootVoltage/1000));
 		FindChildByID(R.id.lable_BatteryOrigin)->SetWindowText(batteryBaseInfo.Origin);
 		FindChildByID(R.id.lable_BatteryDate)->SetWindowText(batteryBaseInfo.ManufactureDate);
-	}
+		int iCycleLife = (int)(((float)batteryBaseInfo.NominalChargeCapacity * 100 / batteryBaseInfo.DesignCapacity) + 0.5);
+		if (iCycleLife > 100)iCycleLife = 100;
+		FindChildByID(R.id.lable_CycleLife)->SetWindowText(SStringT().Format(L"%d%%", iCycleLife));
+	}	
+
 	CiOSDevice* dev = CDataCenter::getSingleton().GetDevByUDID(m_udid.c_str());
 	if (dev)
 		dev->StartUpdataBatteryInfo();
@@ -33,9 +37,12 @@ BOOL CBattryInfoDlg::OnInitDialog(HWND wndFocus, LPARAM lInitParam)
 void CBattryInfoDlg::OnUpdataInfo(EventArgs* pEArg)
 {
 	EventUpdataInfo* pUpdataInfo = sobj_cast<EventUpdataInfo>(pEArg);
-	if (pUpdataInfo && pUpdataInfo->udid == m_sudid)
+	if (pUpdataInfo && pUpdataInfo->udid == m_sudid&& m_lastBatteryCurrentCapacity!= pUpdataInfo->BatteryCurrentCapacity)
 	{
-
+		m_lastBatteryCurrentCapacity = pUpdataInfo->BatteryCurrentCapacity;
+		FindChildByID(R.id.img_batterycurrentcap)->GetLayoutParam()->SetAttribute(L"weight", SStringT().Format(L"%d", m_lastBatteryCurrentCapacity), FALSE);
+		FindChildByID(R.id.img_batteryemtycap)->GetLayoutParam()->SetAttribute(L"weight", SStringT().Format(L"%d", 100- m_lastBatteryCurrentCapacity), FALSE);
+		FindChildByID(R.id.batterycap)->RequestRelayout();
 	}
 }
 
@@ -46,7 +53,7 @@ void CBattryInfoDlg::OnUpdataBattaryInfo(EventArgs* pEArg)
 	{
 		FindChildByID(R.id.lable_BatteryTemperature)->SetWindowText(SStringT().Format(L"%0.2f¡æ", (double)pUpdataInfo->Temperature / 100));
 		FindChildByID(R.id.lable_BatteryVoltage)->SetWindowText(SStringT().Format(L"%0.2fV", (double)pUpdataInfo->Voltage / 1000));
-		FindChildByID(R.id.lable_BatteryCurrentCapacity)->SetWindowText(SStringT().Format(L"%dmA", pUpdataInfo->Current));
+		FindChildByID(R.id.lable_BatteryCurrentCapacity)->SetWindowText(SStringT().Format(L"%dmA", pUpdataInfo->Current));		
 	}
 }
 

@@ -348,9 +348,12 @@ bool CDataCenter::_initdevbaseinfo(const iOSDevInfo & devInfo, SWindow * pInfoWn
 		pWnd->FindChildByID(R.id.lable_IsCydia)->SetWindowText(L"·ñ");
 		pWnd->FindChildByID(R.id.lable_ActivationState)->SetWindowText(devInfo.m_strActivationState == L"Activated" ? L"ÒÑ¼¤»î" : L"Î´¼¤»î");
 
+		int iCycleLife = (int)(((float)devInfo.m_sGasGauge.NominalChargeCapacity * 100 / devInfo.m_sGasGauge.DesignCapacity) + 0.5);
+		if (iCycleLife > 100)iCycleLife = 100;
+		pWnd->FindChildByID(R.id.lable_CycleLife)->SetWindowText(SStringT().Format(L"%d%%", iCycleLife));
+
 		pInfoWnd->FindChildByID(R.id.txt_devname)->SetWindowText(devInfo.m_strDevName);
 		pInfoWnd->FindChildByID(R.id.et_devname)->SetUserData((ULONG_PTR)pInfoWnd);
-
 
 		pWnd->FindChildByID(R.id.btn_batteryInfo)->SetUserData((ULONG_PTR)pInfoWnd);
 		pWnd->FindChildByID(R.id.btn_showDevInfo)->SetUserData((ULONG_PTR)pInfoWnd);

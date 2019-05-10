@@ -1,208 +1,157 @@
-﻿<include> 
+﻿<include>
   <window pos="|,|" size="906,700" offset="-0.5,-0.5" colorBkgnd="@color/white">
-  <window layout="vbox" size="806,600" gravity="center" offset="-0.5,-0.5" pos="|,|" inset="50,38,50,30">
-    <window size="-1,0" weight="1" layout="hbox">
-      <window size="-1,-2">
-        <window layout="vbox" gravity="center" interval="8">
-          <img name="img_srceenshot" skin="skin_iphonescreen" colorBkgnd="#ff00ff"/>
-          <window size="-1,-1" layout="hbox" gravity="center" interval="4">
-            <text name="txt_devname" size="-1,-1" maxWidth="120" dotted="1" display="0"/>
-            <edit name="et_devname" size="120,-2" class="cls_edit" show="0" align="center" display="0"/>
-            <img skin="skin_iconarticle" name="btn_etdevname" msgTransparent="0"/>
-          </window>
-          <window layout="hbox" size="-1,-1">
-            <button text="重启" name="btn_reboot" padding="4,4,4,4"/>
-            <button text="关机" name="btn_shutdown" padding="4,4,4,4"/>
-            <button text="睡眠" name="btn_sleep" padding="4,4,4,4"/>
+    <window layout="vbox" size="806,600" gravity="center" offset="-0.5,-0.5" pos="|,|" inset="50,38,50,30">
+      <window size="-1,0" weight="1" layout="hbox">
+        <window size="-1,-2">
+          <window layout="vbox" gravity="center" interval="8">
+            <img name="img_srceenshot" skin="skin_iphonescreen" colorBkgnd="#ff00ff"/>
+            <window size="-1,-1" layout="hbox" gravity="center" interval="4">
+              <text name="txt_devname" size="-1,-1" maxWidth="120" dotted="1" display="0"/>
+              <edit name="et_devname" size="120,-2" class="cls_edit" show="0" align="center" display="0"/>
+              <img skin="skin_iconarticle" name="btn_etdevname" msgTransparent="0"/>
+            </window>
+            <window layout="hbox" size="-1,-1">
+              <button text="重启" name="btn_reboot" padding="4,4,4,4"/>
+              <button text="关机" name="btn_shutdown" padding="4,4,4,4"/>
+              <button text="睡眠" name="btn_sleep" padding="4,4,4,4"/>
+            </window>
           </window>
         </window>
-      </window>
-      <window size="458,-1" extend_left="50" layout="vbox" font="size:12">
-        <window name="BaseInfoWnd" size="-2,-1" margin="1,1,1,1" colorBorder="@color/infoborder" layout="vbox">
-          <window class="info_item" colorText="@color/black">
-            <text text="unknow" name="lable_ProductName" extend_left="10"/>
-            <text text="32G" name="lable_DiskSize" inset="8,0,8,0" skin="skin_lable"/>
-            <text extend_left="8" text="土豪金" name="lable_DevColor"/>
-            <text weight="1"/>
-            <text name="lable_BatteryCurrentCapacity"/>
-          </window>
-          <hr size="-2,1" colorLine="@color/infoborder"/>
-          <window size="-2,-1" layout="hbox">
-            <window size="0,-1" weight="1" padding="10,0,0,0" layout="vbox">
-              <t:info_item>
-                <data title="@string/FirmwareVersion" name="lable_FirmwareVersion"/>
-              </t:info_item>
-              <hr class="hr_vcss"/>
-              <t:info_item>
-                <data title="@string/IsCydia" name="lable_IsCydia"/>
-              </t:info_item>
-              <hr class="hr_vcss"/>
-              <t:info_item>
-                <data title="@string/ActivationState" name="lable_ActivationState"/>
-              </t:info_item>
-              <hr class="hr_vcss"/>
-              <t:info_item>
-                <data title="@string/ProductType" name="lable_ProductType"/>
-              </t:info_item>
-              <hr class="hr_vcss"/>
-              <t:info_item>
-                <data title="@string/ModelNumber" name="lable_ModelNumber"/>
-              </t:info_item>
-              <hr class="hr_vcss"/>
-              <t:info_item>
-                <data title="@string/IMEI" name="lable_IMEI"/>
-              </t:info_item>
-              <hr class="hr_vcss"/>
-              <t:info_item>
-                <data title="@string/SerialNumber" name="lable_SerialNumber"/>
-              </t:info_item>
-              <hr class="hr_vcss"/>
-              <t:info_item>
-                <data title="@string/ECID" name="lable_ECID"/>
-              </t:info_item>
-              <hr class="hr_vcss"/>
-              <t:info_item>
-                <data title="@string/HardwareModel" name="lable_HardwareModel"/>
-              </t:info_item>
+        <window size="458,-1" extend_left="50" layout="vbox" font="size:12">
+          <window name="BaseInfoWnd" size="-2,-1" margin="1,1,1,1" colorBorder="@color/infoborder" layout="vbox">
+            <window class="info_item" colorText="@color/black">
+              <text text="unknow" name="lable_ProductName" extend_left="10"/>
+              <text text="32G" name="lable_DiskSize" inset="8,0,8,0" skin="skin_lable"/>
+              <text extend_left="8" text="土豪金" name="lable_DevColor"/>
+              <text weight="1"/>
+              <text name="lable_BatteryIsCapacity"/>
+              <img name="batterybk" skin="skin_battery" size="-1,-1" gravity="center" inset="2,2,4,2">                
+                <text class="pos_center" font="adding:-2" name="lable_BatteryCurrentCapacity"/>               
+              </img>
             </window>
-            <hr size="1,-2" mode="vertical" colorLine="@color/infoborder"/>
-            <window size="0,-1" weight="1"  padding="10,0,0,0" layout="vbox">
-              <t:info_item>
-                <data  title="@string/AppleIDLock" name="lable_AppleIDLock"/>
-              </t:info_item>
-              <hr  class="hr_vcss"/>
-              <t:info_item>
-                <data  title="@string/iCloud" name="lable_iCloud"/>
-              </t:info_item>
-              <hr  class="hr_vcss"/>
-              <t:info_item>
-                <data  title="@string/ProductDate" name="lable_ProductDate"/>
-              </t:info_item>
-              <hr  class="hr_vcss"/>
-              <t:info_item>
-                <data  title="@string/WARRANTYEXPIRATIONDATE" name="lable_WARRANTYEXPIRATIONDATE"/>
-              </t:info_item>
-              <hr  class="hr_vcss"/>
-              <t:info_item>
-                <data  title="@string/LOC" name="lable_LOC"/>
-              </t:info_item>
-              <hr  class="hr_vcss"/>
-              <t:info_item>
-                <data  title="@string/CPU" name="lable_CPU"/>
-              </t:info_item>
-              <hr  class="hr_vcss"/>
-              <t:info_item>
-                <data  title="@string/DiskType" name="lable_DiskType"/>
-              </t:info_item>
-              <hr  class="hr_vcss"/>
-              <t:info_item>
-                <data  title="@string/CycleCount" name="lable_CycleCount"/>
-              </t:info_item>
-              <hr  class="hr_vcss"/>
-              <window class="info_item">
-                <text text="@string/CycleLife"/>
-                <text name="lable_CycleLife"  class="info_lable_item"/>
-                <text name="btn_batteryInfo" text="@string/BattaryInfo" class="cls_btn_weblink"/>
+            <hr size="-2,1" colorLine="@color/infoborder"/>
+            <window size="-2,-1" layout="hbox">
+              <window size="0,-1" weight="1" padding="10,0,0,0" layout="vbox">
+                <t:info_item>
+                  <data title="@string/FirmwareVersion" name="lable_FirmwareVersion"/>
+                </t:info_item>
+                <hr class="hr_vcss"/>
+                <t:info_item>
+                  <data title="@string/IsCydia" name="lable_IsCydia"/>
+                </t:info_item>
+                <hr class="hr_vcss"/>
+                <t:info_item>
+                  <data title="@string/ActivationState" name="lable_ActivationState"/>
+                </t:info_item>
+                <hr class="hr_vcss"/>
+                <t:info_item>
+                  <data title="@string/ProductType" name="lable_ProductType"/>
+                </t:info_item>
+                <hr class="hr_vcss"/>
+                <t:info_item>
+                  <data title="@string/ModelNumber" name="lable_ModelNumber"/>
+                </t:info_item>
+                <hr class="hr_vcss"/>
+                <t:info_item>
+                  <data title="@string/IMEI" name="lable_IMEI"/>
+                </t:info_item>
+                <hr class="hr_vcss"/>
+                <t:info_item>
+                  <data title="@string/SerialNumber" name="lable_SerialNumber"/>
+                </t:info_item>
+                <hr class="hr_vcss"/>
+                <t:info_item>
+                  <data title="@string/ECID" name="lable_ECID"/>
+                </t:info_item>
+                <hr class="hr_vcss"/>
+                <t:info_item>
+                  <data title="@string/HardwareModel" name="lable_HardwareModel"/>
+                </t:info_item>
               </window>
-              <hr class="hr_vcss"/>
+              <hr size="1,-2" mode="vertical" colorLine="@color/infoborder"/>
+              <window size="0,-1" weight="1"  padding="10,0,0,0" layout="vbox">
+                <t:info_item>
+                  <data  title="@string/AppleIDLock" name="lable_AppleIDLock"/>
+                </t:info_item>
+                <hr  class="hr_vcss"/>
+                <t:info_item>
+                  <data  title="@string/iCloud" name="lable_iCloud"/>
+                </t:info_item>
+                <hr  class="hr_vcss"/>
+                <t:info_item>
+                  <data  title="@string/ProductDate" name="lable_ProductDate"/>
+                </t:info_item>
+                <hr  class="hr_vcss"/>
+                <t:info_item>
+                  <data  title="@string/WARRANTYEXPIRATIONDATE" name="lable_WARRANTYEXPIRATIONDATE"/>
+                </t:info_item>
+                <hr  class="hr_vcss"/>
+                <t:info_item>
+                  <data  title="@string/LOC" name="lable_LOC"/>
+                </t:info_item>
+                <hr  class="hr_vcss"/>
+                <t:info_item>
+                  <data  title="@string/CPU" name="lable_CPU"/>
+                </t:info_item>
+                <hr  class="hr_vcss"/>
+                <t:info_item>
+                  <data  title="@string/DiskType" name="lable_DiskType"/>
+                </t:info_item>
+                <hr  class="hr_vcss"/>
+                <t:info_item>
+                  <data  title="@string/CycleCount" name="lable_CycleCount"/>
+                </t:info_item>
+                <hr  class="hr_vcss"/>
+                <window class="info_item">
+                  <text text="@string/CycleLife"/>
+                  <text name="lable_CycleLife"  class="info_lable_item"/>
+                  <text name="btn_batteryInfo" text="@string/BattaryInfo" class="cls_btn_weblink"/>
+                </window>
+                <hr class="hr_vcss"/>
+              </window>
+            </window>
+            <hr size="-2,1" colorLine="@color/infoborder"/>
+            <window class="info_item" padding="10,0,10,0">
+              <text text="设备标志(UDID)"/>
+              <text name="lable_UDID" class="info_lable_item"/>
+            </window>
+            <hr size="-2,1" colorLine="@color/infoborder"/>
+            <window size="-2,33" layout="hbox">
+              <window class="info_btn" name="btn_">
+                <text weight="1"/>
+                <img skin="skin_iconarticle"/>
+                <text text="@string/ShowDevCheck"/>
+                <text weight="1"/>
+              </window>
+              <hr size="1,-2" mode="vertical" colorLine="@color/infoborder"/>
+              <window class="info_btn" name="btn_showDevInfo">
+                <text weight="1"/>
+                <img skin="skin_icolist"/>
+                <text text="@string/ShowDevInfo"/>
+                <text weight="1"/>
+              </window>
             </window>
           </window>
-          <hr size="-2,1" colorLine="@color/infoborder"/>
-          <window class="info_item" padding="10,0,10,0">
-            <text text="设备标志(UDID)"/>
-            <text name="lable_UDID" class="info_lable_item"/>
-          </window>
-          <hr size="-2,1" colorLine="@color/infoborder"/>
-          <window size="-2,33" layout="hbox">
-            <window class="info_btn" name="btn_">
-              <text weight="1"/>
-              <img skin="skin_iconarticle"/>
-              <text text="@string/ShowDevCheck"/>
-              <text weight="1"/>
-            </window>
-            <hr size="1,-2" mode="vertical" colorLine="@color/infoborder"/>
-            <window class="info_btn" name="btn_showDevInfo">
-              <text weight="1"/>
-              <img skin="skin_icolist"/>
-              <text text="@string/ShowDevInfo"/>
-              <text weight="1"/>
-            </window>
-          </window>
-        </window>
 
-        <window name="wnd_ipaddsk" size="-2,-1" display="0" layout="vbox">
-          <window extend_top="10" size="-2,-1" layout="hbox">
-            <text text="硬盘容量"/>
-            <text weight="1"/>
-            <text text="xxxGB/XXXGB" name="lable_fudisk"/>
-          </window>
-          <window size="-2,9" layout="hbox">
-            <window name="disk_sys" size="0,-2" weight="22" colorBkgnd="@color/disk_sys" />
-            <window name="disk_app"  size="0,-2" weight="22" colorBkgnd="@color/disk_app"/>
-            <window name="disk_photo"  size="0,-2" weight="10" colorBkgnd="@color/disk_photo"/>
-            <window name="disk_av"  size="0,-2" weight="7" colorBkgnd="@color/disk_av"/>
-            <window name="disk_u"  size="0,-2" weight="0" colorBkgnd="@color/disk_u"/>
-            <window name="disk_other"  size="0,-2" weight="23" colorBkgnd="@color/disk_other"/>
-            <window name="disk_free"  size="0,-2" weight="22" colorBkgnd="@color/disk_free"/>
-          </window>
-          <window size="-2,-1" layout="hbox" extend_top="6">
-            <t:dsk_info>
-              <data colorBkgnd="@color/disk_sys" title="@string/system"/>
-            </t:dsk_info>
-            <t:dsk_info>
-              <data colorBkgnd="@color/disk_app" title="@string/app"/>
-            </t:dsk_info>
-            <t:dsk_info>
-              <data colorBkgnd="@color/disk_photo" title="@string/photo"/>
-            </t:dsk_info>
-            <t:dsk_info>
-              <data colorBkgnd="@color/disk_av" title="@string/av"/>
-            </t:dsk_info>
-            <t:dsk_info>
-              <data colorBkgnd="@color/disk_u" title="@string/udisk"/>
-            </t:dsk_info>
-            <t:dsk_info>
-              <data colorBkgnd="@color/disk_other" title="@string/other"/>
-            </t:dsk_info>
-            <t:dsk_info>
-              <data colorBkgnd="@color/disk_free" title="@string/free"/>
-            </t:dsk_info>
-          </window>
-        </window>
-        <window name="wnd_iphonedsk" size="-2,-1" display="0" layout="hbox">
-          <window size="0,-1" weight="1" layout="vbox" inset="0,0,10,0">
+          <window name="wnd_ipaddsk" size="-2,-1" display="0" layout="vbox">
             <window extend_top="10" size="-2,-1" layout="hbox">
-              <text text="系统区"/>
+              <text text="硬盘容量"/>
               <text weight="1"/>
-              <text text="xxxGB/XXXGB" name="lable_sysdisk"/>
+              <text text="xxxGB/XXXGB" name="lable_fudisk"/>
             </window>
             <window size="-2,9" layout="hbox">
               <window name="disk_sys" size="0,-2" weight="22" colorBkgnd="@color/disk_sys" />
-              <window name="disk_free1"  size="0,-2" weight="22" colorBkgnd="@color/disk_free"/>
+              <window name="disk_app"  size="0,-2" weight="22" colorBkgnd="@color/disk_app"/>
+              <window name="disk_photo"  size="0,-2" weight="10" colorBkgnd="@color/disk_photo"/>
+              <window name="disk_av"  size="0,-2" weight="7" colorBkgnd="@color/disk_av"/>
+              <window name="disk_u"  size="0,-2" weight="0" colorBkgnd="@color/disk_u"/>
+              <window name="disk_other"  size="0,-2" weight="23" colorBkgnd="@color/disk_other"/>
+              <window name="disk_free"  size="0,-2" weight="22" colorBkgnd="@color/disk_free"/>
             </window>
             <window size="-2,-1" layout="hbox" extend_top="6">
               <t:dsk_info>
                 <data colorBkgnd="@color/disk_sys" title="@string/system"/>
               </t:dsk_info>
-              <t:dsk_info>
-                <data colorBkgnd="@color/disk_free" title="@string/free"/>
-              </t:dsk_info>
-            </window>
-          </window>
-          <window size="0,-1" weight="1" layout="vbox"  inset="10,0,0,0">
-            <window extend_top="10" size="-2,-1" layout="hbox">
-              <text text="数据区"/>
-              <text weight="1"/>
-              <text text="xxxGB/XXXGB" name="lable_datadisk"/>
-            </window>
-            <window size="-2,9" layout="hbox">
-              <window name="disk_app"  size="0,-2" weight="22" colorBkgnd="@color/disk_app"/>
-              <window name="disk_photo"  size="0,-2" weight="10" colorBkgnd="@color/disk_photo"/>
-              <window name="disk_udisk"  size="0,-2" weight="0" colorBkgnd="@color/disk_u"/>
-              <window name="disk_other"  size="0,-2" weight="23" colorBkgnd="@color/disk_other"/>
-              <window name="disk_free2"  size="0,-2" weight="22" colorBkgnd="@color/disk_free"/>
-            </window>
-            <window size="-2,-1" layout="hbox" extend_top="6">
               <t:dsk_info>
                 <data colorBkgnd="@color/disk_app" title="@string/app"/>
               </t:dsk_info>
@@ -210,30 +159,84 @@
                 <data colorBkgnd="@color/disk_photo" title="@string/photo"/>
               </t:dsk_info>
               <t:dsk_info>
+                <data colorBkgnd="@color/disk_av" title="@string/av"/>
+              </t:dsk_info>
+              <t:dsk_info>
                 <data colorBkgnd="@color/disk_u" title="@string/udisk"/>
               </t:dsk_info>
               <t:dsk_info>
                 <data colorBkgnd="@color/disk_other" title="@string/other"/>
               </t:dsk_info>
+              <t:dsk_info>
+                <data colorBkgnd="@color/disk_free" title="@string/free"/>
+              </t:dsk_info>
             </window>
           </window>
-        </window>
+          <window name="wnd_iphonedsk" size="-2,-1" display="0" layout="hbox">
+            <window size="0,-1" weight="1" layout="vbox" inset="0,0,10,0">
+              <window extend_top="10" size="-2,-1" layout="hbox">
+                <text text="系统区"/>
+                <text weight="1"/>
+                <text text="xxxGB/XXXGB" name="lable_sysdisk"/>
+              </window>
+              <window size="-2,9" layout="hbox">
+                <window name="disk_sys" size="0,-2" weight="22" colorBkgnd="@color/disk_sys" />
+                <window name="disk_free1"  size="0,-2" weight="22" colorBkgnd="@color/disk_free"/>
+              </window>
+              <window size="-2,-1" layout="hbox" extend_top="6">
+                <t:dsk_info>
+                  <data colorBkgnd="@color/disk_sys" title="@string/system"/>
+                </t:dsk_info>
+                <t:dsk_info>
+                  <data colorBkgnd="@color/disk_free" title="@string/free"/>
+                </t:dsk_info>
+              </window>
+            </window>
+            <window size="0,-1" weight="1" layout="vbox"  inset="10,0,0,0">
+              <window extend_top="10" size="-2,-1" layout="hbox">
+                <text text="数据区"/>
+                <text weight="1"/>
+                <text text="xxxGB/XXXGB" name="lable_datadisk"/>
+              </window>
+              <window size="-2,9" layout="hbox">
+                <window name="disk_app"  size="0,-2" weight="22" colorBkgnd="@color/disk_app"/>
+                <window name="disk_photo"  size="0,-2" weight="10" colorBkgnd="@color/disk_photo"/>
+                <window name="disk_udisk"  size="0,-2" weight="0" colorBkgnd="@color/disk_u"/>
+                <window name="disk_other"  size="0,-2" weight="23" colorBkgnd="@color/disk_other"/>
+                <window name="disk_free2"  size="0,-2" weight="22" colorBkgnd="@color/disk_free"/>
+              </window>
+              <window size="-2,-1" layout="hbox" extend_top="6">
+                <t:dsk_info>
+                  <data colorBkgnd="@color/disk_app" title="@string/app"/>
+                </t:dsk_info>
+                <t:dsk_info>
+                  <data colorBkgnd="@color/disk_photo" title="@string/photo"/>
+                </t:dsk_info>
+                <t:dsk_info>
+                  <data colorBkgnd="@color/disk_u" title="@string/udisk"/>
+                </t:dsk_info>
+                <t:dsk_info>
+                  <data colorBkgnd="@color/disk_other" title="@string/other"/>
+                </t:dsk_info>
+              </window>
+            </window>
+          </window>
 
+        </window>
+      </window>
+      <window size="-2,-1"  layout="hbox" gravity="center">
+        <button size="52,52" text="功能1"/>
+        <window weight="1"/>
+        <button size="52,52" text="功能2"/>
+        <window weight="1"/>
+        <button size="52,52" text="功能3"/>
+        <window weight="1"/>
+        <button size="52,52" text="功能4"/>
+        <window weight="1"/>
+        <button size="52,52" text="功能5"/>
+        <window weight="1"/>
+        <button size="52,52" text="功能6"/>
       </window>
     </window>
-    <window size="-2,-1"  layout="hbox" gravity="center">
-      <button size="52,52" text="功能1"/>
-      <window weight="1"/>
-      <button size="52,52" text="功能2"/>
-      <window weight="1"/>
-      <button size="52,52" text="功能3"/>
-      <window weight="1"/>
-      <button size="52,52" text="功能4"/>
-      <window weight="1"/>
-      <button size="52,52" text="功能5"/>
-      <window weight="1"/>
-      <button size="52,52" text="功能6"/>
-    </window>
   </window>
-</window>
 </include>

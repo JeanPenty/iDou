@@ -50,4 +50,6 @@
     <udisk value="U盘"/>
     <other value="其它"/>
     <free value="剩余"/>
+    <charging value="正在充电"/>
+    <nocharging value="不在充电"/>
   </string>

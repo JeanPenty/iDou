@@ -601,7 +601,13 @@ bool CiOSDevice::_GetBatteryBaseInfo(BatteryBaseInfo & outInfo)
 			node = NULL;
 			if (diagnostics_relay_query_ioregistry_entry(diagnostics_client, "AppleARMPMUCharger", "", &node) == DIAGNOSTICS_RELAY_E_SUCCESS) {
 				if (node) {
-
+					{
+						char* xml = NULL;
+						uint32_t len;
+						plist_to_xml(node, &xml, &len);
+						if (xml)
+							free(xml);
+					}
 					using namespace SOUI;
 					plist_t batterysnnode = plist_dict_get_item(plist_dict_get_item(node, "IORegistry"), "Serial");
 					if (batterysnnode)
@@ -620,13 +626,22 @@ bool CiOSDevice::_GetBatteryBaseInfo(BatteryBaseInfo & outInfo)
 					{
 						plist_get_uint_val(batterynccnode, &outInfo.NominalChargeCapacity);
 					}
+					else
+					{
+						//BatteryData/MaxCapacity
+						batterynccnode = plist_dict_get_item(plist_dict_get_item(plist_dict_get_item(node, "IORegistry"), "BatteryData"),"MaxCapacity");
+						if (batterynccnode)
+						{
+							plist_get_uint_val(batterynccnode, &outInfo.NominalChargeCapacity);
+						}						
+					}
 
 					plist_t BootVoltageNode = plist_dict_get_item(plist_dict_get_item(node, "IORegistry"), "BootVoltage");
 					if (BootVoltageNode)
 					{
 						plist_get_uint_val(BootVoltageNode, &outInfo.BootVoltage);
 					}
-					plist_t batterydatanode = plist_dict_get_item(plist_dict_get_item(node, "IORegistry"), "BatteryData");
+					/*plist_t batterydatanode = plist_dict_get_item(plist_dict_get_item(node, "IORegistry"), "BatteryData");
 					if (batterydatanode)
 					{
 						plist_t ManufactureDateNode = plist_dict_get_item(batterydatanode, "ManufactureDate");
@@ -636,11 +651,14 @@ bool CiOSDevice::_GetBatteryBaseInfo(BatteryBaseInfo & outInfo)
 							plist_get_string_val(ManufactureDateNode, &date);
 							if (date)
 							{
-								utils::getbatteryManufactureDate(date, outInfo.Origin, outInfo.ManufactureDate);
+								
 								free(date);
 							}
 						}
 					}
+					*/
+					if(!outInfo.BatterySerialNumber.IsEmpty())
+						utils::getbatteryManufactureDateFormeSN(outInfo.BatterySerialNumber, outInfo.Origin, outInfo.ManufactureDate);
 					plist_free(node);
 				}
 			}

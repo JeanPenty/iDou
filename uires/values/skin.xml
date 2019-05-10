@@ -19,7 +19,9 @@
   <imglist name="skin_iconarticle" src="img:png_icon_article"/>
   <imglist name="skin_iphonescreen" src="img:png_iphonescreen"/>
   <imglist name="skin_ipadscreen" src="img:png_ipadscreen"/>
-
+  <imglist name="skin_batterycurrentcap" src="img:png_BatteryCurrentCapacity"/>
+  <imgframe name="skin_battery" src="img:png_battery"  margin="4,11,6,11" states="2"/>
+  <imgframe name="skin_batterybk" src="img:png_batterybk"  margin="6,9,18,8"/>
   <colorrect name="skin_button" normal="@color/white" hover="@color/infotabbkpush" pushdown="@color/gray3"
              borderWidth="1" hoverBorder="@color/gray2" pushdownBorder="@color/gray2" normalBorder="@color/gray2"/>
 </skin>

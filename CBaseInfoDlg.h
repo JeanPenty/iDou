@@ -39,6 +39,8 @@ protected:
 		MSG_WM_DESTROY(OnDestroy)
 		CHAIN_MSG_MAP(SHostDialog)
 	END_MSG_MAP()
+
+	uint64_t m_lastBatteryCurrentCapacity =0;
 };
 
 class CDevInfoDlg :
