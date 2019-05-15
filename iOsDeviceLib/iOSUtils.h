@@ -110,6 +110,8 @@ enum {
 	EVT_SCREEN_SHOT = SOUI::EVT_EXTERNAL_BEGIN,
 	EVT_UPDATA_INFO,
 	EVT_UPDATABATTREY_INFO,
+	EVT_UPDATADISK_INFO,
+	EVT_UPDATAAPPS_INFO,
 	EVT_END
 };
 
@@ -133,6 +135,14 @@ uint64_t Voltage;
 uint64_t Current;
 SEVENT_END()
 
+SEVENT_BEGIN(EventUpdataDiskInfo, EVT_UPDATADISK_INFO)
+std::string udid;
+SEVENT_END()
+
+SEVENT_BEGIN(EventUpdataAppsInfo, EVT_UPDATAAPPS_INFO)
+SOUI::SStringT udid;
+bool bSucessed;
+SEVENT_END()
 //---------------------AsyncEventEnd-----------------------
 
 
@@ -152,6 +162,24 @@ namespace utils
 	void plist_print_to_stringstream(plist_t plist, std::stringstream& stream);
 	SOUI::SStringT getphonecolor(SOUI::SStringT DevProductType, const SOUI::SStringT& DeviceColor,
 		const SOUI::SStringT& DeviceEnclosureColor, SOUI::SStringT& outDeviceColor, SOUI::SStringT& outDeviceEnclosureColor);
+	//创建一个合适的大小
+	template<class T>
+	SOUI::SStringT MakePrintSize(T& size)
+	{
+		const TCHAR* strUnit[] = {_T("B"),_T("KB"),_T("MB"),_T("GB"),_T("TB")};
+		static int max =ARRAYSIZE(strUnit);
+		int i = 0;		
+		uint64_t tsize=1;
+		while (i< max)
+		{
+			tsize *=1024;
+			if ((size/ tsize)==0)
+				break;
+			++i;
+		}
+		tsize /= 1024;
+		return SOUI::SStringT().Format(L"%0.2f%s", (float)size/ tsize, strUnit[i]);
+	}
 
 	int remove_directory(const char* path);
 
@@ -160,9 +188,12 @@ namespace utils
 		struct entry* next;
 	};
 
+	void getbatteryManufactureDateFormeSNOld(const SOUI::SStringT& SN, SOUI::SStringT& outOrigin, SOUI::SStringT& outDate);
+
 	void getbatteryManufactureDateFormeSN(const SOUI::SStringT& SN, SOUI::SStringT& outOrigin, SOUI::SStringT& outDate);
 
 	void getbatteryManufactureDate(LPCSTR date, SOUI::SStringT& outOrigin, SOUI::SStringT& outDate);
+	bool isIp6OrLater(SOUI::SStringT DevProductType);
 	//
 	void mobilebackup_afc_get_file_contents(afc_client_t afc, const char* filename, char** data, uint64_t* size);
 

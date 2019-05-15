@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "CDataCenter.h"
 #include "iOsDeviceLib/iOSUtils.h"
-#include "TV_iOSDeviceAdapter.h"
+#include "CMyDeviceHandler/TV_iOSDeviceAdapter.h"
 
 CDataCenter* CDataCenter::ms_Singleton = NULL;
 
@@ -15,7 +15,7 @@ bool CDataCenter::IsExistDev(LPCSTR udid)
 	return false;
 }
 
-bool CDataCenter::RemoveDevGUID(LPCSTR udid, CiOSDeviceTreeViewAdapter * pAdapter)
+bool CDataCenter::RemoveDevGUID(LPCSTR udid)
 {
 	if (udid)
 	{
@@ -24,28 +24,26 @@ bool CDataCenter::RemoveDevGUID(LPCSTR udid, CiOSDeviceTreeViewAdapter * pAdapte
 		if (ite == m_listDev.end())
 			return false;
 
-		m_listDev.erase(ite);
-		pAdapter->RemoveDev(udid);
+		m_listDev.erase(ite);		
 		return true;
 	}
 	return false;
 }
 
-bool CDataCenter::PairDev(LPCSTR udid, CiOSDeviceTreeViewAdapter * pAdapter)
+bool CDataCenter::PairDev(LPCSTR udid, bool& bCan)
 {
 	if (udid)
 	{
 		if (!IsExistDev(udid))
 			return false;
-		bool bCan = false;
+		bCan = false;
 		if (CiOSDevice::IsPair(udid))
 		{
 			if (m_listDev[udid].iOSDevObject.OpenDevice(udid))
 			{
 				bCan = true;
 			}
-		}
-		pAdapter->SetDevCan(udid, bCan);
+		}		
 		return true;
 	}
 	return false;
@@ -59,24 +57,41 @@ bool CDataCenter::GetDevName(LPCSTR udid, SStringT & outName)
 	return m_listDev[udid].iOSDevObject.GetDevName(outName);
 }
 
-bool CDataCenter::AddDevGUID(LPCSTR udid, CiOSDeviceTreeViewAdapter * pAdapter)
+bool CDataCenter::AddDevUDID(LPCSTR udid, bool& bCan)
 {
 	if (udid)
 	{
 		if (IsExistDev(udid))
 			return false;
 		m_listDev[udid];
-		bool bCan = false;
+		bCan = false;
 		if (CiOSDevice::IsPair(udid))
 		{
 			if (m_listDev[udid].iOSDevObject.OpenDevice(udid))
 			{
 				m_listDev[udid].iOSDevObject.GetDeviceBaseInfo();
-				m_listDev[udid].iOSDevObject.StartUpdata();
+				
 				bCan = true;
 			}
 		}
-		pAdapter->AddDev(udid, bCan);
+		return true;
+	}
+	return false;
+}
+
+bool CDataCenter::BeginUpdataInfoASync(LPCSTR udid)
+{
+	SASSERT(udid);
+	if (udid)
+	{
+		auto ite = m_listDev.find(udid);
+
+		if (ite == m_listDev.end())
+			return false;
+
+		ite->second.iOSDevObject.StartUpdata();
+		ite->second.iOSDevObject.StartUpdataApps();
+
 		return true;
 	}
 	return false;
@@ -111,8 +126,12 @@ bool CDataCenter::UpdataBaseInfo(LPCSTR udid)
 		auto ite = m_listDev.find(udid);
 		if (ite == m_listDev.end())
 			return false;
-		return _initdevbaseinfo(ite->second.iOSDevObject.GetiOSBaseInfo(), ite->second.InfoWnd);
-
+		bool bRet= _initdevbaseinfo(ite->second.iOSDevObject.GetiOSBaseInfo(), ite->second.InfoWnd);
+		if(!(ite->second.iOSDevObject.GetiOSBaseInfo().m_diskInfo.bReady))
+		{
+			ite->second.iOSDevObject.StartUpdataDiskInfo();
+		}
+		return bRet;
 	}
 	return false;
 }
@@ -120,8 +139,10 @@ bool CDataCenter::UpdataBaseInfo(LPCSTR udid)
 CDataCenter::CDataCenter()
 {
 	SNotifyCenter::getSingleton().addEvent(EVENTID(EventScreenShot));
-	SNotifyCenter::getSingleton().addEvent(EVENTID(EventUpdataInfo)); 
-		SNotifyCenter::getSingleton().addEvent(EVENTID(EventUpdataBattreyInfo));
+	SNotifyCenter::getSingleton().addEvent(EVENTID(EventUpdataInfo));
+	SNotifyCenter::getSingleton().addEvent(EVENTID(EventUpdataBattreyInfo));
+	SNotifyCenter::getSingleton().addEvent(EVENTID(EventUpdataDiskInfo));
+	SNotifyCenter::getSingleton().addEvent(EVENTID(EventUpdataAppsInfo));
 }
 
 CDataCenter::~CDataCenter()
@@ -140,7 +161,7 @@ void CDataCenter::_docmd(SWindow * pWnd, diagnostics_cmd_mode cmd)
 	}
 }
 
-bool CDataCenter::GetGasGauge(LPCSTR udid, BatteryBaseInfo& out)
+bool CDataCenter::GetGasGauge(LPCSTR udid, BatteryBaseInfo & out)
 {
 	bool bRet = false;
 	auto iter = m_listDev.find(udid);
@@ -174,15 +195,16 @@ void CDataCenter::ShutDown(SWindow * pWnd)
 {
 	_docmd(pWnd, CMD_SHUTDOWN);
 }
+
 void CDataCenter::Reboot(SWindow * pWnd)
 {
 	_docmd(pWnd, CMD_RESTART);
 }
+
 void CDataCenter::Sleep(SWindow * pWnd)
 {
 	_docmd(pWnd, CMD_SLEEP);
 }
-
 
 void _initdiskspase(SWindow * pWnd, const uint64_t & size, const uint64_t & tsize)
 {
@@ -194,6 +216,7 @@ void _initdiskspase(SWindow * pWnd, const uint64_t & size, const uint64_t & tsiz
 		pWnd->SetAttribute(L"tip", SStringT().Format(L"%0.2fGB", gb), FALSE);
 	}
 }
+
 void _initipaddiskinfo(SWindow * pInfoWnd, const DiskInfo & diskInfo)
 {
 	if (pInfoWnd)
@@ -203,54 +226,60 @@ void _initipaddiskinfo(SWindow * pInfoWnd, const DiskInfo & diskInfo)
 		pInfoWnd->FindChildByID(R.id.wnd_iphonedsk)->SetVisible(FALSE, TRUE);
 		SWindow* pIpadWnd = pInfoWnd->FindChildByID(R.id.wnd_ipaddsk);
 		pIpadWnd->SetVisible(TRUE, TRUE);
-		SWindow* lable2 = pIpadWnd->FindChildByID(R.id.lable_fudisk);
-		SASSERT(lable2);
-		double gb = (double)diskInfo.TotalDiskCapacity / 1024 / 1024 / 1024;
-		SStringT totalGB;
-		if (gb < 8)
-		{
-			totalGB = (L"8GB");
-		}
-		else if (gb < 16)
-		{
-			totalGB = (L"16GB");
-		}
-		else if (gb < 32)
-		{
-			totalGB = (L"32GB");
-		}
-		else if (gb < 64)
-		{
-			totalGB = (L"64GB");
-		}
-		else if (gb < 128)
-		{
-			totalGB = (L"128GB");
-		}
-		else if (gb < 256)
-		{
-			totalGB = (L"256GB");
-		}
-		else if (gb < 512)
-		{
-			totalGB = (L"512GB");
-		}
-		else if (gb < 1024)
-		{
-			totalGB = (L"1024GB");
-		}
-		lable1->SetWindowText(totalGB);
-		uint64_t use = diskInfo.TotalDiskCapacity - diskInfo.TotalDataAvailable - diskInfo.TotalSystemAvailable;
-		gb = (double)use / 1024 / 1024 / 1024 + 0.005;
-		lable2->SetWindowText(SStringT().Format(L"%0.2fGB", gb) + L"/" + totalGB);
 
-		_initdiskspase(pIpadWnd->FindChildByID(R.id.disk_sys), diskInfo.TotalSystemCapacity, diskInfo.TotalDiskCapacity);
-		_initdiskspase(pIpadWnd->FindChildByID(R.id.disk_app), diskInfo.TotalSystemCapacity, diskInfo.TotalDiskCapacity);
-		//_initdiskspase(pInfoWnd->FindChildByID(R.id.disk_sys), devInfo.m_diskInfo.TotalSystemCapacity, devInfo.m_diskInfo.TotalDiskCapacity);
-		//_initdiskspase(pInfoWnd->FindChildByID(R.id.disk_free), diskInfo.TotalSystemCapacity, diskInfo.TotalDiskCapacity);
-		_initdiskspase(pIpadWnd->FindChildByID(R.id.disk_free), diskInfo.TotalDataAvailable + diskInfo.TotalSystemAvailable, diskInfo.TotalDiskCapacity);
+		if (diskInfo.bReady)
+		{
+
+			SWindow* lable2 = pIpadWnd->FindChildByID(R.id.lable_fudisk);
+			SASSERT(lable2);
+			double gb = (double)diskInfo.TotalDiskCapacity / 1024 / 1024 / 1024;
+			SStringT totalGB;
+			if (gb < 8)
+			{
+				totalGB = (L"8GB");
+			}
+			else if (gb < 16)
+			{
+				totalGB = (L"16GB");
+			}
+			else if (gb < 32)
+			{
+				totalGB = (L"32GB");
+			}
+			else if (gb < 64)
+			{
+				totalGB = (L"64GB");
+			}
+			else if (gb < 128)
+			{
+				totalGB = (L"128GB");
+			}
+			else if (gb < 256)
+			{
+				totalGB = (L"256GB");
+			}
+			else if (gb < 512)
+			{
+				totalGB = (L"512GB");
+			}
+			else if (gb < 1024)
+			{
+				totalGB = (L"1024GB");
+			}
+			lable1->SetWindowText(totalGB);
+			uint64_t use = diskInfo.TotalDiskCapacity - diskInfo.TotalDataAvailable - diskInfo.TotalSystemAvailable;
+			gb = (double)use / 1024 / 1024 / 1024 + 0.005;
+			lable2->SetWindowText(SStringT().Format(L"%0.2fGB", gb) + L"/" + totalGB);
+
+			_initdiskspase(pIpadWnd->FindChildByID(R.id.disk_sys), diskInfo.TotalSystemCapacity, diskInfo.TotalDiskCapacity);
+			_initdiskspase(pIpadWnd->FindChildByID(R.id.disk_app), diskInfo.TotalSystemCapacity, diskInfo.TotalDiskCapacity);
+			//_initdiskspase(pInfoWnd->FindChildByID(R.id.disk_sys), devInfo.m_diskInfo.TotalSystemCapacity, devInfo.m_diskInfo.TotalDiskCapacity);
+			//_initdiskspase(pInfoWnd->FindChildByID(R.id.disk_free), diskInfo.TotalSystemCapacity, diskInfo.TotalDiskCapacity);
+			_initdiskspase(pIpadWnd->FindChildByID(R.id.disk_free), diskInfo.TotalDataAvailable + diskInfo.TotalSystemAvailable, diskInfo.TotalDiskCapacity);
+		}
 	}
 }
+
 void _initiphonediskinfo(SWindow * pInfoWnd, const DiskInfo & diskInfo)
 {
 	if (pInfoWnd)
@@ -260,72 +289,76 @@ void _initiphonediskinfo(SWindow * pInfoWnd, const DiskInfo & diskInfo)
 		pInfoWnd->FindChildByID(R.id.wnd_ipaddsk)->SetVisible(FALSE, TRUE);
 		SWindow* pIphoneWnd = pInfoWnd->FindChildByID(R.id.wnd_iphonedsk);
 		pIphoneWnd->SetVisible(TRUE, TRUE);
+		if (diskInfo.bReady)
+		{
 
-		double gb = (double)diskInfo.TotalDiskCapacity / 1024 / 1024 / 1024;
-		SStringT totalGB;
-		if (gb < 8)
-		{
-			totalGB = (L"8GB");
-		}
-		else if (gb < 16)
-		{
-			totalGB = (L"16GB");
-		}
-		else if (gb < 32)
-		{
-			totalGB = (L"32GB");
-		}
-		else if (gb < 64)
-		{
-			totalGB = (L"64GB");
-		}
-		else if (gb < 128)
-		{
-			totalGB = (L"128GB");
-		}
-		else if (gb < 256)
-		{
-			totalGB = (L"256GB");
-		}
-		else if (gb < 512)
-		{
-			totalGB = (L"512GB");
-		}
-		else if (gb < 1024)
-		{
-			totalGB = (L"1024GB");
-		}
-		lable->SetWindowText(totalGB);
-
-
-		lable = pIphoneWnd->FindChildByID(R.id.lable_sysdisk);
-		SASSERT(lable);
+			double gb = (double)diskInfo.TotalDiskCapacity / 1024 / 1024 / 1024;
+			SStringT totalGB;
+			if (gb < 8)
+			{
+				totalGB = (L"8GB");
+			}
+			else if (gb < 16)
+			{
+				totalGB = (L"16GB");
+			}
+			else if (gb < 32)
+			{
+				totalGB = (L"32GB");
+			}
+			else if (gb < 64)
+			{
+				totalGB = (L"64GB");
+			}
+			else if (gb < 128)
+			{
+				totalGB = (L"128GB");
+			}
+			else if (gb < 256)
+			{
+				totalGB = (L"256GB");
+			}
+			else if (gb < 512)
+			{
+				totalGB = (L"512GB");
+			}
+			else if (gb < 1024)
+			{
+				totalGB = (L"1024GB");
+			}
+			lable->SetWindowText(totalGB);
 
 
-		gb = (double)diskInfo.TotalSystemCapacity / 1024 / 1024 / 1024 + 0.005;
-		double gbu = (double)(diskInfo.TotalSystemCapacity - diskInfo.TotalSystemAvailable) / 1024 / 1024 / 1024 + 0.005;
-		lable->SetWindowText(SStringT().Format(L"%0.2fGB", gbu) + L"/" + SStringT().Format(L"%0.2fGB", gb));
+			lable = pIphoneWnd->FindChildByID(R.id.lable_sysdisk);
+			SASSERT(lable);
 
-		lable = pIphoneWnd->FindChildByID(R.id.lable_datadisk);
-		SASSERT(lable);
 
-		gb = (double)diskInfo.TotalDataCapacity / 1024 / 1024 / 1024 + 0.005;
-		gbu = (double)(diskInfo.TotalDataCapacity - diskInfo.TotalDataAvailable) / 1024 / 1024 / 1024 + 0.005;
-		lable->SetWindowText(SStringT().Format(L"%0.2fGB", gbu) + L"/" + SStringT().Format(L"%0.2fGB", gb));
-		//系统区
-		_initdiskspase(pIphoneWnd->FindChildByID(R.id.disk_sys), diskInfo.TotalSystemCapacity - diskInfo.TotalSystemAvailable, diskInfo.TotalSystemCapacity);
-		_initdiskspase(pIphoneWnd->FindChildByID(R.id.disk_free1), diskInfo.TotalSystemAvailable, diskInfo.TotalSystemCapacity);
-		//数据区
-		_initdiskspase(pIphoneWnd->FindChildByID(R.id.disk_app), diskInfo.AppUsage, diskInfo.TotalDataCapacity);
-		uint64_t other = diskInfo.TotalDataCapacity - diskInfo.TotalDataAvailable - diskInfo.AppUsage;
-		_initdiskspase(pIphoneWnd->FindChildByID(R.id.disk_photo), diskInfo.PhotoUsage, diskInfo.TotalDataCapacity);
-		other -= diskInfo.PhotoUsage;
-		_initdiskspase(pIphoneWnd->FindChildByID(R.id.disk_udisk), 0, diskInfo.TotalDataCapacity);
-		other -= 0;
-		_initdiskspase(pIphoneWnd->FindChildByID(R.id.disk_other), other, diskInfo.TotalDataCapacity);
-		_initdiskspase(pIphoneWnd->FindChildByID(R.id.disk_free2), diskInfo.TotalDataAvailable, diskInfo.TotalDataCapacity);
+			gb = (double)diskInfo.TotalSystemCapacity / 1024 / 1024 / 1024 + 0.005;
+			double gbu = (double)(diskInfo.TotalSystemCapacity - diskInfo.TotalSystemAvailable) / 1024 / 1024 / 1024 + 0.005;
+			lable->SetWindowText(SStringT().Format(L"%0.2fGB", gbu) + L"/" + SStringT().Format(L"%0.2fGB", gb));
+
+			lable = pIphoneWnd->FindChildByID(R.id.lable_datadisk);
+			SASSERT(lable);
+
+			gb = (double)diskInfo.TotalDataCapacity / 1024 / 1024 / 1024 + 0.005;
+			gbu = (double)(diskInfo.TotalDataCapacity - diskInfo.TotalDataAvailable) / 1024 / 1024 / 1024 + 0.005;
+			lable->SetWindowText(SStringT().Format(L"%0.2fGB", gbu) + L"/" + SStringT().Format(L"%0.2fGB", gb));
+			//系统区
+			_initdiskspase(pIphoneWnd->FindChildByID(R.id.disk_sys), diskInfo.TotalSystemCapacity - diskInfo.TotalSystemAvailable, diskInfo.TotalSystemCapacity);
+			_initdiskspase(pIphoneWnd->FindChildByID(R.id.disk_free1), diskInfo.TotalSystemAvailable, diskInfo.TotalSystemCapacity);
+			//数据区
+			_initdiskspase(pIphoneWnd->FindChildByID(R.id.disk_app), diskInfo.AppUsage, diskInfo.TotalDataCapacity);
+			uint64_t other = diskInfo.TotalDataCapacity - diskInfo.TotalDataAvailable - diskInfo.AppUsage;
+			_initdiskspase(pIphoneWnd->FindChildByID(R.id.disk_photo), diskInfo.PhotoUsage, diskInfo.TotalDataCapacity);
+			other -= diskInfo.PhotoUsage;
+			_initdiskspase(pIphoneWnd->FindChildByID(R.id.disk_udisk), 0, diskInfo.TotalDataCapacity);
+			other -= 0;
+			_initdiskspase(pIphoneWnd->FindChildByID(R.id.disk_other), other, diskInfo.TotalDataCapacity);
+			_initdiskspase(pIphoneWnd->FindChildByID(R.id.disk_free2), diskInfo.TotalDataAvailable, diskInfo.TotalDataCapacity);
+		}
 	}
 }
+
 bool CDataCenter::_initdevbaseinfo(const iOSDevInfo & devInfo, SWindow * pInfoWnd)
 {
 	SASSERT(pInfoWnd);
@@ -345,7 +378,7 @@ bool CDataCenter::_initdevbaseinfo(const iOSDevInfo & devInfo, SWindow * pInfoWn
 		pWnd->FindChildByID(R.id.lable_CycleCount)->SetWindowText(SStringT().Format(L"%d次", devInfo.m_sGasGauge.CycleCount));
 
 		pWnd->FindChildByID(R.id.lable_ECID)->SetWindowText(devInfo.m_strECID);
-		pWnd->FindChildByID(R.id.lable_IsCydia)->SetWindowText(L"否");
+		pWnd->FindChildByID(R.id.lable_IsJailreak)->SetWindowText(devInfo.m_bIsJailreak?L"已越狱":L"否");
 		pWnd->FindChildByID(R.id.lable_ActivationState)->SetWindowText(devInfo.m_strActivationState == L"Activated" ? L"已激活" : L"未激活");
 
 		int iCycleLife = (int)(((float)devInfo.m_sGasGauge.NominalChargeCapacity * 100 / devInfo.m_sGasGauge.DesignCapacity) + 0.5);
@@ -381,11 +414,50 @@ bool CDataCenter::_initdevbaseinfo(const iOSDevInfo & devInfo, SWindow * pInfoWn
 		const WCHAR* screenskin[] = { L"skin_iphonescreen",L"skin_ipadscreen", };
 		pInfoWnd->FindChildByID(R.id.img_srceenshot)->SetAttribute(L"skin", screenskin[devInfo.m_type]);
 
-
-
 		return true;
 	}
 	return false;
 }
 
+bool CDataCenter::UpdataDiskInfo(LPCSTR udid)
+{
+	SASSERT(udid);
+	
+	if (udid)
+	{
+		auto ite = m_listDev.find(udid);
+		if (ite == m_listDev.end())
+			return false;
+		const iOSDevInfo & devInfo = ite->second.iOSDevObject.GetiOSBaseInfo();
+		if (devInfo.m_diskInfo.bReady)
+		{
+			switch (devInfo.m_type)
+			{
+			case Type_iPhone:
+			{
+				_initiphonediskinfo(ite->second.InfoWnd, devInfo.m_diskInfo);
+			}break;
+			case Type_iPad:
+			{
+				_initipaddiskinfo(ite->second.InfoWnd, devInfo.m_diskInfo);
+			}break;
+			}
+			return true;
+		}
+		else return false;
+	}
+	return false;
+}
 
+const std::vector<AppInfo>* CDataCenter::GetApps(LPCSTR udid)
+{
+	SASSERT(udid);
+	if (udid)
+	{
+		auto ite = m_listDev.find(udid);
+		if (ite == m_listDev.end())
+			return NULL;
+		return & ite->second.iOSDevObject.GetApps();		
+	}
+	return NULL;
+}

@@ -1,0 +1,37 @@
+﻿<include>
+  <tabctrl name="tab_apps" size="-2,-2">
+    <page title="全部" layout="vbox">
+      <button text="安装新应用"/>
+      <mclistviewex name="lv_appsList" canSwapItem="0" headerHeight="22" colorDropBk="rgb(0,0,255)" size="-2,0" weight="1">
+        <header2 align="center" matchParent="1" cursor="hand" itemSwapEnable="0" sortHeader="0" colorText="#000000ff">
+          <items>
+            <item width="150">应用名称</item>
+            <item width="120">版本</item>
+            <item width="120">应用大小</item>
+            <item width="120">缓存大小</item>
+            <item width="120">操作</item>
+          </items>
+        </header2>
+        <template itemHeight="58"  colorHover="@color/gray3" colorSelected="#c9c7c6">
+          <window name="name" clipClient="1" layout="hbox" gravity="center">
+            <img size="40,40" name="img_appIcon"/>
+            <text name="lable_appName" extend_left="8" size="0,-1" weight="1" dotted="1" />
+          </window> 
+          <window name="ver" clipClient="1">
+            <text name="lable_appVer" pos="0,|" offset="0,-0.5"></text>
+          </window>
+          <window name="staticsize" clipClient="1">
+            <text name="lable_appSize" pos="0,|" offset="0,-0.5" ></text>
+          </window>
+          <window name="cachesize" clipClient="1">
+            <text name="lable_appCacheSize" pos="0,|" offset="0,-0.5"></text>
+          </window>
+          <window name="opt" clipClient="1">
+            <button name="btn_appUninstall" pos="0,|" inset="12,6,12,6" offset="0,-0.5">卸载</button>
+          </window>
+        </template>
+      </mclistviewex>
+
+    </page>
+  </tabctrl>
+</include>

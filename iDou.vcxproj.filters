@@ -33,6 +33,12 @@
     <Filter Include="SoUI Resource\value">
       <UniqueIdentifier>{9e9851d9-978f-41cd-a9c8-82150f94b230}</UniqueIdentifier>
     </Filter>
+    <Filter Include="SoUI Resource\layout\device">
+      <UniqueIdentifier>{4f2fa4bb-7e17-4da7-9584-5e83c13c4fce}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MyDeviceHandler">
+      <UniqueIdentifier>{3796f741-ed05-487d-8a46-facf4dfcbd44}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="license.txt" />
@@ -72,6 +78,18 @@
     <ClCompile Include="CBaseInfoDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="controls\SHeaderCtrlEx.cpp">
+      <Filter>ctrls</Filter>
+    </ClCompile>
+    <ClCompile Include="controls\SMCListViewEx.cpp">
+      <Filter>ctrls</Filter>
+    </ClCompile>
+    <ClCompile Include="CMyDeviceHandler\CMyDeviceHandler.cpp">
+      <Filter>MyDeviceHandler</Filter>
+    </ClCompile>
+    <ClCompile Include="PageHandlerBase.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="iDou.rc">
@@ -106,14 +124,32 @@
     <ClInclude Include="CDataCenter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TV_iOSDeviceAdapter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="controls\STabCtrlTemplate.h">
       <Filter>ctrls</Filter>
     </ClInclude>
     <ClInclude Include="CBaseInfoDlg.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="controls\SHeaderCtrlEx.h">
+      <Filter>ctrls</Filter>
+    </ClInclude>
+    <ClInclude Include="controls\SMCListViewEx.h">
+      <Filter>ctrls</Filter>
+    </ClInclude>
+    <ClInclude Include="CMyDeviceHandler\CMyDeviceHandler.h">
+      <Filter>MyDeviceHandler</Filter>
+    </ClInclude>
+    <ClInclude Include="PageHandlerBase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TV_iOSDeviceAdapter.h">
+      <Filter>MyDeviceHandler</Filter>
+    </ClInclude>
+    <ClInclude Include="CMyDeviceHandler\LV_iOSAppsAdapter.h">
+      <Filter>MyDeviceHandler</Filter>
+    </ClInclude>
+    <ClInclude Include="CMyDeviceHandler\TV_iOSDeviceAdapter.h">
+      <Filter>MyDeviceHandler</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -149,12 +185,6 @@
     <Xml Include="uires\xml\skin_menuex.xml">
       <Filter>SoUI Resource\layout</Filter>
     </Xml>
-    <Xml Include="uires\xml\page_mydevice.xml">
-      <Filter>SoUI Resource\layout</Filter>
-    </Xml>
-    <Xml Include="uires\xml\page_mydeviceinfo.xml">
-      <Filter>SoUI Resource\layout</Filter>
-    </Xml>
     <Xml Include="uires\values\color.xml">
       <Filter>SoUI Resource\value</Filter>
     </Xml>
@@ -172,6 +202,15 @@
     </Xml>
     <Xml Include="uires\xml\dlg_all.xml">
       <Filter>SoUI Resource\layout</Filter>
+    </Xml>
+    <Xml Include="uires\xml\page_mydeviceinfo.xml">
+      <Filter>SoUI Resource\layout\device</Filter>
+    </Xml>
+    <Xml Include="uires\xml\page_mydevice.xml">
+      <Filter>SoUI Resource\layout\device</Filter>
+    </Xml>
+    <Xml Include="uires\xml\page_appinfo.xml">
+      <Filter>SoUI Resource\layout\device</Filter>
     </Xml>
   </ItemGroup>
   <ItemGroup>

@@ -31,7 +31,7 @@
                   <include src="layout:XML_MyDevice_Info"/>
                 </page>
                 <page layout="hbox" gravity="center">
-                  <text text="cmd2"/>
+                  <include src="layout:XML_App_Info"/>
                 </page>
                 <page layout="hbox" gravity="center">
                   <text text="cmd3"/>

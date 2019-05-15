@@ -597,6 +597,14 @@ namespace utils
 		{L"F8Y",L"欣旺达"},
 		{L"ABY",L"欣旺达"},
 		{L"C01",L"苏州顺达"},
+		{L"D86",L"常熟新世"},
+	};
+	std::map<SOUI::SStringT, SOUI::SStringT> OriginIDOld = {
+		{L"Y",L"无锡索尼"},
+		{L"AE",L"东莞新能源"},
+		{L"SB",L"韩国三星"},
+		{L"LN",L"南京乐金"},
+		{L"L5",L"天津力神"},
 	};
 
 	int CaculateFirstDayWeekDay(int y)
@@ -607,7 +615,56 @@ namespace utils
 		return ((d + 2 * m + 3 * (m + 1) / 5 + y + y / 4 - y / 100 + y / 400)+1) % 7;
 	}
 
+	void getbatteryManufactureDateFormeSNOld(const SOUI::SStringT& SN, SOUI::SStringT& outOrigin, SOUI::SStringT& outDate)
+	{
+		//XX X XX X
+		//厂家 年 周 日
+		if (SN.GetLength() > 7)
+		{
+			SOUI::SStringT origin = SN.Mid(0, 2);
+			SOUI::SStringT year = SN.Mid(2, 1);
+			SOUI::SStringT week = SN.Mid(3, 2);
+			SOUI::SStringT day = SN.Mid(5, 1);
+			
+			if (origin[0] == L'Y')
+				outOrigin=OriginIDOld[L"Y"];
+			else
+			{
+				auto iter = OriginIDOld.find(origin);
+				if (iter != OriginIDOld.end())
+				{
+					outOrigin = iter->second;
+				}
+				else
+				{
+					outOrigin = L"未知厂家";
+				}
+			}
 
+			if (year[0] > L'0' && year[0] < L'9')
+			{
+				year.Format(L"201%c", year[0]);
+			}
+			else if (year[0] > L'A' && year[0] < L'Z')
+			{
+				year.Format(L"20%2.d", 10 + (year[0] - L'A'));
+			}
+			else
+				return;
+			int iyear = 0;
+			swscanf(year, L"%d", &iyear);
+			year.Format(L"%s0101010101", (LPCTSTR)year);
+			time_t firstdate = FormatTime2(year);
+			int iweek = 0;
+			swscanf(week, L"%d", &iweek);
+			int iday = 0;
+			swscanf(day, L"%d", &iday);
+
+			time_t reldate = firstdate + ((iweek - 1) * 7 + iday - CaculateFirstDayWeekDay(iyear)) * 86400;
+			FormatTime(reldate, outDate);
+		}
+	}
+	
 	void getbatteryManufactureDateFormeSN(const SOUI::SStringT & SN, SOUI::SStringT & outOrigin, SOUI::SStringT & outDate)
 	{		
 		//XXX X XX X
@@ -676,6 +733,14 @@ namespace utils
 		}
 	}
 
+	bool isIp6OrLater(SOUI::SStringT DevProductType)
+	{
+		std::wstring strProductType = DevProductType.MakeLower();
+		auto ite = g_mapDevID.find(strProductType);
+		if (ite == g_mapDevID.end())
+			return true;
+		return ite->second > 5;
+	}
 	//
 	void mobilebackup_afc_get_file_contents(afc_client_t afc, const char* filename, char** data, uint64_t * size)
 	{

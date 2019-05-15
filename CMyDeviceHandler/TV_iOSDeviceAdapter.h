@@ -2,7 +2,7 @@
 
 #include <helper/SAdapterBase.h>
 #include <string>
-#include "CDataCenter.h"
+#include "../CDataCenter.h"
 
 
 struct DevInfo {
@@ -14,6 +14,7 @@ struct DevInfo {
 class CiOSDeviceTreeViewAdapter :public STreeAdapterBase<DevInfo>
 {
 	friend class CDataCenter;
+	friend class CMyDeviceHandler;
 public:
 
 	CiOSDeviceTreeViewAdapter()
@@ -61,17 +62,6 @@ public:
 					Subscriber(&CiOSDeviceTreeViewAdapter::OnGroupItemPanelClick, this));
 			}
 		}
-		/*
-		if (itemType != 0)
-		{
-			pItem->GetEventSet()->subscribeEvent(EVT_ITEMPANEL_CLICK,
-				Subscriber(&CiOSDeviceTreeViewAdapter::OnItemPanelClick, this));
-			pItem->GetEventSet()->subscribeEvent(EVT_ITEMPANEL_DBCLICK,
-				Subscriber(&CiOSDeviceTreeViewAdapter::OnItemPanelDBClick, this));
-			pItem->GetEventSet()->subscribeEvent(EVT_ITEMPANEL_RCLICK,
-				Subscriber(&CiOSDeviceTreeViewAdapter::OnItemPanelRClick, this));
-			//pItem->FindChildByName2<SImageWnd>(L"face")->SetAttribute(L"skin", ii.data.strImg, FALSE);
-		}*/
 		SWindow* pName = pItem->FindChildByName(L"Name");
 		if (itemType == 0)
 		{

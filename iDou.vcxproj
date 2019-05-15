@@ -188,10 +188,14 @@
   <ItemGroup>
     <ClCompile Include="CBaseInfoDlg.cpp" />
     <ClCompile Include="CDataCenter.cpp" />
+    <ClCompile Include="CMyDeviceHandler\CMyDeviceHandler.cpp" />
+    <ClCompile Include="controls\SHeaderCtrlEx.cpp" />
+    <ClCompile Include="controls\SMCListViewEx.cpp" />
     <ClCompile Include="controls\STabCtrlHeaderBinder.cpp" />
     <ClCompile Include="controls\STabCtrlTemplate.cpp" />
     <ClCompile Include="iDou.cpp" />
     <ClCompile Include="MainDlg.cpp" />
+    <ClCompile Include="PageHandlerBase.cpp" />
     <ClCompile Include="skin\SDemoSkin.cpp" />
     <ClCompile Include="skin\SSkinLoader.cpp" />
     <ClCompile Include="stdafx.cpp">
@@ -209,9 +213,15 @@
   <ItemGroup>
     <ClInclude Include="CBaseInfoDlg.h" />
     <ClInclude Include="CDataCenter.h" />
+    <ClInclude Include="CMyDeviceHandler\CMyDeviceHandler.h" />
+    <ClInclude Include="CMyDeviceHandler\LV_iOSAppsAdapter.h" />
+    <ClInclude Include="CMyDeviceHandler\TV_iOSDeviceAdapter.h" />
+    <ClInclude Include="controls\SHeaderCtrlEx.h" />
+    <ClInclude Include="controls\SMCListViewEx.h" />
     <ClInclude Include="controls\STabCtrlHeaderBinder.h" />
     <ClInclude Include="controls\STabCtrlTemplate.h" />
     <ClInclude Include="MainDlg.h" />
+    <ClInclude Include="PageHandlerBase.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="skin\SDemoSkin.h" />
     <ClInclude Include="skin\SSkinLoader.h" />
@@ -256,6 +266,7 @@
     </Xml>
     <Xml Include="uires\xml\menu_tray.xml" />
     <Xml Include="uires\xml\page.xml" />
+    <Xml Include="uires\xml\page_appinfo.xml" />
     <Xml Include="uires\xml\page_mydevice.xml" />
     <Xml Include="uires\xml\page_mydeviceinfo.xml" />
     <Xml Include="uires\xml\skin_menuex.xml" />

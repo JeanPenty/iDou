@@ -4,7 +4,7 @@
     <ver value="1.0"/>
     <waitpair value="等待设备配对..."/>
     <cmd1 value="设备信息"/>
-    <cmd2 value="待定..."/>
+    <cmd2 value="应用游戏"/>
     <cmd3 value="待定..."/>
     <cmd4 value="待定..."/>
     <cmd5 value="待定..."/>
@@ -17,7 +17,7 @@
     <HardwareModel value="硬件模型"/>
     <IMEI value="设备串号"/>
     <ECID value="ECID"/>
-    <IsCydia value="是否越狱"/>
+    <IsJailreak value="是否越狱"/>
     <ActivationState value="激活状态"/>
     <ProductType value="产品类型"/>
     <ShowDevCheck value="查看验机报告"/>
@@ -36,7 +36,7 @@
     <ActuallyCapacity value="实际容量"/>
     <DesignCapacity value="设计容量"/>
     <BatteryDate value="生产日期"/>
-    <BattaryInfo value="电池祥情"/>
+    <BattaryInfo value="电池详情"/>
     <BatterySerialNumber value="序列号"/>
     <BatteryTemperature value="电池温度"/>
     <BatteryCurrentCapacity value="电流"/>

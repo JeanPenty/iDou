@@ -1,7 +1,5 @@
-﻿<SOUI name="mainWindow" title="@string/title" bigIcon="ICON_LOGO:32" smallIcon="ICON_LOGO:16" width="1000" height="720"  margin="5,5,5,5"  resizable="1" wndType="appMain"
-appWnd="1" minSize="1000,720"
-translucent="1"
->
+﻿<SOUI name="mainWindow" title="@string/title" bigIcon="ICON_LOGO:32" smallIcon="ICON_LOGO:16" width="1000" height="720"  margin="5,5,5,5"  
+      resizable="1" wndType="appMain" appWnd="1" minSize="1000,720" sendWheel2Hover="1" translucent="1">
   <root skin="skin_bk" cache="1">
     <caption pos="0,0,-0,88" layout="hbox" colorText="@color/white" interval="8" gravity="center">
       <img extend_left="18" skin="skin_logo"/>

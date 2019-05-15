@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<template>
+  <info_item colorBkgnd="#000000">
+    <window class="info_item">
+      <text text="{{title}}"/>
+      <text name="{{name}}" class="info_lable_item"/>
+    </window>
+  </info_item>  
+  <dsk_info>
+    <window size="-1,-1" weight="1" layout="hbox" gravity="center" interval="6">
+      <window size="10,10" colorBkgnd="{{colorBkgnd}}"/>
+      <text text="{{title}}"/>
+    </window>
+  </dsk_info>
+</template>

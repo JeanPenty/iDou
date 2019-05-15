@@ -7,7 +7,9 @@
 #include "iOSUtils.h"
 #include <thread>
 #include <atomic>
+#include <condition_variable> 
 
+#include "CRWLocker.h"
 using SOUI::SStringT;
 EXTERN_C{
 #include <libimobiledevice/libimobiledevice.h>
@@ -25,6 +27,16 @@ public:
 	virtual void idevice_event_cb_t(const idevice_event_t* event) = NULL;
 };
 
+struct AppInfo
+{
+	std::string AppID;
+	SStringT DisplayName;
+	SStringT Version;
+	uint64_t StaticDiskUsage;
+	uint64_t DynamicDiskUsage;
+	SOUI::CAutoRefPtr<SOUI::IBitmap> m_ico;
+};
+
 struct BatteryBaseInfo
 {
 	int CycleCount;
@@ -39,6 +51,7 @@ struct BatteryBaseInfo
 
 struct DiskInfo
 {
+	std::atomic_bool bReady = false;
 	//com.apple.disk_usage
 	uint64_t TotalDataAvailable;
 	uint64_t TotalDataCapacity;
@@ -82,11 +95,9 @@ struct iOSDevInfo
 	SStringT m_strDeviceEnclosureColor;
 	SStringT m_strRegionInfo;
 	SStringT m_strPhoneNum;
-
-
 	BatteryBaseInfo m_sGasGauge;
 	DiskInfo m_diskInfo;
-
+	bool	m_bIsJailreak;
 };
 
 class CiOSDevice
@@ -102,29 +113,38 @@ public:
 	bool GetBluetoothAddress(SStringT& outMac);
 	bool SetDevName(LPCTSTR newName);
 	template<class T>
-	bool GetBattery(LPCSTR key, T& outValue);
-	
+	bool GetBattery(LPCSTR key, T& outValue);	
 	//获取不耗时的信息
 	bool GetDeviceBaseInfo();
 	void StartUpdata();
+	void StartUpdataDiskInfo();
 	void StartCapshot();
 	void StartUpdataBatteryInfo();
 	void StopUpdataBatteryInfo();
 	const iOSDevInfo& GetiOSBaseInfo();
 	bool DoCmd(diagnostics_cmd_mode cmd);
 	void GetBatteryBaseInfo(BatteryBaseInfo& outasGauge);
+	void StartUpdataApps();
+	const std::vector<AppInfo>& GetApps();	
+	void uninstallstatus_cb(plist_t command, plist_t status);
 protected:
+	bool _GetAppIcon(LPCSTR id, char** outBuf, uint64_t& len);
+	bool _GetScreenWallpaper(char** outBuf, uint64_t& len);
+	void _UpdataApps(plist_t apps);
 	bool _GetAddress(SStringT& outAddress, LPCSTR nodename);
-	bool _GetDiskAddress(uint64_t& outAddress, LPCSTR nodename);
+	bool _GetDiskAddress(lockdownd_client_t client, DiskInfo& outAddress);
 	bool _GetBatteryBaseInfo(BatteryBaseInfo & outasGauge);
 	void _GetTypeFromProductName();
 	void _GetDiskInfo();
-private:
+	bool _IsJailreak();
 	void _ScreenShot();
 	void _Updata();
 	void _Backup(LPCSTR pDir);
-	
 	void _UpdataBatteryInfo();
+	void _UpdataDiskInfo();	
+	
+	void _UpdataAppsInfo();
+	void _UninstallAppsInfo(std::string appID);
 	lockdownd_client_t m_client = NULL;
 	idevice_t m_device = NULL;
 public:
@@ -139,14 +159,21 @@ private:
 		Thread_Cap = 0,
 		Thread_Updata = 1,
 		Thread_UpdataBattreyInfo = 2,
+		Thread_UpdataDiskInfo=3,
+		Thread_UpdataAppsInfo = 4,
 		Thread_end
 	};
+	std::vector<AppInfo> m_apps;
 
-	static void idevice_event_cb_t(const idevice_event_t* event, void* user_data);
+	//static void idevice_event_cb_t(const idevice_event_t* event, void* user_data);
 	std::thread m_capThread[Thread_end];
 	std::atomic_bool m_bCap=false;
 	std::atomic_bool m_bUpdata = false;
 	std::atomic_bool m_bUpdataBattreyInfo = false;
+	std::atomic_bool m_bUpdataDiskInfo = false;
+	//app列表读写锁。
+	WfirstRWLock m_appsLocker;
+	std::condition_variable appUnistallcv;
 private:
 	iOSDevInfo m_iosInfo;
 };

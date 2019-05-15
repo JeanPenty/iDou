@@ -37,7 +37,7 @@
                 </t:info_item>
                 <hr class="hr_vcss"/>
                 <t:info_item>
-                  <data title="@string/IsCydia" name="lable_IsCydia"/>
+                  <data title="@string/IsJailreak" name="lable_IsJailreak"/>
                 </t:info_item>
                 <hr class="hr_vcss"/>
                 <t:info_item>
@@ -140,13 +140,13 @@
               <text text="xxxGB/XXXGB" name="lable_fudisk"/>
             </window>
             <window size="-2,9" layout="hbox">
-              <window name="disk_sys" size="0,-2" weight="22" colorBkgnd="@color/disk_sys" />
-              <window name="disk_app"  size="0,-2" weight="22" colorBkgnd="@color/disk_app"/>
-              <window name="disk_photo"  size="0,-2" weight="10" colorBkgnd="@color/disk_photo"/>
-              <window name="disk_av"  size="0,-2" weight="7" colorBkgnd="@color/disk_av"/>
+              <window name="disk_sys" size="0,-2" weight="0" colorBkgnd="@color/disk_sys" />
+              <window name="disk_app"  size="0,-2" weight="0" colorBkgnd="@color/disk_app"/>
+              <window name="disk_photo"  size="0,-2" weight="0" colorBkgnd="@color/disk_photo"/>
+              <window name="disk_av"  size="0,-2" weight="0" colorBkgnd="@color/disk_av"/>
               <window name="disk_u"  size="0,-2" weight="0" colorBkgnd="@color/disk_u"/>
-              <window name="disk_other"  size="0,-2" weight="23" colorBkgnd="@color/disk_other"/>
-              <window name="disk_free"  size="0,-2" weight="22" colorBkgnd="@color/disk_free"/>
+              <window name="disk_other"  size="0,-2" weight="0" colorBkgnd="@color/disk_other"/>
+              <window name="disk_free"  size="0,-2" weight="1" colorBkgnd="@color/disk_free"/>
             </window>
             <window size="-2,-1" layout="hbox" extend_top="6">
               <t:dsk_info>
@@ -180,8 +180,8 @@
                 <text text="xxxGB/XXXGB" name="lable_sysdisk"/>
               </window>
               <window size="-2,9" layout="hbox">
-                <window name="disk_sys" size="0,-2" weight="22" colorBkgnd="@color/disk_sys" />
-                <window name="disk_free1"  size="0,-2" weight="22" colorBkgnd="@color/disk_free"/>
+                <window name="disk_sys" size="0,-2" weight="0" colorBkgnd="@color/disk_sys" />
+                <window name="disk_free1"  size="0,-2" weight="1" colorBkgnd="@color/disk_free"/>
               </window>
               <window size="-2,-1" layout="hbox" extend_top="6">
                 <t:dsk_info>
@@ -199,11 +199,11 @@
                 <text text="xxxGB/XXXGB" name="lable_datadisk"/>
               </window>
               <window size="-2,9" layout="hbox">
-                <window name="disk_app"  size="0,-2" weight="22" colorBkgnd="@color/disk_app"/>
-                <window name="disk_photo"  size="0,-2" weight="10" colorBkgnd="@color/disk_photo"/>
+                <window name="disk_app"  size="0,-2" weight="0" colorBkgnd="@color/disk_app"/>
+                <window name="disk_photo"  size="0,-2" weight="0" colorBkgnd="@color/disk_photo"/>
                 <window name="disk_udisk"  size="0,-2" weight="0" colorBkgnd="@color/disk_u"/>
-                <window name="disk_other"  size="0,-2" weight="23" colorBkgnd="@color/disk_other"/>
-                <window name="disk_free2"  size="0,-2" weight="22" colorBkgnd="@color/disk_free"/>
+                <window name="disk_other"  size="0,-2" weight="0" colorBkgnd="@color/disk_other"/>
+                <window name="disk_free2"  size="0,-2" weight="1" colorBkgnd="@color/disk_free"/>
               </window>
               <window size="-2,-1" layout="hbox" extend_top="6">
                 <t:dsk_info>
