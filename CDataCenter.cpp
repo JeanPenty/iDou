@@ -24,7 +24,7 @@ bool CDataCenter::RemoveDevGUID(LPCSTR udid)
 		if (ite == m_listDev.end())
 			return false;
 
-		m_listDev.erase(ite);		
+		m_listDev.erase(ite);
 		return true;
 	}
 	return false;
@@ -43,7 +43,7 @@ bool CDataCenter::PairDev(LPCSTR udid, bool& bCan)
 			{
 				bCan = true;
 			}
-		}		
+		}
 		return true;
 	}
 	return false;
@@ -70,7 +70,7 @@ bool CDataCenter::AddDevUDID(LPCSTR udid, bool& bCan)
 			if (m_listDev[udid].iOSDevObject.OpenDevice(udid))
 			{
 				m_listDev[udid].iOSDevObject.GetDeviceBaseInfo();
-				
+
 				bCan = true;
 			}
 		}
@@ -91,7 +91,7 @@ bool CDataCenter::BeginUpdataInfoASync(LPCSTR udid)
 
 		ite->second.iOSDevObject.StartUpdata();
 		ite->second.iOSDevObject.StartUpdataApps();
-
+		ite->second.iOSDevObject.StartCapshot();
 		return true;
 	}
 	return false;
@@ -126,8 +126,8 @@ bool CDataCenter::UpdataBaseInfo(LPCSTR udid)
 		auto ite = m_listDev.find(udid);
 		if (ite == m_listDev.end())
 			return false;
-		bool bRet= _initdevbaseinfo(ite->second.iOSDevObject.GetiOSBaseInfo(), ite->second.InfoWnd);
-		if(!(ite->second.iOSDevObject.GetiOSBaseInfo().m_diskInfo.bReady))
+		bool bRet = _initdevbaseinfo(ite->second.iOSDevObject.GetiOSBaseInfo(), ite->second.InfoWnd);
+		if (!(ite->second.iOSDevObject.GetiOSBaseInfo().m_diskInfo.bReady))
 		{
 			ite->second.iOSDevObject.StartUpdataDiskInfo();
 		}
@@ -143,6 +143,7 @@ CDataCenter::CDataCenter()
 	SNotifyCenter::getSingleton().addEvent(EVENTID(EventUpdataBattreyInfo));
 	SNotifyCenter::getSingleton().addEvent(EVENTID(EventUpdataDiskInfo));
 	SNotifyCenter::getSingleton().addEvent(EVENTID(EventUpdataAppsInfo));
+	SNotifyCenter::getSingleton().addEvent(EVENTID(EventUnintallApp));	
 }
 
 CDataCenter::~CDataCenter()
@@ -378,41 +379,53 @@ bool CDataCenter::_initdevbaseinfo(const iOSDevInfo & devInfo, SWindow * pInfoWn
 		pWnd->FindChildByID(R.id.lable_CycleCount)->SetWindowText(SStringT().Format(L"%d次", devInfo.m_sGasGauge.CycleCount));
 
 		pWnd->FindChildByID(R.id.lable_ECID)->SetWindowText(devInfo.m_strECID);
-		pWnd->FindChildByID(R.id.lable_IsJailreak)->SetWindowText(devInfo.m_bIsJailreak?L"已越狱":L"否");
+		pWnd->FindChildByID(R.id.lable_IsJailreak)->SetWindowText(devInfo.m_bIsJailreak ? L"已越狱" : L"未越狱");
 		pWnd->FindChildByID(R.id.lable_ActivationState)->SetWindowText(devInfo.m_strActivationState == L"Activated" ? L"已激活" : L"未激活");
+
+		pWnd->FindChildByID(R.id.lable_LOC)->SetWindowText(utils::getLoc(devInfo.m_strRegionInfo));
+
+		SStringT productDate;
+		if(utils::getDevManufactureDateFormSN(devInfo.m_strDevSerialNumber, productDate))
+			pWnd->FindChildByID(R.id.lable_ProductDate)->SetWindowText(productDate);
 
 		int iCycleLife = (int)(((float)devInfo.m_sGasGauge.NominalChargeCapacity * 100 / devInfo.m_sGasGauge.DesignCapacity) + 0.5);
 		if (iCycleLife > 100)iCycleLife = 100;
 		pWnd->FindChildByID(R.id.lable_CycleLife)->SetWindowText(SStringT().Format(L"%d%%", iCycleLife));
 
 		pInfoWnd->FindChildByID(R.id.txt_devname)->SetWindowText(devInfo.m_strDevName);
+
 		pInfoWnd->FindChildByID(R.id.et_devname)->SetUserData((ULONG_PTR)pInfoWnd);
 
+		pWnd->FindChildByID(R.id.btn_WARRANTYEXPIRATIONDATE)->SetUserData((ULONG_PTR)pInfoWnd);
 		pWnd->FindChildByID(R.id.btn_batteryInfo)->SetUserData((ULONG_PTR)pInfoWnd);
 		pWnd->FindChildByID(R.id.btn_showDevInfo)->SetUserData((ULONG_PTR)pInfoWnd);
 
 		pInfoWnd->FindChildByID(R.id.btn_reboot)->SetUserData((ULONG_PTR)pInfoWnd);
 		pInfoWnd->FindChildByID(R.id.btn_shutdown)->SetUserData((ULONG_PTR)pInfoWnd);
 		pInfoWnd->FindChildByID(R.id.btn_sleep)->SetUserData((ULONG_PTR)pInfoWnd);
-
+		const WCHAR * screenskin[] = { L"skin_iphonescreen",L"skin_ipadscreen", };
 		switch (devInfo.m_type)
 		{
 		case Type_iPhone:
 		{
 			SStringT color1, color2;
 			SStringT color = utils::getphonecolor(devInfo.m_strDevProductType, devInfo.m_strDeviceColor, devInfo.m_strDeviceEnclosureColor, color1, color2);
-			pInfoWnd->FindChildByID(R.id.img_srceenshot)->SetAttribute(L"colorBkgnd", color);
+			SWindow* pSrceenShotBk = pInfoWnd->FindChildByID(R.id.img_srceenshotbk);
+			pSrceenShotBk->SetAttribute(L"colorBkgnd", color);
+			pSrceenShotBk->SetAttribute(L"skin", screenskin[0]);
+			pSrceenShotBk->SetAttribute(L"inset", L"15,47,14,46");
 			pInfoWnd->FindChildByID(R.id.lable_DevColor)->SetWindowText(color2);
 			_initiphonediskinfo(pInfoWnd, devInfo.m_diskInfo);
 		}break;
 		case Type_iPad:
 		{
 			_initipaddiskinfo(pInfoWnd, devInfo.m_diskInfo);
+			SWindow* pSrceenShotBk = pInfoWnd->FindChildByID(R.id.img_srceenshotbk);
+			//pSrceenShotBk->SetAttribute(L"colorBkgnd", color);
+			pSrceenShotBk->SetAttribute(L"skin", screenskin[1]);
+			pSrceenShotBk->SetAttribute(L"inset", L"13,28,14,29");
 		}
 		}
-
-		const WCHAR* screenskin[] = { L"skin_iphonescreen",L"skin_ipadscreen", };
-		pInfoWnd->FindChildByID(R.id.img_srceenshot)->SetAttribute(L"skin", screenskin[devInfo.m_type]);
 
 		return true;
 	}
@@ -422,7 +435,7 @@ bool CDataCenter::_initdevbaseinfo(const iOSDevInfo & devInfo, SWindow * pInfoWn
 bool CDataCenter::UpdataDiskInfo(LPCSTR udid)
 {
 	SASSERT(udid);
-	
+
 	if (udid)
 	{
 		auto ite = m_listDev.find(udid);
@@ -457,7 +470,19 @@ const std::vector<AppInfo>* CDataCenter::GetApps(LPCSTR udid)
 		auto ite = m_listDev.find(udid);
 		if (ite == m_listDev.end())
 			return NULL;
-		return & ite->second.iOSDevObject.GetApps();		
+		return ite->second.iOSDevObject.GetApps();
 	}
 	return NULL;
+}
+
+void CDataCenter::UninstallApp(LPCSTR udid,LPCSTR appid)
+{
+	SASSERT(udid);
+	if (udid)
+	{
+		auto ite = m_listDev.find(udid);
+		if (ite == m_listDev.end())
+			return;
+		ite->second.iOSDevObject.UninstallApp(appid);
+	}
 }

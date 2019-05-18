@@ -3,6 +3,7 @@
 
 #include <map>
 #include <string>
+#include <zip.h>
 #define __mkdir2(path, mode) CreateDirectoryA(path, NULL)
 
 namespace utils
@@ -548,6 +549,229 @@ namespace utils
 		return ouColor;
 	}
 
+
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	char* basename(const char* path)
+	{
+		static char buffer[260];
+		size_t len_start, len;
+		if (path == NULL) {
+			strcpy_s(buffer, 1, ".");
+			return buffer;
+		}
+		len = strlen(path);
+		assert(len < sizeof(buffer));
+		if (len != 0 && (path[len - 1] == '/' || path[len - 1] == '\\')) {
+			if (len == 1) {
+				strcpy_s(buffer, 1, "/");
+				return buffer;
+			}
+			--len;
+		}
+		len_start = len;
+		while (len != 0 && path[len - 1] != '/' && path[len - 1] != '\\') {
+			--len;
+		}
+		if (len == 0) {
+			strcpy_s(buffer, 1, ".");
+		}
+		else {
+			memcpy(buffer, path + len, len_start - len);
+		}
+
+		return buffer;
+	}
+
+	int afc_upload_file(afc_client_t afc, const char* filename, const char* dstfn)
+	{
+		FILE* f = NULL;
+		uint64_t af = 0;
+		char buf[1048576];
+
+		f = fopen(filename, "rb");
+		if (!f) {			
+			return -1;
+		}
+
+		if ((afc_file_open(afc, dstfn, AFC_FOPEN_WRONLY, &af) != AFC_E_SUCCESS) || !af) {
+			fclose(f);			
+			return -1;
+		}
+
+		size_t amount = 0;
+		do {
+			amount = fread(buf, 1, sizeof(buf), f);
+			if (amount > 0) {
+				uint32_t written, total = 0;
+				while (total < amount) {
+					written = 0;
+					afc_error_t aerr = afc_file_write(afc, af, buf, amount, &written);
+					if (aerr != AFC_E_SUCCESS) {						
+						break;
+					}
+					total += written;
+				}
+				if (total != amount) {					
+					afc_file_close(afc, af);
+					fclose(f);
+					return -1;
+				}
+			}
+		} while (amount > 0);
+
+		afc_file_close(afc, af);
+		fclose(f);
+		return 0;
+	}
+
+	void afc_upload_dir(afc_client_t afc, const char* path, const char* afcpath)
+	{
+		afc_make_directory(afc, afcpath);
+
+		DIR* dir = opendir(path);
+		if (dir) {
+			struct dirent* ep;
+			while ((ep = readdir(dir))) {
+				if ((strcmp(ep->d_name, ".") == 0) || (strcmp(ep->d_name, "..") == 0)) {
+					continue;
+				}
+				char* fpath = (char*)malloc(strlen(path) + 1 + strlen(ep->d_name) + 1);
+				char* apath = (char*)malloc(strlen(afcpath) + 1 + strlen(ep->d_name) + 1);
+
+				struct stat st;
+
+				strcpy(fpath, path);
+				strcat(fpath, "/");
+				strcat(fpath, ep->d_name);
+
+				strcpy(apath, afcpath);
+				strcat(apath, "/");
+				strcat(apath, ep->d_name);
+
+#ifdef HAVE_LSTAT
+				if ((lstat(fpath, &st) == 0) && S_ISLNK(st.st_mode)) {
+					char* target = (char*)malloc(st.st_size + 1);
+					if (readlink(fpath, target, st.st_size + 1) < 0) {
+						fprintf(stderr, "ERROR: readlink: %s (%d)\n", strerror(errno), errno);
+					}
+					else {
+						target[st.st_size] = '\0';
+						afc_make_link(afc, AFC_SYMLINK, target, fpath);
+					}
+					free(target);
+				}
+				else
+#endif
+					if ((stat(fpath, &st) == 0) && S_ISDIR(st.st_mode)) {
+						afc_upload_dir(afc, fpath, apath);
+					}
+					else {
+						afc_upload_file(afc, fpath, apath);
+					}
+				free(fpath);
+				free(apath);
+			}
+			closedir(dir);
+		}
+	}
+
+	int zip_get_contents(zip* zf, const char* filename, int locate_flags, char** buffer, uint32_t* len)
+	{
+		struct zip_stat zs;
+		struct zip_file* zfile;
+		int zindex = zip_name_locate(zf, filename, locate_flags);
+
+		*buffer = NULL;
+		*len = 0;
+
+		if (zindex < 0) {
+			return -1;
+		}
+
+		zip_stat_init(&zs);
+
+		if (zip_stat_index(zf, zindex, 0, &zs) != 0) {
+			fprintf(stderr, "ERROR: zip_stat_index '%s' failed!\n", filename);
+			return -2;
+		}
+
+		if (zs.size > 10485760) {
+			fprintf(stderr, "ERROR: file '%s' is too large!\n", filename);
+			return -3;
+		}
+
+		zfile = zip_fopen_index(zf, zindex, 0);
+		if (!zfile) {
+			fprintf(stderr, "ERROR: zip_fopen '%s' failed!\n", filename);
+			return -4;
+		}
+
+		*buffer = malloc(zs.size);
+		if (zs.size > LLONG_MAX || zip_fread(zfile, *buffer, zs.size) != (zip_int64_t)zs.size) {
+			fprintf(stderr, "ERROR: zip_fread %" PRIu64 " bytes from '%s'\n", (uint64_t)zs.size, filename);
+			free(*buffer);
+			*buffer = NULL;
+			zip_fclose(zfile);
+			return -5;
+		}
+		*len = zs.size;
+		zip_fclose(zfile);
+		return 0;
+	}
+
+	int zip_get_app_directory(zip* zf, char** path)
+	{
+		int i = 0;
+		int c = zip_get_num_files(zf);
+		int len = 0;
+		const char* name = NULL;
+
+		/* look through all filenames in the archive */
+		do {
+			/* get filename at current index */
+			name = zip_get_name(zf, i++, 0);
+			if (name != NULL) {
+				/* check if we have a "Payload/.../" name */
+				len = strlen(name);
+				if (!strncmp(name, "Payload/", 8) && (len > 8)) {
+					/* skip hidden files */
+					if (name[8] == '.')
+						continue;
+
+					/* locate the second directory delimiter */
+					const char* p = name + 8;
+					do {
+						if (*p == '/') {
+							break;
+						}
+					} while (p++ != NULL);
+
+					/* try next entry if not found */
+					if (p == NULL)
+						continue;
+
+					len = p - name + 1;
+
+					if (path != NULL) {
+						free(*path);
+						*path = NULL;
+					}
+
+					/* allocate and copy filename */
+					*path = (char*)malloc(len + 1);
+					strncpy(*path, name, len);
+
+					/* add terminating null character */
+					char* t = *path + len;
+					*t = '\0';
+					break;
+				}
+			}
+		} while (i < c);
+
+		return 0;
+	}
+
 	int remove_directory(const char* path)
 	{
 		int e = 0;
@@ -609,13 +833,116 @@ namespace utils
 
 	int CaculateFirstDayWeekDay(int y)
 	{
-		int m = 13, d = 1;	
+		int m = 13, d = 1;
 		y--;
 		//周是从星期天开始算的。。。。
-		return ((d + 2 * m + 3 * (m + 1) / 5 + y + y / 4 - y / 100 + y / 400)+1) % 7;
+		return ((d + 2 * m + 3 * (m + 1) / 5 + y + y / 4 - y / 100 + y / 400) + 1) % 7;
 	}
 
-	void getbatteryManufactureDateFormeSNOld(const SOUI::SStringT& SN, SOUI::SStringT& outOrigin, SOUI::SStringT& outDate)
+	struct Years
+	{
+		int Year;
+		bool bSecondHalf;
+	};
+
+	std::map<SOUI::SStringT, Years> DevYears = {
+		{L"C",{2010,false}},
+		{L"D",{2010,true}},
+		{L"F",{2011,false}},
+		{L"G",{2011,true}},
+		{L"H",{2012,false}},
+		{L"J",{2012,true}},
+		{L"K",{2013,false}},
+		{L"L",{2013,true}},
+		{L"M",{2014,false}},
+		{L"N",{2014,true}},
+		{L"P",{2015,false}},
+		{L"Q",{2015,true}},
+		{L"R",{2016,false}},
+		{L"S",{2016,true}},
+		{L"T",{2017,false}},
+		{L"V",{2017,true}},
+		{L"W",{2018,false}},
+		{L"X",{2018,true}},
+		{L"Y",{2019,false}},
+		{L"Z",{2019,true}},
+	};
+	std::map<SOUI::SStringT, int> DevWeek = {
+		{L"1",1},
+		{L"2",2},
+		{L"3",3},
+		{L"4",4},
+		{L"5",5},
+		{L"6",6},
+		{L"7",7},
+		{L"8",8},
+		{L"9",9},
+		{L"C",10},
+		{L"D",11},
+		{L"F",12},
+		{L"G",13},
+		{L"H",14},
+		{L"J",15},
+		{L"K",16},
+		{L"L",17},
+		{L"M",18},
+		{L"N",19},
+		{L"P",20},
+		{L"Q",21},
+		{L"R",22},
+		{L"T",23},
+		{L"V",24},
+		{L"W",25},
+		{L"X",26},
+		{L"Y",27},
+	};
+
+	bool getDevManufactureDateFormSN(const SOUI::SStringT & SN, SOUI::SStringT & outDate)
+	{
+		//　序列号的第四位代表生产年份，用 20 个字母表示(26 个字母中除去 A、B、E、I、O 和 U)，注意是以每半年一进位。
+		//其中，M 代表 2014  年上半年，N 代表 2014 年下半年，P 代表 2015 年上半年，Q 代表 2015 年下半年，以此类推。
+		if (SN.GetLength() > 6)
+		{
+			SOUI::SStringT year = SN.Mid(3, 1);
+			SOUI::SStringT week = SN.Mid(4, 1);
+			SOUI::SStringT day = SN.Mid(5, 1);
+			const auto iter_y=DevYears.find(year);
+			if (iter_y == DevYears.end())
+				return false;
+			const auto iter_w = DevWeek.find(week);
+			if (iter_w == DevWeek.end())
+				return false;
+			int iweek = iter_w->second;
+			if (iter_y->second.bSecondHalf)
+				iweek += 26;
+			int iday=7;
+			//swscanf(day, L"%d", &iday);
+			year.Format(L"%d0101010101", iter_y->second.Year);
+			time_t firstdate = FormatTime2(year);
+			time_t reldate = firstdate + ((iweek - 1) * 7 + iday - CaculateFirstDayWeekDay(iter_y->second.Year)) * 86400;
+			FormatTime(reldate, outDate);
+			
+			outDate += SOUI::SStringT().Format(L"(第%d周)",iweek);
+			return true;
+		}
+		return false;
+	}
+
+	std::map<SOUI::SStringT, SOUI::SStringT> LocMap = {
+		{L"CH/A",L"中国"}
+	};
+
+	SOUI::SStringT getLoc(const SOUI::SStringT& loccode)
+	{
+		const auto iter = LocMap.find(loccode);
+		if (iter != LocMap.end())
+		{
+			return iter->second;
+		}
+		return loccode;
+	}
+
+	void getbatteryManufactureDateFormSNOld(const SOUI::SStringT & SN, SOUI::SStringT & outOrigin, SOUI::SStringT & outDate)
 	{
 		//XX X XX X
 		//厂家 年 周 日
@@ -625,9 +952,9 @@ namespace utils
 			SOUI::SStringT year = SN.Mid(2, 1);
 			SOUI::SStringT week = SN.Mid(3, 2);
 			SOUI::SStringT day = SN.Mid(5, 1);
-			
+
 			if (origin[0] == L'Y')
-				outOrigin=OriginIDOld[L"Y"];
+				outOrigin = OriginIDOld[L"Y"];
 			else
 			{
 				auto iter = OriginIDOld.find(origin);
@@ -639,6 +966,51 @@ namespace utils
 				{
 					outOrigin = L"未知厂家";
 				}
+			}
+
+			if (year[0] > L'0' && year[0] < L'9')
+			{
+				year.Format(L"201%c", year[0]);
+			}
+			else if (year[0] > L'A' && year[0] < L'Z')//这里情况未知。。先按A-Z写。。还没到2020年
+			{
+				year.Format(L"20%2.d", 10 + (year[0] - L'A'));
+			}
+			else
+				return;
+			int iyear = 0;
+			swscanf(year, L"%d", &iyear);
+			year.Format(L"%s0101010101", (LPCTSTR)year);
+			time_t firstdate = FormatTime2(year);
+			int iweek = 0;
+			swscanf(week, L"%d", &iweek);
+			int iday = 0;
+			swscanf(day, L"%d", &iday);
+
+			time_t reldate = firstdate + ((iweek - 1) * 7 + iday - CaculateFirstDayWeekDay(iyear)) * 86400;
+			FormatTime(reldate, outDate);
+		}
+	}
+
+	void getbatteryManufactureDateFormSN(const SOUI::SStringT & SN, SOUI::SStringT & outOrigin, SOUI::SStringT & outDate)
+	{
+		//XXX X XX X
+		//厂家 年 周 日
+		if (SN.GetLength() > 7)
+		{
+			SOUI::SStringT origin = SN.Mid(0, 3);
+			SOUI::SStringT year = SN.Mid(3, 1);
+			SOUI::SStringT week = SN.Mid(4, 2);
+			SOUI::SStringT day = SN.Mid(6, 1);
+
+			const auto iter = OriginID.find(origin);
+			if (iter != OriginID.end())
+			{
+				outOrigin = iter->second;
+			}
+			else
+			{
+				outOrigin = L"未知厂家";
 			}
 
 			if (year[0] > L'0' && year[0] < L'9')
@@ -662,51 +1034,6 @@ namespace utils
 
 			time_t reldate = firstdate + ((iweek - 1) * 7 + iday - CaculateFirstDayWeekDay(iyear)) * 86400;
 			FormatTime(reldate, outDate);
-		}
-	}
-	
-	void getbatteryManufactureDateFormeSN(const SOUI::SStringT & SN, SOUI::SStringT & outOrigin, SOUI::SStringT & outDate)
-	{		
-		//XXX X XX X
-		//厂家 年 周 日
-		if (SN.GetLength() > 7)
-		{
-			SOUI::SStringT origin = SN.Mid(0, 3);
-			SOUI::SStringT year = SN.Mid(3, 1);
-			SOUI::SStringT week = SN.Mid(4, 2);
-			SOUI::SStringT day = SN.Mid(6, 1);
-
-			auto iter=OriginID.find(origin);
-			if (iter != OriginID.end())
-			{
-				outOrigin = iter->second;
-			}
-			else
-			{
-				outOrigin= L"未知厂家";
-			}
-
-			if (year[0] > L'0' && year[0] < L'9')
-			{				
-				year.Format(L"201%c",year[0]);
-			}
-			else if (year[0] > L'A' && year[0] < L'Z')
-			{
-				year.Format(L"20%2.d", 10 + (year[0] - L'A'));
-			}
-			else
-				return;
-			int iyear=0;
-			swscanf(year, L"%d", &iyear);
-			year.Format(L"%s0101010101",(LPCTSTR) year);
-			time_t firstdate = FormatTime2(year);
-			int iweek = 0;
-			swscanf(week, L"%d", &iweek);
-			int iday = 0;
-			swscanf(day, L"%d", &iday);
-			
-			time_t reldate= firstdate+ ((iweek-1)*7+ iday - CaculateFirstDayWeekDay(iyear))* 86400;
-			FormatTime(reldate,outDate);
 		}
 	}
 
@@ -736,7 +1063,7 @@ namespace utils
 	bool isIp6OrLater(SOUI::SStringT DevProductType)
 	{
 		std::wstring strProductType = DevProductType.MakeLower();
-		auto ite = g_mapDevID.find(strProductType);
+		const auto ite = g_mapDevID.find(strProductType);
 		if (ite == g_mapDevID.end())
 			return true;
 		return ite->second > 5;
@@ -1356,7 +1683,7 @@ namespace utils
 			memcpy(buffer, path, len - 1);
 		}
 		return buffer;
-		}
+	}
 
 	void scan_directory(const char* path, struct entry** files, struct entry** directories)
 	{
@@ -1393,10 +1720,10 @@ namespace utils
 						fpath = NULL;
 					}
 					}
-				}
-			closedir(cur_dir);
 			}
+			closedir(cur_dir);
 		}
+	}
 
 	int mkdir_with_parents(const char* dir, int mode)
 	{
@@ -1977,4 +2304,4 @@ namespace utils
 
 		return res;
 	}
-	}
+}

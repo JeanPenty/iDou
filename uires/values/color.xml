@@ -21,5 +21,7 @@
   <disk_u value="#a962ff"/>
   <disk_av value="#e5c750"/>
   <disk_free value="#e6e6e6"/>
+  <item_sel value="#e5f3f2"/>
+  <item_hov value="#f2f2f2"/>
 </color> 
  

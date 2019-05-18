@@ -2,8 +2,8 @@
   <tabctrl name="tab_apps" size="-2,-2">
     <page title="全部" layout="vbox">
       <button text="安装新应用"/>
-      <mclistviewex name="lv_appsList" canSwapItem="0" headerHeight="22" colorDropBk="rgb(0,0,255)" size="-2,0" weight="1">
-        <header2 align="center" matchParent="1" cursor="hand" itemSwapEnable="0" sortHeader="0" colorText="#000000ff">
+      <mclistviewex name="lv_appsList" canSwapItem="0" headerHeight="22" colorDropBk="#0064b3" sbenble="" colorBkgnd="@color/white" size="-2,0" weight="1">
+        <header2 name="apps_header" align="center" matchParent="1" itemSwapEnable="0" sortHeader="0" colorText="#000000ff" margin="0,0,0,1" colorBorder="@color/gray">          
           <items>
             <item width="150">应用名称</item>
             <item width="120">版本</item>
@@ -11,11 +11,14 @@
             <item width="120">缓存大小</item>
             <item width="120">操作</item>
           </items>
+          <toggle2 pos="8,2" name="app_check_all" extend_left="8" skin="skin_check"/>
         </header2>
-        <template itemHeight="58"  colorHover="@color/gray3" colorSelected="#c9c7c6">
-          <window name="name" clipClient="1" layout="hbox" gravity="center">
+        
+        <template itemHeight="58" colorHover="@color/item_hov" colorSelected="@color/item_sel">
+          <window name="name" clipClient="1" layout="hbox" gravity="center" interval="8">
+            <toggle2 name="check" extend_left="8" skin="skin_check"/>
             <img size="40,40" name="img_appIcon"/>
-            <text name="lable_appName" extend_left="8" size="0,-1" weight="1" dotted="1" />
+            <text name="lable_appName" size="0,-1" weight="1" dotted="1" />
           </window> 
           <window name="ver" clipClient="1">
             <text name="lable_appVer" pos="0,|" offset="0,-0.5"></text>
@@ -31,7 +34,6 @@
           </window>
         </template>
       </mclistviewex>
-
     </page>
   </tabctrl>
 </include>

@@ -37,6 +37,7 @@
     <file name="png_battery" path="image\battery.png"/>
     <file name="png_batterybk" path="image\batterybk.png"/>
     <file name="png_BatteryCurrentCapacity" path="image\BatteryCurrentCapacity.png"/>
+    <file name="png_check" path="image\check.png"/>
   </IMG>
   <ICON>
     <file name="ICON_LOGO"  path="image\soui.ico"/>

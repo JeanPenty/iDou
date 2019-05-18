@@ -30,6 +30,7 @@
     <AppleIDLock value="Apple ID锁"/>
     <ProductDate value="生产日期"/>
     <WARRANTYEXPIRATIONDATE value="保修日期"/>
+    <checkcoverage value="在线查询"/>
     <LOC value="销售地区"/>
     <CPU value="CPU"/>
     <CycleLife value="电池寿命"/>
@@ -51,5 +52,5 @@
     <other value="其它"/>
     <free value="剩余"/>
     <charging value="正在充电"/>
-    <nocharging value="不在充电"/>
+    <nocharging value="不在充电"/>    
   </string>

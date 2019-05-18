@@ -17,6 +17,16 @@ public:
 		cond_r.wait(ulk, [=]()->bool {return write_cnt == 0; });
 		++read_cnt;
 	}
+	bool try_lock_read()
+	{
+		std::unique_lock<std::mutex> ulk(counter_mutex);
+		if (write_cnt == 0)
+		{			
+			++read_cnt;
+			return true;
+		}
+		return false;
+	}
 	void lock_write()
 	{
 		std::unique_lock<std::mutex> ulk(counter_mutex);
@@ -97,7 +107,34 @@ private:
 	_RWLockable& rw_lockable_;
 };
 
+template <typename _RWLockable>
+class unique_tryreadguard
+{
+public:
+	explicit unique_tryreadguard(_RWLockable& rw_lockable)
+		: rw_lockable_(rw_lockable)
+	{
+		bLock=rw_lockable_.try_lock_read();
+	}
+	explicit operator bool()const
+	{
+		return bLock;
+	}
+	~unique_tryreadguard()
+	{
+		if(bLock)
+			rw_lockable_.release_read();
+	}
+private:
+	bool bLock=false;
+	unique_tryreadguard() = delete;
+	unique_tryreadguard(const unique_tryreadguard&) = delete;
+	unique_tryreadguard& operator=(const unique_tryreadguard&) = delete;
+private:
+	_RWLockable& rw_lockable_;
+};
+
 typedef unique_readguard<WfirstRWLock> RLocker;
 typedef unique_writeguard<WfirstRWLock> WLocker;
-
+typedef unique_tryreadguard<WfirstRWLock> RTryLocker;
 #endif

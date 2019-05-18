@@ -125,8 +125,15 @@ public:
 	bool DoCmd(diagnostics_cmd_mode cmd);
 	void GetBatteryBaseInfo(BatteryBaseInfo& outasGauge);
 	void StartUpdataApps();
-	const std::vector<AppInfo>& GetApps();	
+	const std::vector<AppInfo>* GetApps();	
 	void uninstallstatus_cb(plist_t command, plist_t status);
+	void installstatus_cb(plist_t command, plist_t status);
+	void UninstallApp(LPCSTR appID)
+	{
+		if (m_capThread[Thread_UninstallApp].joinable())
+			m_capThread[Thread_UninstallApp].join();
+		m_capThread[Thread_UninstallApp] = std::thread(&CiOSDevice::_UninstallApp, this, std::string(appID));
+	}
 protected:
 	bool _GetAppIcon(LPCSTR id, char** outBuf, uint64_t& len);
 	bool _GetScreenWallpaper(char** outBuf, uint64_t& len);
@@ -143,8 +150,11 @@ protected:
 	void _UpdataBatteryInfo();
 	void _UpdataDiskInfo();	
 	
+	
+
 	void _UpdataAppsInfo();
-	void _UninstallAppsInfo(std::string appID);
+	void _UninstallApp(std::string appID);
+	void _InstallApp(const std::string apppath, bool bInstall=true);
 	lockdownd_client_t m_client = NULL;
 	idevice_t m_device = NULL;
 public:
@@ -161,6 +171,7 @@ private:
 		Thread_UpdataBattreyInfo = 2,
 		Thread_UpdataDiskInfo=3,
 		Thread_UpdataAppsInfo = 4,
+		Thread_UninstallApp =5,
 		Thread_end
 	};
 	std::vector<AppInfo> m_apps;

@@ -193,6 +193,7 @@
     <ClCompile Include="controls\SMCListViewEx.cpp" />
     <ClCompile Include="controls\STabCtrlHeaderBinder.cpp" />
     <ClCompile Include="controls\STabCtrlTemplate.cpp" />
+    <ClCompile Include="controls\SToggle2.cpp" />
     <ClCompile Include="iDou.cpp" />
     <ClCompile Include="MainDlg.cpp" />
     <ClCompile Include="PageHandlerBase.cpp" />
@@ -220,6 +221,7 @@
     <ClInclude Include="controls\SMCListViewEx.h" />
     <ClInclude Include="controls\STabCtrlHeaderBinder.h" />
     <ClInclude Include="controls\STabCtrlTemplate.h" />
+    <ClInclude Include="controls\SToggle2.h" />
     <ClInclude Include="MainDlg.h" />
     <ClInclude Include="PageHandlerBase.h" />
     <ClInclude Include="resource.h" />
@@ -228,7 +230,6 @@
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="trayicon\SShellNofityHwnd2.h" />
     <ClInclude Include="trayicon\SShellNotifyIcon.h" />
-    <ClInclude Include="TV_iOSDeviceAdapter.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="res\soui_res.rc2" />

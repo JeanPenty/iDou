@@ -24,4 +24,5 @@
   <imgframe name="skin_batterybk" src="img:png_batterybk"  margin="6,9,18,8"/>
   <colorrect name="skin_button" normal="@color/white" hover="@color/infotabbkpush" pushdown="@color/gray3"
              borderWidth="1" hoverBorder="@color/gray2" pushdownBorder="@color/gray2" normalBorder="@color/gray2"/>
+  <imglist name="skin_check" src="img:png_check" states="2"/>
 </skin>

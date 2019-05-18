@@ -35,6 +35,7 @@ public:
 	bool GetGasGauge(LPCSTR udid, BatteryBaseInfo& out);
 	bool UpdataDiskInfo(LPCSTR udid);
 	const std::vector<AppInfo>* GetApps(LPCSTR udid);
+	void UninstallApp(LPCSTR udid,LPCSTR appid);
 private:	
 	void _docmd(SWindow* pWnd, diagnostics_cmd_mode cmd);
 

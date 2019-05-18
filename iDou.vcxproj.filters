@@ -90,6 +90,9 @@
     <ClCompile Include="PageHandlerBase.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="controls\SToggle2.cpp">
+      <Filter>ctrls</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="iDou.rc">
@@ -142,14 +145,14 @@
     <ClInclude Include="PageHandlerBase.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TV_iOSDeviceAdapter.h">
-      <Filter>MyDeviceHandler</Filter>
-    </ClInclude>
     <ClInclude Include="CMyDeviceHandler\LV_iOSAppsAdapter.h">
       <Filter>MyDeviceHandler</Filter>
     </ClInclude>
     <ClInclude Include="CMyDeviceHandler\TV_iOSDeviceAdapter.h">
       <Filter>MyDeviceHandler</Filter>
+    </ClInclude>
+    <ClInclude Include="controls\SToggle2.h">
+      <Filter>ctrls</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

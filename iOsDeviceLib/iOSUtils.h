@@ -112,6 +112,7 @@ enum {
 	EVT_UPDATABATTREY_INFO,
 	EVT_UPDATADISK_INFO,
 	EVT_UPDATAAPPS_INFO,
+	EVT_UNINSTALL_APP,
 	EVT_END
 };
 
@@ -141,6 +142,12 @@ SEVENT_END()
 
 SEVENT_BEGIN(EventUpdataAppsInfo, EVT_UPDATAAPPS_INFO)
 SOUI::SStringT udid;
+bool bSucessed;
+SEVENT_END()
+
+SEVENT_BEGIN(EventUnintallApp, EVT_UNINSTALL_APP)
+SOUI::SStringT udid;
+std::string appid;
 bool bSucessed;
 SEVENT_END()
 //---------------------AsyncEventEnd-----------------------
@@ -181,6 +188,28 @@ namespace utils
 		return SOUI::SStringT().Format(L"%0.2f%s", (float)size/ tsize, strUnit[i]);
 	}
 
+SOUI::SStringT getLoc(const SOUI::SStringT& loccode);
+
+	void getbatteryManufactureDateFormSNOld(const SOUI::SStringT& SN, SOUI::SStringT& outOrigin, SOUI::SStringT& outDate);
+
+	void getbatteryManufactureDateFormSN(const SOUI::SStringT& SN, SOUI::SStringT& outOrigin, SOUI::SStringT& outDate);
+
+	void getbatteryManufactureDate(LPCSTR date, SOUI::SStringT& outOrigin, SOUI::SStringT& outDate);
+	bool isIp6OrLater(SOUI::SStringT DevProductType);
+	bool getDevManufactureDateFormSN(const SOUI::SStringT& SN, SOUI::SStringT& outDate);
+
+
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	char* basename(const char* path);
+
+	int afc_upload_file(afc_client_t afc, const char* filename, const char* dstfn);
+
+	void afc_upload_dir(afc_client_t afc, const char* path, const char* afcpath);
+
+	int zip_get_contents(struct zip* zf, const char* filename, int locate_flags, char** buffer, uint32_t* len);
+
+	int zip_get_app_directory(struct zip* zf, char** path);
+
 	int remove_directory(const char* path);
 
 	struct entry {
@@ -188,12 +217,7 @@ namespace utils
 		struct entry* next;
 	};
 
-	void getbatteryManufactureDateFormeSNOld(const SOUI::SStringT& SN, SOUI::SStringT& outOrigin, SOUI::SStringT& outDate);
-
-	void getbatteryManufactureDateFormeSN(const SOUI::SStringT& SN, SOUI::SStringT& outOrigin, SOUI::SStringT& outDate);
-
-	void getbatteryManufactureDate(LPCSTR date, SOUI::SStringT& outOrigin, SOUI::SStringT& outDate);
-	bool isIp6OrLater(SOUI::SStringT DevProductType);
+	
 	//
 	void mobilebackup_afc_get_file_contents(afc_client_t afc, const char* filename, char** data, uint64_t* size);
 

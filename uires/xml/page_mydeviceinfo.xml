@@ -4,7 +4,9 @@
       <window size="-1,0" weight="1" layout="hbox">
         <window size="-1,-2">
           <window layout="vbox" gravity="center" interval="8">
-            <img name="img_srceenshot" skin="skin_iphonescreen" colorBkgnd="#ff00ff"/>
+            <img name="img_srceenshotbk" skin="skin_iphonescreen" colorBkgnd="#ff00ff">
+              <img name="img_srceenshot" pos="0,0,-0,-0"/>
+            </img>
             <window size="-1,-1" layout="hbox" gravity="center" interval="4">
               <text name="txt_devname" size="-1,-1" maxWidth="120" dotted="1" display="0"/>
               <edit name="et_devname" size="120,-2" class="cls_edit" show="0" align="center" display="0"/>
@@ -82,9 +84,10 @@
                   <data  title="@string/ProductDate" name="lable_ProductDate"/>
                 </t:info_item>
                 <hr  class="hr_vcss"/>
-                <t:info_item>
-                  <data  title="@string/WARRANTYEXPIRATIONDATE" name="lable_WARRANTYEXPIRATIONDATE"/>
-                </t:info_item>
+                <window class="info_item">
+                  <text text="@string/WARRANTYEXPIRATIONDATE" weight="1"/>
+                  <text name="btn_WARRANTYEXPIRATIONDATE" text="@string/checkcoverage" class="cls_btn_weblink"/>
+                </window>             
                 <hr  class="hr_vcss"/>
                 <t:info_item>
                   <data  title="@string/LOC" name="lable_LOC"/>

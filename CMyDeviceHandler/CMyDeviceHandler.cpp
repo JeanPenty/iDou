@@ -92,7 +92,7 @@ void CMyDeviceHandler::PairDev(const idevice_event_t* event, bool bCan)
 			}
 		}
 	}
-	
+
 }
 
 void CMyDeviceHandler::OnReboot(EventArgs* pEArg)
@@ -164,7 +164,7 @@ void CMyDeviceHandler::OnEditDevName()
 		SWindow* pTEXT = pET->GetParent()->FindChildByID(R.id.txt_devname);
 		if (dev && dev->SetDevName(pET->GetWindowText()))
 		{
-			m_pTreeViewAdapter->UnDataDev(udid.c_str());
+			m_pTreeViewAdapter->UpDataDev(udid.c_str());
 			SASSERT(pTEXT);
 			pTEXT->SetWindowText(pET->GetWindowText());
 		}
@@ -190,7 +190,7 @@ void CMyDeviceHandler::OnKillFoucusByDevName(EventArgs * pEArg)
 		SWindow* pTEXT = pET->GetParent()->FindChildByID(R.id.txt_devname);
 		if (dev && dev->SetDevName(pET->GetWindowText()))
 		{
-			m_pTreeViewAdapter->UnDataDev(udid.c_str());
+			m_pTreeViewAdapter->UpDataDev(udid.c_str());
 			SASSERT(pTEXT);
 			pTEXT->SetWindowText(pET->GetWindowText());
 		}
@@ -212,7 +212,7 @@ void CMyDeviceHandler::OnKeyDownByDevName(EventArgs * pEArg)
 		SWindow* pTEXT = pET->GetParent()->FindChildByID(R.id.txt_devname);
 		if (dev && dev->SetDevName(pET->GetWindowText()))
 		{
-			m_pTreeViewAdapter->UnDataDev(udid.c_str());
+			m_pTreeViewAdapter->UpDataDev(udid.c_str());
 			SASSERT(pTEXT);
 			pTEXT->SetWindowText(pET->GetWindowText());
 		}
@@ -251,12 +251,32 @@ void CMyDeviceHandler::OnUpdataAppsInfo(EventArgs * pEArg)
 		SASSERT(pTab);
 		SWindow* pWnd = pTab->GetPage(evt->udid);
 		SASSERT(pWnd);
-		SMCListViewEx *appslist=pWnd->FindChildByID2<SMCListViewEx>(R.id.lv_appsList);
+		SMCListViewEx* appslist = pWnd->FindChildByID2<SMCListViewEx>(R.id.lv_appsList);
 		if (appslist)
 		{
 			CAutoRefPtr<CAppsListAdapter> iosAppsAdapter = (CAppsListAdapter*)appslist->GetAdapter();
 			iosAppsAdapter->notifyDataSetChanged();
 		}
+		m_pTreeViewAdapter->UpDataDevAppInfo(S_CW2A(evt->udid));
+	}
+}
+
+void CMyDeviceHandler::OnUnistallApp(EventArgs* pEArg)
+{
+	EventUnintallApp* evt = sobj_cast<EventUnintallApp>(pEArg);
+	if (evt&&evt->bSucessed)
+	{
+		STabCtrlTemplate* pTab = m_pPageRoot->FindChildByID2<STabCtrlTemplate>(R.id.nav_dev_cmd);
+		SASSERT(pTab);
+		SWindow* pWnd = pTab->GetPage(evt->udid);
+		SASSERT(pWnd);
+		SMCListViewEx* appslist = pWnd->FindChildByID2<SMCListViewEx>(R.id.lv_appsList);
+		if (appslist)
+		{
+			CAutoRefPtr<CAppsListAdapter> iosAppsAdapter = (CAppsListAdapter*)appslist->GetAdapter();
+			iosAppsAdapter->notifyDataSetChanged();
+		}
+		m_pTreeViewAdapter->UpDataDevAppInfo(S_CW2A(evt->udid));
 	}
 }
 
@@ -269,6 +289,24 @@ void CMyDeviceHandler::OnTVSelChanged(EventArgs * pEArg)
 
 	ChildMenuItemClick(data.data.guid.c_str(), data.data.nCmd);
 	m_pTreeViewAdapter->notifyBranchInvalidated(pE2->hNewSel);
+}
+
+void CMyDeviceHandler::OnCheckWarrantyexpirationDate(EventArgs * pEArg)
+{
+	SWindow* pET = sobj_cast<SWindow>(pEArg->sender);
+	if (pET)
+	{
+		std::string udid = CDataCenter::getSingleton().GetUDIDByWindow((SWindow*)pET->GetUserData());
+		CiOSDevice* dev = CDataCenter::getSingleton().GetDevByUDID(udid.c_str());
+		if (dev)
+		{
+			const TCHAR* strUrl = _T("https://checkcoverage.apple.com/cn/zh/?sn=%s");
+
+			SStringT url;
+			url.Format(strUrl, dev->GetiOSBaseInfo().m_strDevSerialNumber);
+			ShellExecute(NULL, L"open",url, NULL, NULL, SW_SHOWNORMAL);
+		}
+	}
 }
 
 void CMyDeviceHandler::ChildMenuItemClick(LPCSTR udid, int nGID)

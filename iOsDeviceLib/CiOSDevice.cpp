@@ -6,6 +6,8 @@
 #include "CiOSDevice.h"
 #include "pch.h"
 #include "CiOSDevice.h"
+#include <zip.h>
+#include <libimobiledevice\include\asprintf.h>
 #include <common/utils.c>
 #include "iOSUtils.h"
 #include <string/strcpcvt.h>
@@ -50,28 +52,16 @@ bool CiOSDevice::OpenDevice(LPCSTR udid)
 
 void CiOSDevice::CloseDevice()
 {
-	if (m_capThread[Thread_Cap].joinable())
+	m_bCap = false;
+	m_bUpdata = false;
+	m_bUpdataBattreyInfo = false;
+	m_bUpdataDiskInfo = false;
+
+	for (auto& th : m_capThread)
 	{
-		m_bCap = false;
-		m_capThread[Thread_Cap].join();
+		if (th.joinable())
+			th.join();
 	}
-	if (m_capThread[Thread_Updata].joinable())
-	{
-		m_bUpdata = false;
-		m_capThread[Thread_Updata].join();
-	}
-	if (m_capThread[Thread_UpdataBattreyInfo].joinable())
-	{
-		m_bUpdataBattreyInfo = false;
-		m_capThread[Thread_UpdataBattreyInfo].join();
-	}
-	if (m_capThread[Thread_UpdataDiskInfo].joinable())
-	{
-		m_bUpdataDiskInfo = false;
-		m_capThread[Thread_UpdataDiskInfo].join();
-	}
-	if (m_capThread[Thread_UpdataAppsInfo].joinable())
-		m_capThread[Thread_UpdataAppsInfo].join();
 
 	if (m_device)
 	{
@@ -217,6 +207,7 @@ bool CiOSDevice::SetDevName(LPCTSTR newName)
 	{
 		using namespace SOUI;
 		SStringA strU8Name = S_CT2A(newName, CP_UTF8);
+		lockdownd_error_t ec = lockdownd_set_value(m_client, NULL, "DeviceName", plist_new_string(strU8Name));
 		if (lockdownd_set_value(m_client, NULL, "DeviceName", plist_new_string(strU8Name)) == LOCKDOWN_E_SUCCESS) {
 			m_iosInfo.m_strDevName = newName;
 			return true;
@@ -757,9 +748,9 @@ bool CiOSDevice::_GetBatteryBaseInfo(BatteryBaseInfo & outInfo)
 					if (!outInfo.BatterySerialNumber.IsEmpty())
 					{
 						if (utils::isIp6OrLater(m_iosInfo.m_strProductVersion))
-							utils::getbatteryManufactureDateFormeSN(outInfo.BatterySerialNumber, outInfo.Origin, outInfo.ManufactureDate);
+							utils::getbatteryManufactureDateFormSN(outInfo.BatterySerialNumber, outInfo.Origin, outInfo.ManufactureDate);
 						else
-							utils::getbatteryManufactureDateFormeSNOld(outInfo.BatterySerialNumber, outInfo.Origin, outInfo.ManufactureDate);
+							utils::getbatteryManufactureDateFormSNOld(outInfo.BatterySerialNumber, outInfo.Origin, outInfo.ManufactureDate);
 					}
 					plist_free(node);
 					node = NULL;
@@ -780,43 +771,14 @@ bool CiOSDevice::_GetBatteryBaseInfo(BatteryBaseInfo & outInfo)
 
 void CiOSDevice::_ScreenShot()
 {
-	lockdownd_client_t syncClient = NULL;
-	if (lockdownd_client_new_with_handshake(m_device, &syncClient, "my_iOSDeviceScreenShot") != LOCKDOWN_E_SUCCESS)
+	EventScreenShot* pScreenshotEvt = new EventScreenShot(NULL);
+	pScreenshotEvt->code = -1;
+	if (_GetScreenWallpaper(&pScreenshotEvt->imgbuf, pScreenshotEvt->bufsize))
 	{
-		return;
+		pScreenshotEvt->code = 0;
 	}
-	m_bCap = true;
-	lockdownd_service_descriptor_t service = NULL;;
-	lockdownd_start_service(m_client, "com.apple.mobile.screenshotr", &service);
-	lockdownd_client_free(syncClient);
-
-	if (service && service->port > 0) {
-		screenshotr_client_t shotr = NULL;
-		if (screenshotr_client_new(m_device, service, &shotr) != SCREENSHOTR_E_SUCCESS) {
-			goto clear;
-		}
-		else {
-			char* imgdata = NULL;
-			uint64_t imgsize = 0;
-
-			while (m_bCap)
-			{
-				if (screenshotr_take_screenshot(shotr, &imgdata, &imgsize) == SCREENSHOTR_E_SUCCESS) {
-					EventScreenShot* pScreenshotEvt = new EventScreenShot(NULL);
-					pScreenshotEvt->code = 0;
-					pScreenshotEvt->bufsize = imgsize;
-					pScreenshotEvt->imgbuf = imgdata;
-					SOUI::SNotifyCenter::getSingleton().FireEventAsync(pScreenshotEvt);
-					pScreenshotEvt->Release();
-				}
-				std::this_thread::sleep_for(std::chrono::seconds(1));
-			}
-			screenshotr_client_free(shotr);
-		}
-	}
-clear:
-	if (service)
-		lockdownd_service_descriptor_free(service);
+	SOUI::SNotifyCenter::getSingleton().FireEventAsync(pScreenshotEvt);
+	pScreenshotEvt->Release();
 }
 
 void CiOSDevice::_Updata()
@@ -1445,7 +1407,8 @@ void CiOSDevice::_UpdataDiskInfo()
 
 static void notifier(const char* notification, void* unused)
 {
-
+	(void)notification;
+	(void)unused;
 }
 
 void CiOSDevice::StartUpdataApps()
@@ -1454,17 +1417,19 @@ void CiOSDevice::StartUpdataApps()
 		m_capThread[Thread_UpdataAppsInfo] = std::thread(&CiOSDevice::_UpdataAppsInfo, this);
 }
 
-const std::vector<AppInfo>& CiOSDevice::GetApps()
+const std::vector<AppInfo>* CiOSDevice::GetApps()
 {
-	RLocker locker(m_appsLocker);
-	return m_apps;
+
+	RTryLocker locker(m_appsLocker);
+	if (locker)
+		return &m_apps;
+	return NULL;
 }
 
 bool CiOSDevice::_GetAppIcon(LPCSTR id, char** outBuf, uint64_t & len)
 {
 	if (id == NULL)
 		return false;
-	lockdownd_service_descriptor_t service = NULL;
 	sbservices_client_t sbclient = NULL;
 	if (sbservices_client_start_service(m_device, &sbclient, "geticon") != SBSERVICES_E_SUCCESS)
 		return false;
@@ -1477,7 +1442,6 @@ bool CiOSDevice::_GetAppIcon(LPCSTR id, char** outBuf, uint64_t & len)
 
 bool CiOSDevice::_GetScreenWallpaper(char** outBuf, uint64_t & len)
 {
-	lockdownd_service_descriptor_t service = NULL;
 	sbservices_client_t sbclient = NULL;
 	if (sbservices_client_start_service(m_device, &sbclient, "geticon") != SBSERVICES_E_SUCCESS)
 		return false;
@@ -1546,39 +1510,35 @@ void CiOSDevice::_UpdataApps(plist_t apps)
 {
 	if (apps)
 	{
+		WLocker locker(m_appsLocker);
+		m_apps.clear();
+		/*char* xml = NULL;
+		uint32_t len = 0;
+		plist_to_xml(apps, &xml, &len);
+		if (xml) {
+			SOUI::SStringW wxml = SOUI::S_CA2W(xml, CP_UTF8);
+			free(xml);
+		}*/
+		uint32_t size = plist_array_get_size(apps);
+		for (uint32_t i = 0; i < size; i++)
 		{
-			WLocker locker(m_appsLocker);
-			m_apps.clear();
-			/**/char* xml = NULL;
-			uint32_t len = 0;
-			plist_to_xml(apps, &xml, &len);
-			if (xml) {
-				SOUI::SStringW wxml = SOUI::S_CA2W(xml, CP_UTF8);
-				free(xml);
-			}
-			uint32_t size = plist_array_get_size(apps);
-			for (uint32_t i = 0; i < size; i++)
+			plist_t app = plist_array_get_item(apps, i);
+			if (app)
 			{
-				plist_t app = plist_array_get_item(apps, i);
-				if (app)
+				AppInfo appInfo;
+				GetAppValue(app, "CFBundleIdentifier", appInfo.AppID);
+
+				char* pngdata = NULL; uint64_t len;
+				if (_GetAppIcon(appInfo.AppID.c_str(), &pngdata, len))
 				{
-					AppInfo appInfo;
-					GetAppValue(app, "CFBundleIdentifier", appInfo.AppID);
-
-					char* pngdata = NULL; uint64_t len;
-					if (_GetAppIcon(appInfo.AppID.c_str(), &pngdata, len))
-					{
-						appInfo.m_ico.Attach(SOUI::SResLoadFromMemory::LoadImage(pngdata, (uint32_t)len));
-						free(pngdata);
-					}
-
-					GetAppValue(app, "CFBundleDisplayName", appInfo.DisplayName);
-					GetAppValue(app, "CFBundleShortVersionString", appInfo.Version);
-					GetAppValue(app, "DynamicDiskUsage", appInfo.DynamicDiskUsage);
-					GetAppValue(app, "StaticDiskUsage", appInfo.StaticDiskUsage);
-
-					m_apps.push_back(appInfo);
+					appInfo.m_ico.Attach(SOUI::SResLoadFromMemory::LoadImage(pngdata, (uint32_t)len));
+					free(pngdata);
 				}
+				GetAppValue(app, "CFBundleDisplayName", appInfo.DisplayName);
+				GetAppValue(app, "CFBundleShortVersionString", appInfo.Version);
+				GetAppValue(app, "DynamicDiskUsage", appInfo.DynamicDiskUsage);
+				GetAppValue(app, "StaticDiskUsage", appInfo.StaticDiskUsage);
+				m_apps.push_back(appInfo);
 			}
 		}
 		EventUpdataAppsInfo* e = new EventUpdataAppsInfo(NULL);
@@ -1589,7 +1549,7 @@ void CiOSDevice::_UpdataApps(plist_t apps)
 	}
 }
 
-static void status_cb(plist_t command, plist_t status, void* unused)
+static void uninstallstatus_cb(plist_t command, plist_t status, void* unused)
 {
 	((CiOSDevice*)unused)->uninstallstatus_cb(command, status);
 }
@@ -1600,20 +1560,63 @@ void CiOSDevice::uninstallstatus_cb(plist_t command, plist_t status)
 		char* command_name = NULL;
 		instproxy_command_get_name(command, &command_name);
 
+		if (strcmp(command_name, "Uninstall") != 0) {
+			return;
+		}
+
+		/*char* xml = NULL;
+		uint32_t len = 0;
+		plist_to_xml(command, &xml, &len);
+		if (xml) {
+			SOUI::SStringW wxml = SOUI::S_CA2W(xml, CP_UTF8);
+			free(xml);
+		}*/
+		//command_name==Uninstall ApplicationIdentifier
+		char* appid = NULL;
+		char* error_name = NULL;
+		char* error_description = NULL;
+		plist_t node = plist_dict_get_item(command, "ApplicationIdentifier");
+		if (node) {
+			plist_get_string_val(node, &appid);
+		}
 		/* get status */
 		char* status_name = NULL;
 		instproxy_status_get_name(status, &status_name);
 		bool command_completed = false;
 		if (status_name) {
+			//完成
 			if (!strcmp(status_name, "Complete")) {
-				command_completed = true;
+
 				appUnistallcv.notify_one();
+
+				{
+					WLocker locker(m_appsLocker);
+					auto iter = m_apps.begin();
+					while (iter != m_apps.end())
+					{
+						if (iter->AppID == appid)
+						{
+							m_apps.erase(iter);
+							break;
+						}
+						iter++;
+					}
+				}
+
+				EventUnintallApp* e = new EventUnintallApp(NULL);
+				e->udid = m_iosInfo.m_strDevUDID;
+				e->udid.MakeLower();
+				e->appid = appid;
+				e->bSucessed = true;
+				SOUI::SNotifyCenter::getSingleton().FireEventAsync(e);
+				e->Release();
+
+				goto clearup;
 			}
 		}
 
 		/* get error if any */
-		char* error_name = NULL;
-		char* error_description = NULL;
+
 		uint64_t error_code = 0;
 		instproxy_status_get_error(status, &error_name, &error_description, &error_code);
 
@@ -1633,14 +1636,127 @@ void CiOSDevice::uninstallstatus_cb(plist_t command, plist_t status)
 			}
 		}
 		else {
-			/* report error to the user */
-			//if (error_description)
-				//fprintf(stderr, "ERROR: %s failed. Got error \"%s\" with code 0x%08"PRIx64": %s\n", command_name, error_name, error_code, error_description ? error_description : "N/A");
-			//else
-				//fprintf(stderr, "ERROR: %s failed. Got error \"%s\".\n", command_name, error_name);			
+			appUnistallcv.notify_one();
+			EventUnintallApp* e = new EventUnintallApp(NULL);
+			e->udid = m_iosInfo.m_strDevUDID;
+			e->udid.MakeLower();
+			e->appid = appid;
+			e->bSucessed = false;
+			SOUI::SNotifyCenter::getSingleton().FireEventAsync(e);
+			e->Release();
+		}
+	clearup:
+		/* clean up */
+		free(appid);
+		free(error_name);
+		free(error_description);
+		free(command_name);
+		command_name = NULL;
+	}
+	else {
+		fprintf(stderr, "ERROR: %s was called with invalid arguments!\n", __func__);
+	}
+}
+
+static void installstatus_cb(plist_t command, plist_t status, void* unused)
+{
+	((CiOSDevice*)unused)->installstatus_cb(command, status);
+}
+
+void CiOSDevice::installstatus_cb(plist_t command, plist_t status)
+{
+	if (command && status) {
+		char* command_name = NULL;
+		instproxy_command_get_name(command, &command_name);
+
+		if (strcmp(command_name, "Uninstall") != 0) {
+			return;
 		}
 
+		/*char* xml = NULL;
+		uint32_t len = 0;
+		plist_to_xml(command, &xml, &len);
+		if (xml) {
+			SOUI::SStringW wxml = SOUI::S_CA2W(xml, CP_UTF8);
+			free(xml);
+		}*/
+		//command_name==Uninstall ApplicationIdentifier
+		char* appid = NULL;
+		char* error_name = NULL;
+		char* error_description = NULL;
+		plist_t node = plist_dict_get_item(command, "ApplicationIdentifier");
+		if (node) {
+			plist_get_string_val(node, &appid);
+		}
+		/* get status */
+		char* status_name = NULL;
+		instproxy_status_get_name(status, &status_name);
+		bool command_completed = false;
+		if (status_name) {
+			//完成
+			if (!strcmp(status_name, "Complete")) {
+
+				appUnistallcv.notify_one();
+
+				{
+					WLocker locker(m_appsLocker);
+					auto iter = m_apps.begin();
+					while (iter != m_apps.end())
+					{
+						if (iter->AppID == appid)
+						{
+							m_apps.erase(iter);
+							break;
+						}
+						iter++;
+					}
+				}
+
+				EventUnintallApp* e = new EventUnintallApp(NULL);
+				e->udid = m_iosInfo.m_strDevUDID;
+				e->udid.MakeLower();
+				e->appid = appid;
+				e->bSucessed = true;
+				SOUI::SNotifyCenter::getSingleton().FireEventAsync(e);
+				e->Release();
+
+				goto clearup;
+			}
+		}
+
+		/* get error if any */
+
+		uint64_t error_code = 0;
+		instproxy_status_get_error(status, &error_name, &error_description, &error_code);
+
+		/* output/handling */
+		if (!error_name) {
+			if (status_name) {
+				/* get progress if any */
+				int percent = -1;
+				instproxy_status_get_percent_complete(status, &percent);
+
+				if (percent >= 0) {
+					printf("\r%s: %s (%d%%)", command_name, status_name, percent);
+				}
+				else {
+					printf("\r%s: %s", command_name, status_name);
+				}
+			}
+		}
+		else {
+			appUnistallcv.notify_one();
+			EventUnintallApp* e = new EventUnintallApp(NULL);
+			e->udid = m_iosInfo.m_strDevUDID;
+			e->udid.MakeLower();
+			e->appid = appid;
+			e->bSucessed = false;
+			SOUI::SNotifyCenter::getSingleton().FireEventAsync(e);
+			e->Release();
+		}
+	clearup:
 		/* clean up */
+		free(appid);
 		free(error_name);
 		free(error_description);
 		free(command_name);
@@ -1741,7 +1857,7 @@ leave_cleanup:
 	lockdownd_client_free(updataAppsClient);
 }
 
-void CiOSDevice::_UninstallAppsInfo(std::string appID)
+void CiOSDevice::_UninstallApp(std::string appID)
 {
 	lockdownd_service_descriptor_t service = NULL;
 	instproxy_client_t ipc = NULL;
@@ -1795,7 +1911,7 @@ void CiOSDevice::_UninstallAppsInfo(std::string appID)
 		goto leave_cleanup;
 	}
 
-	instproxy_uninstall(ipc, appID.c_str(), NULL, status_cb, this);
+	instproxy_uninstall(ipc, appID.c_str(), NULL, ::uninstallstatus_cb, this);
 
 	appUnistallcv.wait(lck);
 
@@ -1808,4 +1924,419 @@ leave_cleanup:
 	np_client_free(np);
 	instproxy_client_free(ipc);
 	lockdownd_client_free(updataAppsClient);
+}
+
+#ifdef WIN32
+typedef struct __stat64 stat_generic_t;
+#else
+typedef struct stat stat_generic_t;
+#endif
+static int stat_generic(const char* filename, stat_generic_t * stat_gen)
+{
+#ifdef WIN32
+	return __stat64(filename, stat_gen);
+#else
+	return stat(filename, stat_gen);
+#endif
+}
+
+void CiOSDevice::_InstallApp(const std::string apppath,bool bInstall)
+{
+	lockdownd_service_descriptor_t service = NULL;
+	instproxy_client_t ipc = NULL;
+	lockdownd_client_t updataAppsClient = NULL;
+	instproxy_error_t err;
+	np_client_t np = NULL;
+
+	afc_client_t afc = NULL;
+	const char PKG_PATH[] = "PublicStaging";
+	const char APPARCH_PATH[] = "ApplicationArchives";
+
+#define ITUNES_METADATA_PLIST_FILENAME "iTunesMetadata.plist"
+
+	plist_t sinf = NULL;
+	plist_t meta = NULL;
+	char* pkgname = NULL;
+	stat_generic_t fst;
+	uint64_t af = 0;
+	char buf[8192];
+	char* bundleidentifier = NULL;
+
+
+	std::mutex _mx;
+	std::unique_lock<std::mutex> lck(_mx);
+
+	if (lockdownd_client_new_with_handshake(m_device, &updataAppsClient, "updataAppsClient") != LOCKDOWN_E_SUCCESS)
+	{
+		return;
+	}
+	if ((lockdownd_start_service
+	(updataAppsClient, "com.apple.mobile.notification_proxy",
+		&service) != LOCKDOWN_E_SUCCESS) || !service) {
+		//"Could not start com.apple.mobile.notification_proxy!\n");		
+		goto leave_cleanup;
+	}
+	np_error_t nperr = np_client_new(m_device, service, &np);
+	if (service) {
+		lockdownd_service_descriptor_free(service);
+		service = NULL;
+	}
+	if (nperr != NP_E_SUCCESS) {
+		//fprintf(stderr, "Could not connect to notification_proxy!\n");		
+		goto leave_cleanup;
+	}
+
+	np_set_notify_callback(np, notifier, this);
+
+	const char* noties[3] = { NP_APP_INSTALLED, NP_APP_UNINSTALLED, NULL };
+
+	np_observe_notifications(np, noties);
+
+
+	if ((lockdownd_start_service(updataAppsClient, "com.apple.mobile.installation_proxy",
+		&service) != LOCKDOWN_E_SUCCESS) || !service) {
+		//"Could not start com.apple.mobile.installation_proxy!\n");		
+		goto leave_cleanup;
+	}
+	err = instproxy_client_new(m_device, service, &ipc);
+	if (service) {
+		lockdownd_service_descriptor_free(service);
+		service = NULL;
+	}
+
+	if (err != INSTPROXY_E_SUCCESS) {
+		//"Could not connect to installation_proxy!\n");		
+		goto leave_cleanup;
+	}	
+	
+	if ((lockdownd_start_service(updataAppsClient, "com.apple.afc", &service) !=
+		LOCKDOWN_E_SUCCESS) || !service) {
+
+		goto leave_cleanup;
+	}
+
+	if (afc_client_new(m_device, service, &afc) != AFC_E_SUCCESS) {
+
+		goto leave_cleanup;
+	}
+
+	if (stat_generic(apppath.c_str(), &fst) != 0) {
+
+		goto leave_cleanup;
+	}
+
+	char** strs = NULL;
+	if (afc_get_file_info(afc, PKG_PATH, &strs) != AFC_E_SUCCESS) {
+		if (afc_make_directory(afc, PKG_PATH) != AFC_E_SUCCESS) {
+			fprintf(stderr, "WARNING: Could not create directory '%s' on device!\n", PKG_PATH);
+		}
+	}
+	if (strs) {
+		int i = 0;
+		while (strs[i]) {
+			free(strs[i]);
+			i++;
+		}
+		free(strs);
+	}
+
+	plist_t client_opts = instproxy_client_options_new();
+	/* open install package */
+	int errp = 0;
+	struct zip* zf = NULL;
+	
+	if ((apppath.size() > 5) && (apppath.substr(apppath.size()-5)== ".ipcc")) {
+		zf = zip_open(apppath.c_str(), 0, &errp);
+		if (!zf) {
+			goto leave_cleanup;
+		}
+
+		char* ipcc = strdup(apppath.c_str());
+		if ((asprintf(&pkgname, "%s/%s", PKG_PATH, utils::basename(ipcc)) > 0) && pkgname) {
+			afc_make_directory(afc, pkgname);
+		}
+
+		//Uploading %s package contents... 
+
+		/* extract the contents of the .ipcc file to PublicStaging/<name>.ipcc directory */
+		zip_uint64_t numzf = zip_get_num_entries(zf, 0);
+		zip_uint64_t i = 0;
+		for (i = 0; numzf > 0 && i < numzf; i++) {
+			const char* zname = zip_get_name(zf, i, 0);
+			char* dstpath = NULL;
+			if (!zname) continue;
+			if (zname[strlen(zname) - 1] == '/') {
+				// directory
+				if ((asprintf(&dstpath, "%s/%s/%s", PKG_PATH, utils::basename(ipcc), zname) > 0) && dstpath) {
+					afc_make_directory(afc, dstpath);
+				}
+				free(dstpath);
+				dstpath = NULL;
+			}
+			else {
+				// file
+				struct zip_file* zfile = zip_fopen_index(zf, i, 0);
+				if (!zfile) continue;
+
+				if ((asprintf(&dstpath, "%s/%s/%s", PKG_PATH, utils::basename(ipcc), zname) <= 0) || !dstpath || (afc_file_open(afc, dstpath, AFC_FOPEN_WRONLY, &af) != AFC_E_SUCCESS)) {
+					fprintf(stderr, "ERROR: can't open afc://%s for writing\n", dstpath);
+					free(dstpath);
+					dstpath = NULL;
+					zip_fclose(zfile);
+					continue;
+				}
+
+				struct zip_stat zs;
+				zip_stat_init(&zs);
+				if (zip_stat_index(zf, i, 0, &zs) != 0) {
+					fprintf(stderr, "ERROR: zip_stat_index %" PRIu64 " failed!\n", i);
+					free(dstpath);
+					dstpath = NULL;
+					zip_fclose(zfile);
+					continue;
+				}
+
+				free(dstpath);
+				dstpath = NULL;
+
+				zip_uint64_t zfsize = 0;
+				while (zfsize < zs.size) {
+					zip_int64_t amount = zip_fread(zfile, buf, sizeof(buf));
+					if (amount == 0) {
+						break;
+					}
+
+					if (amount > 0) {
+						uint32_t written, total = 0;
+						while (total < amount) {
+							written = 0;
+							if (afc_file_write(afc, af, buf, amount, &written) !=
+								AFC_E_SUCCESS) {
+								fprintf(stderr, "AFC Write error!\n");
+								break;
+							}
+							total += written;
+						}
+						if (total != amount) {
+							fprintf(stderr, "Error: wrote only %d of %" PRIi64 "\n", total, amount);
+							afc_file_close(afc, af);
+							zip_fclose(zfile);
+							free(dstpath);
+							goto leave_cleanup;
+						}
+					}
+
+					zfsize += amount;
+				}
+
+				afc_file_close(afc, af);
+				af = 0;
+
+				zip_fclose(zfile);
+			}
+		}
+		free(ipcc);
+		printf("DONE.\n");
+
+		instproxy_client_options_add(client_opts, "PackageType", "CarrierBundle", NULL);
+	}
+	else if (S_ISDIR(fst.st_mode)) {
+		/* upload developer app directory */
+		instproxy_client_options_add(client_opts, "PackageType", "Developer", NULL);
+
+		if (asprintf(&pkgname, "%s/%s", PKG_PATH, utils::basename(apppath.c_str())) < 0) {
+			fprintf(stderr, "ERROR: Out of memory allocating pkgname!?\n");
+			goto leave_cleanup;
+		}
+		utils::afc_upload_dir(afc, apppath.c_str(), pkgname);
+		printf("DONE.\n");
+
+		/* extract the CFBundleIdentifier from the package */
+
+		/* construct full filename to Info.plist */
+		std::string filename = apppath;
+		
+		filename+="/Info.plist";
+
+		struct stat st;
+		FILE * fp = NULL;
+
+		if (stat(filename.c_str(), &st) == -1 || (fp = fopen(filename.c_str(), "r")) == NULL) {			
+			goto leave_cleanup;
+		}
+		size_t filesize = st.st_size;
+		char* ibuf = (char*)malloc(filesize * sizeof(char));
+		size_t amount = fread(ibuf, 1, filesize, fp);
+		if (amount != filesize) {			
+			goto leave_cleanup;
+		}
+		fclose(fp);
+
+		plist_t info = NULL;
+		if (memcmp(ibuf, "bplist00", 8) == 0) {
+			plist_from_bin(ibuf, filesize, &info);
+		}
+		else {
+			plist_from_xml(ibuf, filesize, &info);
+		}
+		free(ibuf);
+
+		if (!info) {
+			goto leave_cleanup;
+		}
+
+		plist_t bname = plist_dict_get_item(info, "CFBundleIdentifier");
+		if (bname) {
+			plist_get_string_val(bname, &bundleidentifier);
+		}
+		plist_free(info);
+		info = NULL;
+	}
+	else {
+		zf = zip_open(apppath.c_str(), 0, &errp);
+		if (!zf) {			
+			goto leave_cleanup;
+		}
+
+		/* extract iTunesMetadata.plist from package */
+		char* zbuf = NULL;
+		uint32_t len = 0;
+		plist_t meta_dict = NULL;
+		if (utils::zip_get_contents(zf, ITUNES_METADATA_PLIST_FILENAME, 0, &zbuf, &len) == 0) {
+			meta = plist_new_data(zbuf, len);
+			if (memcmp(zbuf, "bplist00", 8) == 0) {
+				plist_from_bin(zbuf, len, &meta_dict);
+			}
+			else {
+				plist_from_xml(zbuf, len, &meta_dict);
+			}
+		}
+		else {
+			fprintf(stderr, "WARNING: could not locate %s in archive!\n", ITUNES_METADATA_PLIST_FILENAME);
+		}
+		free(zbuf);
+
+		/* determine .app directory in archive */
+		zbuf = NULL;
+		len = 0;
+		plist_t info = NULL;		
+		char* app_directory_name = NULL;
+
+		if (utils::zip_get_app_directory(zf, &app_directory_name)) {
+			fprintf(stderr, "Unable to locate app directory in archive!\n");
+			goto leave_cleanup;
+		}
+
+		/* construct full filename to Info.plist */
+		std::string filename = app_directory_name;
+		
+		free(app_directory_name);
+		app_directory_name = NULL;
+		filename+= "Info.plist";
+
+		if (utils::zip_get_contents(zf, filename.c_str(), 0, &zbuf, &len) < 0) {			
+			zip_unchange_all(zf);
+			zip_close(zf);
+			goto leave_cleanup;
+		}
+		
+		if (memcmp(zbuf, "bplist00", 8) == 0) {
+			plist_from_bin(zbuf, len, &info);
+		}
+		else {
+			plist_from_xml(zbuf, len, &info);
+		}
+		free(zbuf);
+
+		if (!info) {
+			fprintf(stderr, "Could not parse Info.plist!\n");
+			zip_unchange_all(zf);
+			zip_close(zf);
+			goto leave_cleanup;
+		}
+
+		char* bundleexecutable = NULL;
+		
+		plist_t bname = plist_dict_get_item(info, "CFBundleExecutable");
+		if (bname) {
+			plist_get_string_val(bname, &bundleexecutable);
+		}
+
+		bname = plist_dict_get_item(info, "CFBundleIdentifier");
+		if (bname) {
+			plist_get_string_val(bname, &bundleidentifier);
+		}
+		plist_free(info);
+		info = NULL;
+
+		if (!bundleexecutable) {
+			fprintf(stderr, "Could not determine value for CFBundleExecutable!\n");
+			zip_unchange_all(zf);
+			zip_close(zf);
+			goto leave_cleanup;
+		}
+
+		char* sinfname = NULL;
+		if (asprintf(&sinfname, "Payload/%s.app/SC_Info/%s.sinf", bundleexecutable, bundleexecutable) < 0) {
+			fprintf(stderr, "Out of memory!?\n");
+			goto leave_cleanup;
+		}
+		free(bundleexecutable);
+
+		/* extract .sinf from package */
+		zbuf = NULL;
+		len = 0;
+		if (utils::zip_get_contents(zf, sinfname, 0, &zbuf, &len) == 0) {
+			sinf = plist_new_data(zbuf, len);
+		}
+		else {
+			fprintf(stderr, "WARNING: could not locate %s in archive!\n", sinfname);
+		}
+		free(sinfname);
+		free(zbuf);
+
+		/* copy archive to device */
+		pkgname = NULL;
+		if (asprintf(&pkgname, "%s/%s", PKG_PATH, bundleidentifier) < 0) {
+			fprintf(stderr, "Out of memory!?\n");
+			goto leave_cleanup;
+		}
+
+		if (utils::afc_upload_file(afc, apppath.c_str(), pkgname) < 0) {
+			free(pkgname);
+			goto leave_cleanup;
+		}
+
+		//("DONE.\n");
+
+		if (bundleidentifier) {
+			instproxy_client_options_add(client_opts, "CFBundleIdentifier", bundleidentifier, NULL);
+			
+		}
+		if (sinf) {
+			instproxy_client_options_add(client_opts, "ApplicationSINF", sinf, NULL);
+		}
+		if (meta) {
+			instproxy_client_options_add(client_opts, "iTunesMetadata", meta, NULL);
+		}
+	}
+	if (zf) {
+		zip_unchange_all(zf);
+		zip_close(zf);
+	}
+	if(bInstall)
+		instproxy_install(ipc, pkgname, client_opts, ::installstatus_cb, NULL);
+	else
+		instproxy_upgrade(ipc, pkgname, client_opts, ::installstatus_cb, NULL);
+	instproxy_client_options_free(client_opts);
+	free(pkgname);
+	
+	appUnistallcv.wait(lck);
+
+leave_cleanup:
+	free(bundleidentifier);
+	lockdownd_service_descriptor_free(service);
+	np_client_free(np);
+	instproxy_client_free(ipc);
+	lockdownd_client_free(updataAppsClient);	
 }

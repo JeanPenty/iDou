@@ -89,8 +89,8 @@ public:
 				pName->SetWindowText(GETSTRING(L"@string/cmd1"));
 			}break;
 			case 2:
-			{
-				pName->SetWindowText(GETSTRING(L"@string/cmd2"));
+			{				
+				pName->SetWindowText(_MakeAppTitle(ii.data.guid.c_str()));
 			}break;
 			case 3:
 			{
@@ -189,7 +189,7 @@ public:
 	{
 		return 3;
 	}
-	void UnDataDev(LPCSTR id)
+	void UpDataDev(LPCSTR id)
 	{
 		HSTREEITEM node = m_tree.GetChildItem(ITEM_ROOT);
 		while (node)
@@ -202,6 +202,42 @@ public:
 			node = m_tree.GetNextSiblingItem(node);
 		}
 	}
+	void UpDataDevAppInfo(LPCSTR id)
+	{
+		HSTREEITEM node = m_tree.GetChildItem(ITEM_ROOT);
+		while (node)
+		{
+			if (m_tree.GetItem(node).data.guid == id)
+			{
+				_UpdataChildItem(node,2);
+				break;
+			}
+			node = m_tree.GetNextSiblingItem(node);
+		}
+	}
+	private:
+		void _UpdataChildItem(HSTREEITEM node,int id)
+		{
+			HSTREEITEM cnode = m_tree.GetChildItem(node);
+			while (cnode)
+			{
+				if (m_tree.GetItem(cnode).data.nCmd == id)
+				{
+					notifyBranchInvalidated(cnode);
+					break;
+				}
+				cnode = m_tree.GetNextSiblingItem(cnode);
+			}
+		}
+		SStringT _MakeAppTitle(LPCSTR udid)
+		{
+			const std::vector<AppInfo>* apps = CDataCenter::getSingleton().GetApps(udid);
+			if (apps)
+			{
+				return GETSTRING(L"@string/cmd2")+SStringT().Format(L"(%d)",apps->size());
+			}
+			return GETSTRING(L"@string/cmd2");
+		}
 protected:
 	//添加一个设备id:udid can:是否可操作
 	void AddDev(LPCSTR id, bool can)
