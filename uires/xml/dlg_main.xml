@@ -40,8 +40,8 @@
         <include src="layout:XML_page"/>
       </page>
     </tabctrl>
-    <window pos="0,-36,-0,-1">
-      
+    <window pos="0,-36,-0,-1" layout="hbox">
+      <button text="检查iTunes驱动" name="btn_CheckiTunes"/>
     </window>
     <shellnotifyicon id="110" menu="SMENU:menu_tray" ico="ICON_LOGO:16" tip="110"/>
   </root>

@@ -5,44 +5,82 @@ class CAppsListAdapter :public SMcAdapterBaseEx
 	SArray<SStringW> m_colNames;
 	std::string iosudid;
 public:
-	CAppsListAdapter(LPCSTR udid) :iosudid(udid)
-	{		
+	CAppsListAdapter(LPCSTR udid, SToggle2* pCheckAll) :iosudid(udid)
+	{
+		m_pCheckBox = pCheckAll;
+		m_pCheckBox->GetEventSet()->subscribeEvent(&CAppsListAdapter::OnCheckAllChanged, this);
+	}
+
+	bool OnCheckAllChanged(EventCmd* e)
+	{
+		SToggle2* pCheck = sobj_cast<SToggle2>(e->sender);
+		bool bCheck = (pCheck->GetToggle() == TRUE);
+		if (bCheck)
+		{
+			SelAll();
+		}
+		else
+		{
+			ClearSel();
+		}
+		notifyDataSetChanged();
+
+		return true;
+	}
+
+	virtual void SelAll()override
+	{
+		int max_id = getCount();
+		m_selList.RemoveAll();
+		for (int i = 0; i < max_id; i++)
+			m_selList.AddTail(i);
+	}
+
+	virtual void SelectionEnd()override
+	{
+		m_pCheckBox->SetToggle(getCount() == m_selList.GetCount(), TRUE);
 	}
 
 	virtual int getCount()
 	{
-		const std::vector<AppInfo>* pApps=CDataCenter::getSingleton().GetApps(iosudid.c_str());
+		const std::vector<AppInfo>* pApps = CDataCenter::getSingleton().GetApps(iosudid.c_str());
 		if (pApps)
 			return pApps->size();
 		return 0;
 	}
-		
-	bool CheckClick(EventCmd *e)
+
+	bool CheckClick(EventCmd * e)
 	{
-		SWindow* pWnd = sobj_cast<SWindow>(e->sender);
+		SToggle2* pWnd = sobj_cast<SToggle2>(e->sender);
 		SASSERT(pWnd);
-		ControlSel(pWnd->GetUserData());
+		ControlSel(pWnd->GetUserData());	
+		m_pCheckBox->SetToggle(getCount() == m_selList.GetCount(),TRUE);		
+		e->bubbleUp = false;
 		return true;
 	}
 
-	bool OnItemClick(EventItemPanelClick* pEvt)
+	bool OnItemClick(EventItemPanelClick * pEvt)
 	{
 		SItemPanel* pItemPanel = sobj_cast<SItemPanel>(pEvt->sender);
 		SWND m_hHover = pItemPanel->SwndFromPoint(CPoint(GET_X_LPARAM(pEvt->lParam), GET_Y_LPARAM(pEvt->lParam)), FALSE);
 		SWindow* pHover = SWindowMgr::GetWindow(m_hHover);
-		if (pHover && !pHover->IsDisabled(TRUE)&& (pHover->GetID()== R.id.check))
+		if (pHover && !pHover->IsDisabled(TRUE) && (pHover->GetID() == R.id.check))
 		{
 			//ControlSel(pItemPanel->GetItemIndex());
 			pEvt->bubbleUp = false;
 		}
+		else//单选。如果不是只有一项一定是没全选
+		{
+			m_pCheckBox->SetToggle(getCount() == 1, TRUE);
+		}
 		return true;
 	}
-	
-	bool OnUninstallApp(EventCmd* e)
+
+	bool OnUninstallApp(EventCmd * e)
 	{
 		SWindow* pWnd = sobj_cast<SWindow>(e->sender);
 		SASSERT(pWnd);
-		
+
 		const std::vector<AppInfo>* pApps = CDataCenter::getSingleton().GetApps(iosudid.c_str());
 		SASSERT(pApps);
 		SASSERT(pWnd->GetUserData() < pApps->size());
@@ -52,7 +90,7 @@ public:
 			if (SMessageBox(NULL, SStringT().Format(_T("确定要卸载 [%s] 吗?"), appInfo.DisplayName),
 				_T("卸载应用"), MB_OKCANCEL | MB_ICONQUESTION) == IDOK)
 			{
-				CDataCenter::getSingleton().UninstallApp(iosudid.c_str(),appInfo.AppID.c_str());
+				CDataCenter::getSingleton().UninstallApp(iosudid.c_str(), appInfo.AppID.c_str());
 			}
 		}
 		return true;
@@ -64,13 +102,12 @@ public:
 		{
 			pItem->InitFromXml(xmlTemplate);
 			pItem->FindChildByID(R.id.check)->GetEventSet()->subscribeEvent(&CAppsListAdapter::CheckClick, this);
-			pItem->GetEventSet()->subscribeEvent(&CAppsListAdapter::OnItemClick,this);
+			pItem->GetEventSet()->subscribeEvent(&CAppsListAdapter::OnItemClick, this);
 			pItem->FindChildByID(R.id.btn_appUninstall)->GetEventSet()->subscribeEvent(&CAppsListAdapter::OnUninstallApp, this);
 		}
 
-		const TCHAR* color[] = {L"#ffffff",L"#f9f9f9"};
+		const TCHAR* color[] = { L"#ffffff",L"#f9f9f9" };
 		pItem->SetAttribute(L"colorNormal", color[position % 2]);
-
 
 		const std::vector<AppInfo>* pApps = CDataCenter::getSingleton().GetApps(iosudid.c_str());
 		SASSERT(position < pApps->size());
@@ -116,6 +153,7 @@ public:
 	{
 		IniColNames(xmlTemplate);
 	}
-	
+
 private:
+	CAutoRefPtr<SToggle2> m_pCheckBox;
 };

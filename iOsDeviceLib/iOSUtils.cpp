@@ -582,14 +582,40 @@ namespace utils
 		return buffer;
 	}
 
+	zip_t* windows_open(const wchar_t* name, int flags) {
+		zip_source_t* src;
+		zip_t* za;
+		zip_error_t error;
+
+		zip_error_init(&error);
+		/* create source from buffer */
+		if ((src = zip_source_win32w_create(name, 0, -1, &error)) == NULL) {
+			fprintf(stderr, "can't create source: %s\n", zip_error_strerror(&error));
+			zip_error_fini(&error);
+			return NULL;
+		}
+
+		/* open zip archive from source */
+		if ((za = zip_open_from_source(src, flags, &error)) == NULL) {
+			fprintf(stderr, "can't open zip from source: %s\n", zip_error_strerror(&error));
+			zip_source_free(src);
+			zip_error_fini(&error);
+			return NULL;
+		}
+		zip_error_fini(&error);
+
+		return za;
+	}
+
 	int afc_upload_file(afc_client_t afc, const char* filename, const char* dstfn)
 	{
 		FILE* f = NULL;
 		uint64_t af = 0;
-		char buf[1048576];
+#define UPLOADBUFSIZE 10240
+		std::unique_ptr<char> buf(new char[UPLOADBUFSIZE]);
 
 		f = fopen(filename, "rb");
-		if (!f) {			
+		if (!f) {
 			return -1;
 		}
 
@@ -600,12 +626,12 @@ namespace utils
 
 		size_t amount = 0;
 		do {
-			amount = fread(buf, 1, sizeof(buf), f);
+			amount = fread(buf.get(), 1, UPLOADBUFSIZE, f);
 			if (amount > 0) {
 				uint32_t written, total = 0;
 				while (total < amount) {
 					written = 0;
-					afc_error_t aerr = afc_file_write(afc, af, buf, amount, &written);
+					afc_error_t aerr = afc_file_write(afc, af, buf.get(), amount, &written);
 					if (aerr != AFC_E_SUCCESS) {						
 						break;
 					}
@@ -706,9 +732,9 @@ namespace utils
 			return -4;
 		}
 
-		*buffer = malloc(zs.size);
+		*buffer = (char*)malloc(zs.size);
 		if (zs.size > LLONG_MAX || zip_fread(zfile, *buffer, zs.size) != (zip_int64_t)zs.size) {
-			fprintf(stderr, "ERROR: zip_fread %" PRIu64 " bytes from '%s'\n", (uint64_t)zs.size, filename);
+			//fprintf(stderr, "ERROR: zip_fread %" PRIu64 " bytes from '%s'\n", (uint64_t)zs.size, filename);
 			free(*buffer);
 			*buffer = NULL;
 			zip_fclose(zfile);

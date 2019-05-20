@@ -125,15 +125,11 @@ public:
 	bool DoCmd(diagnostics_cmd_mode cmd);
 	void GetBatteryBaseInfo(BatteryBaseInfo& outasGauge);
 	void StartUpdataApps();
-	const std::vector<AppInfo>* GetApps();	
+	const std::vector<AppInfo>* GetApps();
+	void IntallApp(LPCWSTR appfile);
 	void uninstallstatus_cb(plist_t command, plist_t status);
 	void installstatus_cb(plist_t command, plist_t status);
-	void UninstallApp(LPCSTR appID)
-	{
-		if (m_capThread[Thread_UninstallApp].joinable())
-			m_capThread[Thread_UninstallApp].join();
-		m_capThread[Thread_UninstallApp] = std::thread(&CiOSDevice::_UninstallApp, this, std::string(appID));
-	}
+	void UninstallApp(LPCSTR appID);
 protected:
 	bool _GetAppIcon(LPCSTR id, char** outBuf, uint64_t& len);
 	bool _GetScreenWallpaper(char** outBuf, uint64_t& len);
@@ -148,13 +144,10 @@ protected:
 	void _Updata();
 	void _Backup(LPCSTR pDir);
 	void _UpdataBatteryInfo();
-	void _UpdataDiskInfo();	
-	
-	
-
+	void _UpdataDiskInfo();
 	void _UpdataAppsInfo();
 	void _UninstallApp(std::string appID);
-	void _InstallApp(const std::string apppath, bool bInstall=true);
+	void _InstallApp(const std::wstring apppath, bool bInstall);	
 	lockdownd_client_t m_client = NULL;
 	idevice_t m_device = NULL;
 public:
@@ -172,12 +165,13 @@ private:
 		Thread_UpdataDiskInfo=3,
 		Thread_UpdataAppsInfo = 4,
 		Thread_UninstallApp =5,
+		Thread_InstallApp = 6,
 		Thread_end
 	};
 	std::vector<AppInfo> m_apps;
 
 	//static void idevice_event_cb_t(const idevice_event_t* event, void* user_data);
-	std::thread m_capThread[Thread_end];
+	std::thread m_workThread[Thread_end];
 	std::atomic_bool m_bCap=false;
 	std::atomic_bool m_bUpdata = false;
 	std::atomic_bool m_bUpdataBattreyInfo = false;
@@ -185,6 +179,7 @@ private:
 	//appÁÐ±í¶ÁÐ´Ëø¡£
 	WfirstRWLock m_appsLocker;
 	std::condition_variable appUnistallcv;
+	std::condition_variable appIstallcv;
 private:
 	iOSDevInfo m_iosInfo;
 };

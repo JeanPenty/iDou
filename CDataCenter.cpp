@@ -143,7 +143,8 @@ CDataCenter::CDataCenter()
 	SNotifyCenter::getSingleton().addEvent(EVENTID(EventUpdataBattreyInfo));
 	SNotifyCenter::getSingleton().addEvent(EVENTID(EventUpdataDiskInfo));
 	SNotifyCenter::getSingleton().addEvent(EVENTID(EventUpdataAppsInfo));
-	SNotifyCenter::getSingleton().addEvent(EVENTID(EventUnintallApp));	
+	SNotifyCenter::getSingleton().addEvent(EVENTID(EventUninstallApp));
+	SNotifyCenter::getSingleton().addEvent(EVENTID(EventInstallApp));	
 }
 
 CDataCenter::~CDataCenter()
@@ -400,6 +401,7 @@ bool CDataCenter::_initdevbaseinfo(const iOSDevInfo & devInfo, SWindow * pInfoWn
 		pWnd->FindChildByID(R.id.btn_batteryInfo)->SetUserData((ULONG_PTR)pInfoWnd);
 		pWnd->FindChildByID(R.id.btn_showDevInfo)->SetUserData((ULONG_PTR)pInfoWnd);
 
+		pInfoWnd->FindChildByID(R.id.btn_installapp)->SetUserData((ULONG_PTR)pInfoWnd);
 		pInfoWnd->FindChildByID(R.id.btn_reboot)->SetUserData((ULONG_PTR)pInfoWnd);
 		pInfoWnd->FindChildByID(R.id.btn_shutdown)->SetUserData((ULONG_PTR)pInfoWnd);
 		pInfoWnd->FindChildByID(R.id.btn_sleep)->SetUserData((ULONG_PTR)pInfoWnd);

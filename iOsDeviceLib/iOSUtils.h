@@ -6,7 +6,7 @@
 #include <souistd.h>
 #include <event/Events.h>
 #include <dirent.h>
-#include "../../libimobiledevice-vs/libimobiledevice/tools/config_msvc.h"
+#include <tools/config_msvc.h>
 #include <libimobiledevice/mobilebackup2.h>
 #include <libimobiledevice/notification_proxy.h>
 #include <libimobiledevice/afc.h>
@@ -14,6 +14,14 @@
 #include <libimobiledevice/sbservices.h>
 #include <include\endianness.h>
 #include <string>
+#include <sstream>
+#include <common/utils.h>
+#include <time.h>
+#include <WinSock2.h>
+#include <string/tstring.h>
+#include <zip.h>
+
+
 static const char* domains[] = {
 	"com.apple.disk_usage",
 	"com.apple.disk_usage.factory",
@@ -113,6 +121,7 @@ enum {
 	EVT_UPDATADISK_INFO,
 	EVT_UPDATAAPPS_INFO,
 	EVT_UNINSTALL_APP,
+	EVT_INSTALL_APP,
 	EVT_END
 };
 
@@ -145,7 +154,13 @@ SOUI::SStringT udid;
 bool bSucessed;
 SEVENT_END()
 
-SEVENT_BEGIN(EventUnintallApp, EVT_UNINSTALL_APP)
+SEVENT_BEGIN(EventUninstallApp, EVT_UNINSTALL_APP)
+SOUI::SStringT udid;
+std::string appid;
+bool bSucessed;
+SEVENT_END()
+
+SEVENT_BEGIN(EventInstallApp, EVT_INSTALL_APP)
 SOUI::SStringT udid;
 std::string appid;
 bool bSucessed;
@@ -157,11 +172,6 @@ enum DomainsID
 {
 	BATTERY = 2,
 };
-#include <sstream>
-#include <common/utils.h>
-#include <time.h>
-#include <WinSock2.h>
-#include <string/tstring.h>
 
 namespace utils
 {
@@ -187,8 +197,8 @@ namespace utils
 		tsize /= 1024;
 		return SOUI::SStringT().Format(L"%0.2f%s", (float)size/ tsize, strUnit[i]);
 	}
-
-SOUI::SStringT getLoc(const SOUI::SStringT& loccode);
+	
+	SOUI::SStringT getLoc(const SOUI::SStringT& loccode);
 
 	void getbatteryManufactureDateFormSNOld(const SOUI::SStringT& SN, SOUI::SStringT& outOrigin, SOUI::SStringT& outDate);
 
@@ -202,13 +212,15 @@ SOUI::SStringT getLoc(const SOUI::SStringT& loccode);
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	char* basename(const char* path);
 
+	zip_t* windows_open(const wchar_t* name, int flags = 0);
+
 	int afc_upload_file(afc_client_t afc, const char* filename, const char* dstfn);
 
 	void afc_upload_dir(afc_client_t afc, const char* path, const char* afcpath);
 
-	int zip_get_contents(struct zip* zf, const char* filename, int locate_flags, char** buffer, uint32_t* len);
+	int zip_get_contents(zip* zf, const char* filename, int locate_flags, char** buffer, uint32_t* len);
 
-	int zip_get_app_directory(struct zip* zf, char** path);
+	int zip_get_app_directory(zip* zf, char** path);
 
 	int remove_directory(const char* path);
 

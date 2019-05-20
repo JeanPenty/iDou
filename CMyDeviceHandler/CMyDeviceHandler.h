@@ -29,6 +29,7 @@ protected:
 	void OnUpdataAppsInfo(EventArgs* pEArg);
 	void OnUnistallApp(EventArgs* pEArg);
 	void OnTVSelChanged(EventArgs* pEArg);
+	void OnInstallApp(EventArgs* pEArg);
 	void OnCheckWarrantyexpirationDate(EventArgs* pEArg);
 	//void OnAppsLvHeaderRelayout(EventArgs* e)
 	//{
@@ -57,10 +58,11 @@ protected:
 		EVENT_ID_HANDLER(0, EventUpdataInfo::EventID, OnUpdataInfo)
 		EVENT_ID_HANDLER(0, EventUpdataDiskInfo::EventID, OnUpdataDiskInfo)
 		EVENT_ID_HANDLER(0, EventUpdataAppsInfo::EventID, OnUpdataAppsInfo)
-		EVENT_ID_HANDLER(0, EventUnintallApp::EventID, OnUnistallApp)
+		EVENT_ID_HANDLER(0, EventUninstallApp::EventID, OnUnistallApp)
 		EVENT_ID_HANDLER(R.id.et_devname, EventKeyDown::EventID, OnKeyDownByDevName)
 		EVENT_ID_HANDLER(R.id.et_devname, EventKillFocus::EventID, OnKillFoucusByDevName)
 		EVENT_ID_HANDLER(R.id.btn_WARRANTYEXPIRATIONDATE, EVT_CMD, OnCheckWarrantyexpirationDate)
+		EVENT_ID_HANDLER(R.id.btn_installapp, EVT_CMD,OnInstallApp)
 		//EVENT_ID_HANDLER(R.id.apps_header, EventHeaderRelayout::EventID, OnAppsLvHeaderRelayout)
 	EVENT_MAP_BREAK()
 public:

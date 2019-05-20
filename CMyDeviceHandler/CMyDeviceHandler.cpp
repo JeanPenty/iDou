@@ -3,7 +3,7 @@
 #include "..\CDataCenter.h"
 #include "..\CBaseInfoDlg.h"
 #include "..\iOsDeviceLib/iOSUtils.h"
-
+#include <..\controls.extend\dlghelp\souidlgs.h>
 
 CMyDeviceHandler::CMyDeviceHandler()
 {
@@ -43,7 +43,7 @@ void CMyDeviceHandler::AddDev(const idevice_event_t* event, bool bCan)
 	SMCListViewEx* appslist = pTabPage->FindChildByID2<SMCListViewEx>(R.id.lv_appsList);
 	if (appslist)
 	{
-		CAppsListAdapter* iosAppsAdapter = new CAppsListAdapter(event->udid);
+		CAppsListAdapter* iosAppsAdapter = new CAppsListAdapter(event->udid, m_pPageRoot->FindChildByID2<SToggle2>(R.id.app_check_all));
 		appslist->SetAdapter(iosAppsAdapter);
 		iosAppsAdapter->Release();
 	}
@@ -92,7 +92,6 @@ void CMyDeviceHandler::PairDev(const idevice_event_t* event, bool bCan)
 			}
 		}
 	}
-
 }
 
 void CMyDeviceHandler::OnReboot(EventArgs* pEArg)
@@ -263,7 +262,7 @@ void CMyDeviceHandler::OnUpdataAppsInfo(EventArgs * pEArg)
 
 void CMyDeviceHandler::OnUnistallApp(EventArgs* pEArg)
 {
-	EventUnintallApp* evt = sobj_cast<EventUnintallApp>(pEArg);
+	EventUninstallApp* evt = sobj_cast<EventUninstallApp>(pEArg);
 	if (evt&&evt->bSucessed)
 	{
 		STabCtrlTemplate* pTab = m_pPageRoot->FindChildByID2<STabCtrlTemplate>(R.id.nav_dev_cmd);
@@ -289,6 +288,24 @@ void CMyDeviceHandler::OnTVSelChanged(EventArgs * pEArg)
 
 	ChildMenuItemClick(data.data.guid.c_str(), data.data.nCmd);
 	m_pTreeViewAdapter->notifyBranchInvalidated(pE2->hNewSel);
+}
+
+void CMyDeviceHandler::OnInstallApp(EventArgs* pEArg)
+{
+	SWindow* pET = sobj_cast<SWindow>(pEArg->sender);
+	if (pET)
+	{
+		std::string udid = CDataCenter::getSingleton().GetUDIDByWindow((SWindow*)pET->GetUserData());
+		CiOSDevice* dev = CDataCenter::getSingleton().GetDevByUDID(udid.c_str());
+		if (dev)
+		{
+			CFileDialog appfiledlg(TRUE, NULL,NULL, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, L"iOSÓ¦ÓÃ³ÌÐò\0*.ipa\0\0");//;*.ipcc
+			if (IDOK == appfiledlg.DoModal(m_pPageRoot->GetContainer()->GetHostHwnd()))
+			{				
+				dev->IntallApp(appfiledlg.m_szFileName);
+			}
+		}
+	}
 }
 
 void CMyDeviceHandler::OnCheckWarrantyexpirationDate(EventArgs * pEArg)

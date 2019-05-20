@@ -1,7 +1,7 @@
 ﻿<include>
   <tabctrl name="tab_apps" size="-2,-2">
     <page title="全部" layout="vbox">
-      <button text="安装新应用"/>
+      <button inset="12,4,12,4" name="btn_installapp" text="安装新应用"/>
       <mclistviewex name="lv_appsList" canSwapItem="0" headerHeight="22" colorDropBk="#0064b3" sbenble="" colorBkgnd="@color/white" size="-2,0" weight="1">
         <header2 name="apps_header" align="center" matchParent="1" itemSwapEnable="0" sortHeader="0" colorText="#000000ff" margin="0,0,0,1" colorBorder="@color/gray">          
           <items>
