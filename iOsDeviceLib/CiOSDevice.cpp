@@ -147,10 +147,10 @@ bool CiOSDevice::_GetAddress(SStringT& outAddress, LPCSTR nodename)
 bool CiOSDevice::_GetDiskAddress(lockdownd_client_t client, DiskInfo & outAddress)
 {
 	plist_t address_node = NULL;
-	outAddress.bReady = false;
+	//outAddress.bReady = false;
 	if (LOCKDOWN_E_SUCCESS == lockdownd_get_value(client, domains[1], NULL, &address_node))
 	{
-		outAddress.bReady = true;
+		//outAddress.bReady = true;
 
 		//_GetDiskAddress(m_iosInfo.m_diskInfo.TotalDiskCapacity, "TotalDiskCapacity");
 		plist_t TotalDiskCapacityNode = plist_dict_get_item(address_node, "TotalDiskCapacity");
@@ -660,7 +660,7 @@ bool CiOSDevice::_GetBatteryBaseInfo(BatteryBaseInfo & outInfo)
 #endif // _DEBUG Device Characteristics
 			//Device Characteristics AppleH4CamIn  ASPStorage
 
-			if (diagnostics_relay_query_ioregistry_entry(diagnostics_client, "ASPStorage", "", &node) == DIAGNOSTICS_RELAY_E_SUCCESS) {
+			if (diagnostics_relay_query_ioregistry_entry(diagnostics_client, "", "ASPStorage", &node) == DIAGNOSTICS_RELAY_E_SUCCESS) {
 				if (node) {
 #ifdef TEST	
 					{
@@ -1377,32 +1377,65 @@ void CiOSDevice::_UpdataBatteryInfo()
 		lockdownd_service_descriptor_free(service);
 		service = NULL;
 	}
+	m_bUpdataBattreyInfo = false;
 }
 
 void CiOSDevice::_UpdataDiskInfo()
 {
 	m_bUpdataDiskInfo = true;
+	m_iosInfo.m_diskInfo.bReady = false;
 
-	lockdownd_client_t updataDiskClient = NULL;
-	if (lockdownd_client_new_with_handshake(m_device, &updataDiskClient, "tmpClient") != LOCKDOWN_E_SUCCESS)
-	{
-		return;
-	}
 	SOUI::SStringA udid = SOUI::S_CW2A(m_iosInfo.m_strDevUDID);
 	udid.MakeLower();
-	while (m_bUpdataDiskInfo)
+	/*while (m_bUpdataDiskInfo)
 	{
+		//"/iTunes_Control/iTunes/iTunesPrefs.plist"
+
+
 		if (_GetDiskAddress(updataDiskClient, m_iosInfo.m_diskInfo))
 		{
-			EventUpdataDiskInfo* e = new EventUpdataDiskInfo(NULL);
-			e->udid = udid;
-			SOUI::SNotifyCenter::getSingleton().FireEventAsync(e);
-			e->Release();
+			
 			break;
 		}
 		std::this_thread::sleep_for(std::chrono::seconds(1));
+	}*/
+	afc_client_t afc = NULL;
+	lockdownd_service_descriptor_t service = NULL;	
+	lockdownd_client_t updataDiskClient = NULL;
+	if (lockdownd_client_new_with_handshake(m_device, &updataDiskClient, "updataDiskClient") != LOCKDOWN_E_SUCCESS)
+	{
+		return;
 	}
+	if ((lockdownd_start_service(updataDiskClient, "com.apple.afc", &service) !=
+		LOCKDOWN_E_SUCCESS) || !service) {
+		goto leave_cleanup;
+	}
+	if (afc_client_new(m_device, service, &afc) != AFC_E_SUCCESS) {
+		goto leave_cleanup;
+	}
+	//  /var/mobile/Containers/Bundle/Application
+
+#define AppDirPath "/User/Applications"
+	size_t size=0;
+	if (utils::afc_get_file_size(afc, size, AppDirPath) == 0)
+		m_iosInfo.m_diskInfo.AppUsage;
+#define UDiskPath "/general_storage"
+	if(utils::afc_get_file_size(afc, size, UDiskPath)==0)
+		m_iosInfo.m_diskInfo.UDisk = size;
+#define PhotePath "/DCIM"
+	if (utils::afc_get_file_size(afc, size, PhotePath) == 0)
+		m_iosInfo.m_diskInfo.PhotoUsage = size;
+
+	m_iosInfo.m_diskInfo.bReady = true;
+	EventUpdataDiskInfo* e = new EventUpdataDiskInfo(NULL);
+	e->udid = udid;
+	SOUI::SNotifyCenter::getSingleton().FireEventAsync(e);
+	e->Release();
+leave_cleanup:
+	afc_client_free(afc);
+	lockdownd_service_descriptor_free(service);
 	lockdownd_client_free(updataDiskClient);
+	m_bUpdataDiskInfo = false;
 }
 
 static void notifier(const char* notification, void* unused)
@@ -1686,7 +1719,7 @@ void CiOSDevice::installstatus_cb(plist_t command, plist_t status)
 		plist_t node = plist_dict_get_item(command, "ClientOptions");
 		if (node) {
 			//CFBundleIdentifier
-			node=plist_dict_get_item(node, "CFBundleIdentifier");
+			node = plist_dict_get_item(node, "CFBundleIdentifier");
 			if (node) {
 				plist_get_string_val(node, &appid);
 			}
@@ -1840,8 +1873,12 @@ void CiOSDevice::_UpdataAppsInfo()
 		NULL
 	);
 
-
+	clock_t start = clock();
 	err = instproxy_browse(ipc, client_opts, &apps);
+	clock_t end = clock();
+
+	clock_t dif = end - start;
+
 	instproxy_client_options_free(client_opts);
 	if (!apps || (plist_get_node_type(apps) != PLIST_ARRAY)) {
 		//"ERROR: instproxy_browse returnd an invalid plist!\n");				

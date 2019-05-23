@@ -216,6 +216,10 @@ namespace utils
 
 	int afc_upload_file(afc_client_t afc, const char* filename, const char* dstfn);
 
+	int afc_download_file(afc_client_t afc, char** outbuf, const char* remotefile);
+
+	int afc_get_file_size(afc_client_t afc, size_t& outsize, const char* remotefile);
+	
 	void afc_upload_dir(afc_client_t afc, const char* path, const char* afcpath);
 
 	int zip_get_contents(zip* zf, const char* filename, int locate_flags, char** buffer, uint32_t* len);

@@ -92,6 +92,7 @@ bool CDataCenter::BeginUpdataInfoASync(LPCSTR udid)
 		ite->second.iOSDevObject.StartUpdata();
 		ite->second.iOSDevObject.StartUpdataApps();
 		ite->second.iOSDevObject.StartCapshot();
+		ite->second.iOSDevObject.StartUpdataDiskInfo();
 		return true;
 	}
 	return false;
@@ -127,10 +128,10 @@ bool CDataCenter::UpdataBaseInfo(LPCSTR udid)
 		if (ite == m_listDev.end())
 			return false;
 		bool bRet = _initdevbaseinfo(ite->second.iOSDevObject.GetiOSBaseInfo(), ite->second.InfoWnd);
-		if (!(ite->second.iOSDevObject.GetiOSBaseInfo().m_diskInfo.bReady))
+		/*if (!(ite->second.iOSDevObject.GetiOSBaseInfo().m_diskInfo.bReady))
 		{
 			ite->second.iOSDevObject.StartUpdataDiskInfo();
-		}
+		}*/
 		return bRet;
 	}
 	return false;
@@ -228,10 +229,7 @@ void _initipaddiskinfo(SWindow * pInfoWnd, const DiskInfo & diskInfo)
 		pInfoWnd->FindChildByID(R.id.wnd_iphonedsk)->SetVisible(FALSE, TRUE);
 		SWindow* pIpadWnd = pInfoWnd->FindChildByID(R.id.wnd_ipaddsk);
 		pIpadWnd->SetVisible(TRUE, TRUE);
-
-		if (diskInfo.bReady)
 		{
-
 			SWindow* lable2 = pIpadWnd->FindChildByID(R.id.lable_fudisk);
 			SASSERT(lable2);
 			double gb = (double)diskInfo.TotalDiskCapacity / 1024 / 1024 / 1024;
@@ -290,10 +288,8 @@ void _initiphonediskinfo(SWindow * pInfoWnd, const DiskInfo & diskInfo)
 		SASSERT(lable);
 		pInfoWnd->FindChildByID(R.id.wnd_ipaddsk)->SetVisible(FALSE, TRUE);
 		SWindow* pIphoneWnd = pInfoWnd->FindChildByID(R.id.wnd_iphonedsk);
-		pIphoneWnd->SetVisible(TRUE, TRUE);
-		if (diskInfo.bReady)
+		pIphoneWnd->SetVisible(TRUE, TRUE);		
 		{
-
 			double gb = (double)diskInfo.TotalDiskCapacity / 1024 / 1024 / 1024;
 			SStringT totalGB;
 			if (gb < 8)
@@ -348,6 +344,39 @@ void _initiphonediskinfo(SWindow * pInfoWnd, const DiskInfo & diskInfo)
 			//系统区
 			_initdiskspase(pIphoneWnd->FindChildByID(R.id.disk_sys), diskInfo.TotalSystemCapacity - diskInfo.TotalSystemAvailable, diskInfo.TotalSystemCapacity);
 			_initdiskspase(pIphoneWnd->FindChildByID(R.id.disk_free1), diskInfo.TotalSystemAvailable, diskInfo.TotalSystemCapacity);
+			//数据区			
+			_initdiskspase(pIphoneWnd->FindChildByID(R.id.disk_other), diskInfo.TotalDataCapacity- diskInfo.TotalDataAvailable, diskInfo.TotalDataCapacity);
+			_initdiskspase(pIphoneWnd->FindChildByID(R.id.disk_free2), diskInfo.TotalDataAvailable, diskInfo.TotalDataCapacity);
+		}
+	}
+}
+
+void _initipaddiskinfo2(SWindow* pInfoWnd, const DiskInfo& diskInfo)
+{
+	if (pInfoWnd)
+	{
+		if (diskInfo.bReady)
+		{			
+			SWindow* pIpadWnd = pInfoWnd->FindChildByID(R.id.wnd_ipaddsk);
+			_initdiskspase(pIpadWnd->FindChildByID(R.id.disk_sys), diskInfo.TotalSystemCapacity, diskInfo.TotalDiskCapacity);
+			_initdiskspase(pIpadWnd->FindChildByID(R.id.disk_app), diskInfo.TotalSystemCapacity, diskInfo.TotalDiskCapacity);
+			//_initdiskspase(pInfoWnd->FindChildByID(R.id.disk_sys), devInfo.m_diskInfo.TotalSystemCapacity, devInfo.m_diskInfo.TotalDiskCapacity);
+			//_initdiskspase(pInfoWnd->FindChildByID(R.id.disk_free), diskInfo.TotalSystemCapacity, diskInfo.TotalDiskCapacity);
+			_initdiskspase(pIpadWnd->FindChildByID(R.id.disk_free), diskInfo.TotalDataAvailable + diskInfo.TotalSystemAvailable, diskInfo.TotalDiskCapacity);
+		}
+	}
+}
+
+void _initiphonediskinfo2(SWindow * pInfoWnd, const DiskInfo & diskInfo)
+{
+	if (pInfoWnd)
+	{		
+		if (diskInfo.bReady)
+		{
+			SWindow* pIphoneWnd = pInfoWnd->FindChildByID(R.id.wnd_iphonedsk);			
+			//系统区
+			_initdiskspase(pIphoneWnd->FindChildByID(R.id.disk_sys), diskInfo.TotalSystemCapacity - diskInfo.TotalSystemAvailable, diskInfo.TotalSystemCapacity);
+			_initdiskspase(pIphoneWnd->FindChildByID(R.id.disk_free1), diskInfo.TotalSystemAvailable, diskInfo.TotalSystemCapacity);
 			//数据区
 			_initdiskspase(pIphoneWnd->FindChildByID(R.id.disk_app), diskInfo.AppUsage, diskInfo.TotalDataCapacity);
 			uint64_t other = diskInfo.TotalDataCapacity - diskInfo.TotalDataAvailable - diskInfo.AppUsage;
@@ -360,6 +389,7 @@ void _initiphonediskinfo(SWindow * pInfoWnd, const DiskInfo & diskInfo)
 		}
 	}
 }
+
 
 bool CDataCenter::_initdevbaseinfo(const iOSDevInfo & devInfo, SWindow * pInfoWnd)
 {
@@ -450,11 +480,11 @@ bool CDataCenter::UpdataDiskInfo(LPCSTR udid)
 			{
 			case Type_iPhone:
 			{
-				_initiphonediskinfo(ite->second.InfoWnd, devInfo.m_diskInfo);
+				_initiphonediskinfo2(ite->second.InfoWnd, devInfo.m_diskInfo);
 			}break;
 			case Type_iPad:
 			{
-				_initipaddiskinfo(ite->second.InfoWnd, devInfo.m_diskInfo);
+				_initipaddiskinfo2(ite->second.InfoWnd, devInfo.m_diskInfo);
 			}break;
 			}
 			return true;

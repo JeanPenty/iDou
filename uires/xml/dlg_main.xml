@@ -1,6 +1,6 @@
 ﻿<SOUI name="mainWindow" title="@string/title" bigIcon="ICON_LOGO:32" smallIcon="ICON_LOGO:16" width="1000" height="720"  margin="5,5,5,5"  
       resizable="1" wndType="appMain" appWnd="1" minSize="1000,720" sendWheel2Hover="1" translucent="1">
-  <root skin="skin_bk" cache="1">
+  <root skin="skin_bk" cache="1" alpha="238">
     <caption pos="0,0,-0,88" layout="hbox" colorText="@color/white" interval="8" gravity="center">
       <img extend_left="18" skin="skin_logo"/>
       <window size="-1,-1" layout="vbox" gravity="center" msgTransparent="1">
@@ -26,10 +26,10 @@
       <window size="0,0" weight="1"/>
       <window size="-1,-1" layout="hbox" layout_gravity="top">
         <imgbtn name="btn_skin" skin="skin_btn"  animate="1"/>
-        <imgbtn name="btn_min" skin="_skin.sys.btn.minimize" animate="1" />
-        <imgbtn name="btn_max" display="0" skin="_skin.sys.btn.maximize"  animate="1" />
-        <imgbtn name="btn_restore" display="0" skin="_skin.sys.btn.restore" show="0" animate="1" />
-        <imgbtn name="btn_close" skin="_skin.sys.btn.close" tip="close" animate="1"/>
+        <imgbtn name="btn_min" skin="skin_min" animate="1" />
+        <imgbtn name="btn_max" display="0" skin="skin_max"  animate="1" />
+        <imgbtn name="btn_restore" display="0" skin="skin_restore" show="0" animate="1" />
+        <imgbtn name="btn_close" skin="skin_close" tip="close" animate="1" extend_right="2"/>
       </window>
     </caption>
     <tabctrl name="tab_main" pos="1,[,-1,]" curSel="0" animateSteps="10" tabHeight="0" colorBkgnd="@color/white">

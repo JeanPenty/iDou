@@ -8,6 +8,7 @@
 struct DevInfo {
 	int nCmd;
 	bool bCan;
+	bool bUpdataApp;
 	std::string guid;
 };
 
@@ -18,7 +19,7 @@ class CiOSDeviceTreeViewAdapter :public STreeAdapterBase<DevInfo>
 public:
 
 	CiOSDeviceTreeViewAdapter()
-	{		
+	{
 	}
 
 	int GetItemCount()const
@@ -52,7 +53,9 @@ public:
 				break;
 			case 1:xmlTemplate = xmlTemplate.child(L"item_firstdata");
 				break;
-			case 2:xmlTemplate = xmlTemplate.child(L"item_data");
+			case 2:xmlTemplate = xmlTemplate.child(L"item_appdata");
+				break;
+			case 3:xmlTemplate = xmlTemplate.child(L"item_data");
 				break;
 			}
 			pItem->InitFromXml(xmlTemplate);
@@ -62,9 +65,10 @@ public:
 					Subscriber(&CiOSDeviceTreeViewAdapter::OnGroupItemPanelClick, this));
 			}
 		}
-		SWindow* pName = pItem->FindChildByName(L"Name");
+		SWindow* pName = pItem->FindChildByID(R.id.Name);
 		if (itemType == 0)
 		{
+			pItem->FindChildByID(R.id.img_loading)->SetVisible(!ii.data.bCan);
 			if (ii.data.bCan)
 			{
 				pItem->EnableWindow(TRUE);
@@ -75,7 +79,7 @@ public:
 					pName->SetWindowText(GETSTRING(L"@string/noname"));
 			}
 			else
-			{
+			{				
 				pItem->EnableWindow(FALSE);
 				pName->SetWindowText(GETSTRING(L"@string/waitpair"));
 			}
@@ -89,7 +93,8 @@ public:
 				pName->SetWindowText(GETSTRING(L"@string/cmd1"));
 			}break;
 			case 2:
-			{				
+			{
+				pItem->FindChildByID(R.id.img_loading)->SetVisible(ii.data.bUpdataApp);
 				pName->SetWindowText(_MakeAppTitle(ii.data.guid.c_str()));
 			}break;
 			case 3:
@@ -182,12 +187,20 @@ public:
 	virtual int getViewType(SOUI::HTREEITEM hItem) const
 	{
 		ItemInfo& ii = m_tree.GetItemRef((HSTREEITEM)hItem);
-		return (ii.data.nCmd == 0) ? 0 : (ii.data.nCmd == 1)?1:2;
+		int ret = 0;
+		switch (ii.data.nCmd)
+		{
+			case 0:ret = 0; break;
+			case 1:ret = 1; break;
+			case 2:ret = 2; break;
+			default:ret = 3;
+		}
+		return ret;
 	}
 
 	virtual int getViewTypeCount() const
 	{
-		return 3;
+		return 4;
 	}
 	void UpDataDev(LPCSTR id)
 	{
@@ -195,7 +208,7 @@ public:
 		while (node)
 		{
 			if (m_tree.GetItem(node).data.guid == id)
-			{				
+			{
 				notifyBranchInvalidated(node);
 				break;
 			}
@@ -223,6 +236,7 @@ public:
 			{
 				if (m_tree.GetItem(cnode).data.nCmd == id)
 				{
+					m_tree.GetItemRef(cnode).data.bUpdataApp = false;
 					notifyBranchInvalidated(cnode);
 					break;
 				}
@@ -252,6 +266,8 @@ protected:
 		for (int i = 1; i < 6; i++)
 		{
 			item.nCmd = i;
+			if (can && i == 2)
+				item.bUpdataApp = true;
 			InsertItem(item, hRoot);
 		}
 		notifyBranchInvalidated(ITEM_ROOT);

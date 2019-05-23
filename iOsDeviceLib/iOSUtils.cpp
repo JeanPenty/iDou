@@ -620,7 +620,7 @@ namespace utils
 		}
 
 		if ((afc_file_open(afc, dstfn, AFC_FOPEN_WRONLY, &af) != AFC_E_SUCCESS) || !af) {
-			fclose(f);			
+			fclose(f);
 			return -1;
 		}
 
@@ -632,12 +632,12 @@ namespace utils
 				while (total < amount) {
 					written = 0;
 					afc_error_t aerr = afc_file_write(afc, af, buf.get(), amount, &written);
-					if (aerr != AFC_E_SUCCESS) {						
+					if (aerr != AFC_E_SUCCESS) {
 						break;
 					}
 					total += written;
 				}
-				if (total != amount) {					
+				if (total != amount) {
 					afc_file_close(afc, af);
 					fclose(f);
 					return -1;
@@ -649,6 +649,68 @@ namespace utils
 		fclose(f);
 		return 0;
 	}
+
+	int afc_download_file(afc_client_t afc, char** outbuf, const char* remotefile)
+	{
+		uint64_t af = 0;
+
+		char** fileinfo = NULL;
+		if ((afc_get_file_info(afc, remotefile, &fileinfo) != AFC_E_SUCCESS) || !fileinfo) {
+			return -1;
+		}
+		int i;
+		size_t fsize = 0;
+		for (i = 0; fileinfo[i]; i += 2) {
+			if (!strcmp(fileinfo[i], "st_size")) {
+				fsize = atoi(fileinfo[i + 1]);
+				break;
+			}
+		}
+		i = 0;
+		while (fileinfo[i]) {
+			free(fileinfo[i]);
+			i++;
+		}
+		free(fileinfo);
+		if (fsize == 0)
+			return -1;
+
+		if ((afc_file_open(afc, remotefile, AFC_FOPEN_RDONLY, &af) != AFC_E_SUCCESS) || !af) {
+			return -1;
+		}
+		*outbuf = (new char[fsize]);
+		size_t amount = 0;
+		if (afc_file_read(afc, af, *outbuf, fsize, &amount) != AFC_E_SUCCESS) {
+			afc_file_close(afc, af);
+			return -1;
+		}
+		afc_file_close(afc, af);
+		return 0;
+	}
+
+	int afc_get_file_size(afc_client_t afc, size_t &outsize, const char* remotefile)
+	{
+		char** fileinfo = NULL;
+		if ((afc_get_file_info(afc, remotefile, &fileinfo) != AFC_E_SUCCESS) || !fileinfo) {
+			return -1;
+		}
+		int i;
+		for (i = 0; fileinfo[i]; i += 2) {
+			if (!strcmp(fileinfo[i], "st_size")) {
+				outsize = atoi(fileinfo[i + 1]);
+				break;
+			}
+		}
+		i = 0;
+		while (fileinfo[i]) {
+			free(fileinfo[i]);
+			i++;
+		}
+		free(fileinfo);
+		return 0;
+
+	}
+
 
 	void afc_upload_dir(afc_client_t afc, const char* path, const char* afcpath)
 	{
@@ -701,7 +763,7 @@ namespace utils
 		}
 	}
 
-	int zip_get_contents(zip* zf, const char* filename, int locate_flags, char** buffer, uint32_t* len)
+	int zip_get_contents(zip * zf, const char* filename, int locate_flags, char** buffer, uint32_t * len)
 	{
 		struct zip_stat zs;
 		struct zip_file* zfile;
@@ -745,7 +807,7 @@ namespace utils
 		return 0;
 	}
 
-	int zip_get_app_directory(zip* zf, char** path)
+	int zip_get_app_directory(zip * zf, char** path)
 	{
 		int i = 0;
 		int c = zip_get_num_files(zf);
@@ -932,7 +994,7 @@ namespace utils
 			SOUI::SStringT year = SN.Mid(3, 1);
 			SOUI::SStringT week = SN.Mid(4, 1);
 			SOUI::SStringT day = SN.Mid(5, 1);
-			const auto iter_y=DevYears.find(year);
+			const auto iter_y = DevYears.find(year);
 			if (iter_y == DevYears.end())
 				return false;
 			const auto iter_w = DevWeek.find(week);
@@ -941,14 +1003,14 @@ namespace utils
 			int iweek = iter_w->second;
 			if (iter_y->second.bSecondHalf)
 				iweek += 26;
-			int iday=7;
+			int iday = 7;
 			//swscanf(day, L"%d", &iday);
 			year.Format(L"%d0101010101", iter_y->second.Year);
 			time_t firstdate = FormatTime2(year);
 			time_t reldate = firstdate + ((iweek - 1) * 7 + iday - CaculateFirstDayWeekDay(iter_y->second.Year)) * 86400;
 			FormatTime(reldate, outDate);
-			
-			outDate += SOUI::SStringT().Format(L"(第%d周)",iweek);
+
+			outDate += SOUI::SStringT().Format(L"(第%d周)", iweek);
 			return true;
 		}
 		return false;
@@ -958,7 +1020,7 @@ namespace utils
 		{L"CH/A",L"中国"}
 	};
 
-	SOUI::SStringT getLoc(const SOUI::SStringT& loccode)
+	SOUI::SStringT getLoc(const SOUI::SStringT & loccode)
 	{
 		const auto iter = LocMap.find(loccode);
 		if (iter != LocMap.end())
@@ -1745,7 +1807,7 @@ namespace utils
 						*files = ent;
 						fpath = NULL;
 					}
-					}
+				}
 			}
 			closedir(cur_dir);
 		}

@@ -10,15 +10,13 @@
     <file name="XML_dlg_battry" path="xml\dlg_battry.xml"/>
     <file name="XML_dlg_all" path="xml\dlg_all.xml"/>
     <file name="XML_App_Info" path="xml\page_appinfo.xml"/>
-  </LAYOUT>
-  
+  </LAYOUT>  
   <values>
   	<file name="string" path="values\string.xml"/>
   	<file name="color" path="values\color.xml"/>
   	<file name="skin" path="values\skin.xml"/>
     <file name="template" path="values\template.xml"/>
   </values>
-
   <IMG>
     <file name="traymenu_icons" path="image\traymenu_icons.png"/>
     <file name="png_tab_main" path="image\tab_main.png"/>
@@ -31,13 +29,19 @@
     <file name="png_pro_pc_apps" path="image\pro_pc_apps.png"/>
     <file name="png_menu_bk" path="image\menubk.png"/>
     <file name="png_icon_list" path="image\icon-list.png"/>
-    <file name="png_icon_article" path="image\icon-article.png"/>
     <file name="png_iphonescreen" path="image\iphone.png"/>
     <file name="png_ipadscreen" path="image\ipad.png"/>
     <file name="png_battery" path="image\battery.png"/>
     <file name="png_batterybk" path="image\batterybk.png"/>
     <file name="png_BatteryCurrentCapacity" path="image\BatteryCurrentCapacity.png"/>
     <file name="png_check" path="image\check.png"/>
+    <file name="png_close" path="image\btn_close.png"/>
+    <file name="png_max" path="image\btn_max.png"/>
+    <file name="png_menu" path="image\btn_menu.png"/>
+    <file name="png_min" path="image\btn_min.png"/>
+    <file name="png_restore" path="image\btn_restore.png"/>
+    <file name="png_loading" path="image\loading.png"/>
+    <file name="png_btn_edit" path="image\btn_edit.png"/>
   </IMG>
   <ICON>
     <file name="ICON_LOGO"  path="image\soui.ico"/>

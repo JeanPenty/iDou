@@ -60,6 +60,7 @@ struct DiskInfo
 	uint64_t TotalSystemCapacity;
 	uint64_t PhotoUsage;
 	uint64_t AppUsage;
+	uint64_t UDisk;
 };
 
 enum DevType
