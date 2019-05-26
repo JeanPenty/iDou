@@ -42,9 +42,11 @@
     <file name="png_restore" path="image\btn_restore.png"/>
     <file name="png_loading" path="image\loading.png"/>
     <file name="png_btn_edit" path="image\btn_edit.png"/>
+    <file name="png_skin_apps" path="image\apps.png"/>
+    <file name="png_shadow" path="image\shadow.png"/>
   </IMG>
   <ICON>
-    <file name="ICON_LOGO"  path="image\soui.ico"/>
+    <file name="ICON_LOGO"  path="image\logo.ico"/>
   </ICON>
   <SMENU>
     <file name="menu_skin" path="xml\skin_menuex.xml"/>

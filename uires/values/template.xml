@@ -12,4 +12,9 @@
       <text text="{{title}}"/>
     </window>
   </dsk_info>
+  <skin_item>
+    <window id="{{id}}" class="skin_wnd" colorBkgnd="{{colorBkgnd}}">
+      <img name="check" pos="|,|" skin="skin_check" offset="-0.5,-0.5" visible="0" iconIndex="1"/>
+    </window>
+  </skin_item>
 </template>

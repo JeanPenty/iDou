@@ -1,26 +1,43 @@
-﻿<menuRoot itemHeight="38" font="face:微软雅黑,size:14" 
+﻿<menuRoot itemHeight="38" font="face:微软雅黑,size:14"
           maxWidth="260" minWidth="288"
           skin="skin_menu_bk">
-  <menuItem height="207" margin="20,20,20,20">
+  <menuItem id="699" height="207" margin="20,20,20,20">
     <window size="-2,-2" colorBkgnd="#ffffff" layout="vbox" interval="1">
       <window layout="hbox" size="-2,0" weight="1" interval="1">
-        <window id="600" class="skin_wnd" colorBkgnd="#236ee7"></window>
-        <window id="601" class="skin_wnd" colorBkgnd="#3baca2"></window>
-        <window id="602" class="skin_wnd" colorBkgnd="#e79481"></window>
+        <t:skin_item>
+          <data  id="600" colorBkgnd="#236ee7"/>
+        </t:skin_item>
+        <t:skin_item>
+          <data  id="601" colorBkgnd="#c0c0c0"/>
+        </t:skin_item>
+        <t:skin_item>
+          <data  id="602" colorBkgnd="#e79481"/>
+        </t:skin_item>
       </window>
       <window layout="hbox" size="-2,0" weight="1" interval="1">
-        <window id="603" class="skin_wnd" colorBkgnd="#e1839f"></window>
-        <window id="604" class="skin_wnd" colorBkgnd="#e97474"></window>
-        <window id="605" class="skin_wnd" colorBkgnd="#8eae48"></window>
+        <t:skin_item>
+          <data  id="603" colorBkgnd="#e1839f"/>
+        </t:skin_item>
+        <t:skin_item>
+          <data  id="604" colorBkgnd="#e97474"/>
+        </t:skin_item>
+        <t:skin_item>
+          <data  id="605" colorBkgnd="#8eae48"/>
+        </t:skin_item>
       </window>
       <window layout="hbox" size="-2,0" weight="1" interval="1">
-        <window id="606" class="skin_wnd" colorBkgnd="#7f74d1"></window>
-        <window id="607" class="skin_wnd" colorBkgnd="#d59d66"></window>
-        <window id="608" class="skin_wnd" colorBkgnd="#9f887a"></window>
+        <t:skin_item>
+          <data  id="606" colorBkgnd="#7f74d1"/>
+        </t:skin_item>
+        <t:skin_item>
+          <data  id="607" colorBkgnd="#d59d66"/>
+        </t:skin_item>
+        <t:skin_item>
+          <data  id="608" colorBkgnd="#9f887a"/>
+        </t:skin_item>
       </window>
       <window size="-2,20">
-        
       </window>
-  </window>
+    </window>
   </menuItem>
 </menuRoot>

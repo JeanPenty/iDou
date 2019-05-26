@@ -265,7 +265,6 @@
     <Xml Include="uires\xml\dlg_main.xml">
       <SubType>Designer</SubType>
     </Xml>
-    <Xml Include="uires\xml\menu_tray.xml" />
     <Xml Include="uires\xml\page.xml" />
     <Xml Include="uires\xml\page_appinfo.xml" />
     <Xml Include="uires\xml\page_mydevice.xml" />
@@ -273,6 +272,8 @@
     <Xml Include="uires\xml\skin_menuex.xml" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="icon1.ico" />
+    <Image Include="uires\image\logo.ico" />
     <Image Include="uires\image\page_icons.png" />
     <Image Include="uires\image\soui.ico" />
     <Image Include="uires\image\tab_main.png" />

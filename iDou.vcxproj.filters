@@ -182,9 +182,6 @@
     <Xml Include="uires\xml\dlg_main.xml">
       <Filter>SoUI Resource\layout</Filter>
     </Xml>
-    <Xml Include="uires\xml\menu_tray.xml">
-      <Filter>SoUI Resource\layout</Filter>
-    </Xml>
     <Xml Include="uires\xml\skin_menuex.xml">
       <Filter>SoUI Resource\layout</Filter>
     </Xml>
@@ -321,6 +318,12 @@
     </Image>
     <Image Include="uires\theme_sys_res\sys_wnd_bkgnd.png">
       <Filter>SoUI Sys Resource</Filter>
+    </Image>
+    <Image Include="icon1.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="uires\image\logo.ico">
+      <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
   <ItemGroup>

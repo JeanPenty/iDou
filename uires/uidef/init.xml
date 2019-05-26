@@ -17,6 +17,7 @@
     <class name="hr_vcss" size="-2,1" colorLine="@color/infoborder"/>
     <class name="cls_edit" margin="1,1,1,1"/>
     <class name="pos_center" pos="|,|" offset="-0.5,-0.5" size="-1,-1"/>
+    <class name="shadow_wnd" ncskin="skin_shadow" margin="9,5,9,10" skin="skin_bk" size="-2,-1"/>
   </style>
 
   <objattr>

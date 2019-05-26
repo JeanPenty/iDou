@@ -1,65 +1,67 @@
-﻿<SOUI width="388" height="-1"  margin="5,5,5,5"  resizable="0" toolWindow="1" translucent="1">
-  <root skin="skin_bk" cache="1">
-    <window size="-2,-1" layout="vbox" padding="1,1,1,1">
-    <caption size="-2,38" layout="hbox" gravity="top" colorText="#ffffff">
-      <text extend_left="10" text="@string/BattaryInfo" layout_gravity="center"/>
-      <text weight="1"/>
-      <imgbtn id="IDOK" skin="_skin.sys.btn.close" tip="close" animate="1"/>
-    </caption>     
-    <window size="-2,-1" layout="vbox" colorBkgnd="#ffffff" padding="10,10,10,10">
-      <window name="batterycap" skin="skin_batterybk" size="200,-1" layout_gravity="center" layout="hbox" inset="7,3,19,2">
-        <img name="img_batterycurrentcap" skin="skin_batterycurrentcap"/>
-        <window name="img_batteryemtycap"/>
+﻿<SOUI width="388" height="-1" resizable="0" toolWindow="1" translucent="1">
+  <root>
+    <window class="shadow_wnd">
+      <window size="-2,-1" layout="vbox" padding="1,1,1,1">
+        <caption size="-2,38" layout="hbox" gravity="top" colorText="#ffffff">
+          <text extend_left="10" text="@string/BattaryInfo" layout_gravity="center"/>
+          <text weight="1"/>
+          <imgbtn id="IDOK" skin="_skin.sys.btn.close" tip="close" animate="1"/>
+        </caption>
+        <window size="-2,-1" layout="vbox" colorBkgnd="#ffffff" padding="10,10,10,10">
+          <window name="batterycap" skin="skin_batterybk" size="200,-1" layout_gravity="center" layout="hbox" inset="7,3,19,2">
+            <img name="img_batterycurrentcap" skin="skin_batterycurrentcap"/>
+            <window name="img_batteryemtycap"/>
+          </window>
+          <t:info_item>
+            <data title="@string/CycleCount" name="lable_CycleCount"/>
+          </t:info_item>
+          <hr size="-2,1" colorLine="@color/infoborder"/>
+          <t:info_item>
+            <data title="@string/ActuallyCapacity" name="lable_ActuallyCapacity"/>
+          </t:info_item>
+          <hr size="-2,1" colorLine="@color/infoborder"/>
+          <t:info_item>
+            <data title="@string/DesignCapacity" name="lable_DesignCapacity"/>
+          </t:info_item>
+          <hr size="-2,1" colorLine="@color/infoborder"/>
+          <t:info_item>
+            <data title="@string/CycleLife" name="lable_CycleLife"/>
+          </t:info_item>
+          <hr size="-2,1" colorLine="@color/infoborder"/>
+          <t:info_item>
+            <data title="@string/BatterySerialNumber" name="lable_BatterySerialNumber"/>
+          </t:info_item>
+          <hr size="-2,1" colorLine="@color/infoborder"/>
+          <t:info_item>
+            <data title="@string/BatteryVoltage" name="lable_BatteryVoltage"/>
+          </t:info_item>
+          <hr size="-2,1" colorLine="@color/infoborder"/>
+          <t:info_item>
+            <data title="@string/BatteryBootVoltage" name="lable_BatteryBootVoltage"/>
+          </t:info_item>
+          <hr size="-2,1" colorLine="@color/infoborder"/>
+          <t:info_item>
+            <data title="@string/BatteryTemperature" name="lable_BatteryTemperature"/>
+          </t:info_item>
+          <hr size="-2,1" colorLine="@color/infoborder"/>
+          <t:info_item>
+            <data title="@string/BatteryCurrentCapacity" name="lable_BatteryCurrentCapacity"/>
+          </t:info_item>
+          <hr size="-2,1" colorLine="@color/infoborder"/>
+          <t:info_item>
+            <data title="@string/BatteryOrigin" name="lable_BatteryOrigin"/>
+          </t:info_item>
+          <hr size="-2,1" colorLine="@color/infoborder"/>
+          <t:info_item>
+            <data title="@string/BatteryDate" name="lable_BatteryDate"/>
+          </t:info_item>
+          <hr size="-2,1" colorLine="@color/infoborder"/>
+          <window size="-2,66" layout="hbox" gravity="center">
+            <text weight="1"/>
+            <button id="IDOK" text="确定" inset="22,3,22,3"/>
+          </window>
+        </window>
       </window>
-      <t:info_item>
-        <data title="@string/CycleCount" name="lable_CycleCount"/>
-      </t:info_item>     
-      <hr size="-2,1" colorLine="@color/infoborder"/>
-      <t:info_item>
-        <data title="@string/ActuallyCapacity" name="lable_ActuallyCapacity"/>
-      </t:info_item>
-      <hr size="-2,1" colorLine="@color/infoborder"/>
-      <t:info_item>
-        <data title="@string/DesignCapacity" name="lable_DesignCapacity"/>
-      </t:info_item>
-      <hr size="-2,1" colorLine="@color/infoborder"/>
-      <t:info_item>
-        <data title="@string/CycleLife" name="lable_CycleLife"/>
-      </t:info_item>
-      <hr size="-2,1" colorLine="@color/infoborder"/>
-      <t:info_item>
-        <data title="@string/BatterySerialNumber" name="lable_BatterySerialNumber"/>
-      </t:info_item>
-      <hr size="-2,1" colorLine="@color/infoborder"/>
-      <t:info_item>
-        <data title="@string/BatteryVoltage" name="lable_BatteryVoltage"/>
-      </t:info_item>     
-      <hr size="-2,1" colorLine="@color/infoborder"/>
-      <t:info_item>
-        <data title="@string/BatteryBootVoltage" name="lable_BatteryBootVoltage"/>
-      </t:info_item>
-      <hr size="-2,1" colorLine="@color/infoborder"/>
-      <t:info_item>
-        <data title="@string/BatteryTemperature" name="lable_BatteryTemperature"/>
-      </t:info_item>
-      <hr size="-2,1" colorLine="@color/infoborder"/>
-      <t:info_item>
-        <data title="@string/BatteryCurrentCapacity" name="lable_BatteryCurrentCapacity"/>
-      </t:info_item>
-      <hr size="-2,1" colorLine="@color/infoborder"/>
-      <t:info_item>
-        <data title="@string/BatteryOrigin" name="lable_BatteryOrigin"/>
-      </t:info_item>
-      <hr size="-2,1" colorLine="@color/infoborder"/>
-      <t:info_item>
-        <data title="@string/BatteryDate" name="lable_BatteryDate"/>
-      </t:info_item>
-      <hr size="-2,1" colorLine="@color/infoborder"/>
-      <window size="-2,66" layout="hbox" gravity="center">
-        <text weight="1"/>
-        <button id="IDOK" text="确定" inset="22,3,22,3"/>
-      </window>
-    </window>      
     </window>
   </root>
 </SOUI>

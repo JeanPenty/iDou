@@ -13,9 +13,9 @@
               <imgbtn skin="skin_btn_edit" name="btn_etdevname"/>
             </window>
             <window layout="hbox" size="-1,-1">
-              <button text="重启" name="btn_reboot" padding="4,4,4,4"/>
-              <button text="关机" name="btn_shutdown" padding="4,4,4,4"/>
-              <button text="睡眠" name="btn_sleep" padding="4,4,4,4"/>
+              <button text="重启" name="btn_reboot" padding="6,6,6,6"/>
+              <button text="关机" name="btn_shutdown" padding="6,6,6,6"/>
+              <button text="断开" name="btn_sleep" padding="6,6,6,6"/>
             </window>
           </window>
         </window>
