@@ -20,7 +20,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{34404678-B489-43CE-AF5B-4CEDB0C0B445}</ProjectGuid>
+    <ProjectGuid>{2FDDDF98-7047-46BC-950F-41088CD330E2}</ProjectGuid>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -40,13 +40,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141_xp</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141_xp</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -68,7 +68,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IntDir>$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+    <IntDir>$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
     <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
@@ -93,8 +93,8 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
       <WarningLevel>Level3</WarningLevel>
-      <AdditionalIncludeDirectories>$(SOUIPATH)\config;$(SOUIPATH)\components;$(SOUIPATH)\SOUI\include;$(SOUIPATH)\utilities\include;$(SolutionDir)..\libimobiledevice-vs\libimobiledevice;$(SolutionDir)..\libimobiledevice-vs\libplist\include;$(SolutionDir)..\libimobiledevice-vs\libusbmuxd\include;$(SolutionDir)..\libimobiledevice-vs\libimobiledevice\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>HAVE_OPENSSL;WIN32;_WINDOWS;STRICT;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SOUIPATH)\config;$(SOUIPATH)\components;$(SOUIPATH)\SOUI\include;$(SOUIPATH)\utilities\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;STRICT;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <BrowseInformation>true</BrowseInformation>
       <Optimization>Disabled</Optimization>
@@ -103,13 +103,15 @@
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalLibraryDirectories>$(SolutionDir)$(Platform)\$(Configuration)\;$(SOUIPATH)\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>utilitiesd.lib;souid.lib;iOsDeviceLib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SOUIPATH)\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>utilitiesd.lib;souid.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
+      <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
     </Link>
     <ResourceCompile>
       <Culture>0x0804</Culture>
-      <PreprocessorDefinitions>_USING_V110_SDK71_;_DEBUG;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_UNICODE;UNICODE;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SOUIPATH)\soui-sys-resource;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -120,18 +122,20 @@
       <WarningLevel>Level3</WarningLevel>
       <AdditionalIncludeDirectories>$(SOUIPATH)\config;$(SOUIPATH)\components;$(SOUIPATH)\SOUI\include;$(SOUIPATH)\utilities\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <WholeProgramOptimization>true</WholeProgramOptimization>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <AdditionalLibraryDirectories>$(SOUIPATH)\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>utilities.lib;soui.lib;iOsDeviceLib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>utilities.lib;soui.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
+      <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
     </Link>
     <ResourceCompile>
       <Culture>0x0804</Culture>
+      <AdditionalIncludeDirectories>$(SOUIPATH)\soui-sys-resource;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -142,7 +146,7 @@
       <WarningLevel>Level3</WarningLevel>
       <AdditionalIncludeDirectories>$(SOUIPATH)\config;$(SOUIPATH)\components;$(SOUIPATH)\SOUI\include;$(SOUIPATH)\utilities\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN64;_WINDOWS;STRICT;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <BrowseInformation>true</BrowseInformation>
       <Optimization>Disabled</Optimization>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
@@ -156,7 +160,8 @@
     </Link>
     <ResourceCompile>
       <Culture>0x0804</Culture>
-      <PreprocessorDefinitions>_USING_V110_SDK71_;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_UNICODE;UNICODE;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SOUIPATH)\soui-sys-resource;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -167,7 +172,7 @@
       <WarningLevel>Level3</WarningLevel>
       <AdditionalIncludeDirectories>$(SOUIPATH)\config;$(SOUIPATH)\components;$(SOUIPATH)\SOUI\include;$(SOUIPATH)\utilities\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN64;_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <WholeProgramOptimization>true</WholeProgramOptimization>
     </ClCompile>
     <Link>
@@ -179,6 +184,7 @@
     </Link>
     <ResourceCompile>
       <Culture>0x0804</Culture>
+      <AdditionalIncludeDirectories>$(SOUIPATH)\soui-sys-resource;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -186,132 +192,32 @@
     <Text Include="readme.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="CBaseInfoDlg.cpp" />
-    <ClCompile Include="CDataCenter.cpp" />
-    <ClCompile Include="CiTunesRepairDlg.cpp" />
-    <ClCompile Include="CMyDeviceHandler\CMyDeviceHandler.cpp" />
-    <ClCompile Include="controls\SHeaderCtrlEx.cpp" />
-    <ClCompile Include="controls\SMCListViewEx.cpp" />
-    <ClCompile Include="controls\STabCtrlHeaderBinder.cpp" />
-    <ClCompile Include="controls\STabCtrlTemplate.cpp" />
-    <ClCompile Include="controls\SToggle2.cpp" />
-    <ClCompile Include="iDou.cpp" />
-    <ClCompile Include="MainDlg.cpp" />
-    <ClCompile Include="PageHandlerBase.cpp" />
-    <ClCompile Include="skin\SDemoSkin.cpp" />
-    <ClCompile Include="skin\SSkinLoader.cpp" />
+    <ClCompile Include="CiTunesIPCClient.cpp" />
+    <ClCompile Include="CiTunesIPCSvr.cpp" />
+    <ClCompile Include="CiTunesService.cpp" />
+    <ClCompile Include="CWinServiceManger.cpp" />
+    <ClCompile Include="iTunesRepair.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="trayicon\SShellNofityHwnd2.cpp" />
-    <ClCompile Include="trayicon\SShellNotifyIcon.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="iDou.rc" />
+    <ResourceCompile Include="iTunesRepair.rc" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CBaseInfoDlg.h" />
-    <ClInclude Include="CDataCenter.h" />
-    <ClInclude Include="CiTunesRepairDlg.h" />
-    <ClInclude Include="CMyDeviceHandler\CMyDeviceHandler.h" />
-    <ClInclude Include="CMyDeviceHandler\LV_iOSAppsAdapter.h" />
-    <ClInclude Include="CMyDeviceHandler\TV_iOSDeviceAdapter.h" />
-    <ClInclude Include="controls\SHeaderCtrlEx.h" />
-    <ClInclude Include="controls\SMCListViewEx.h" />
-    <ClInclude Include="controls\STabCtrlHeaderBinder.h" />
-    <ClInclude Include="controls\STabCtrlTemplate.h" />
-    <ClInclude Include="controls\SToggle2.h" />
-    <ClInclude Include="MainDlg.h" />
-    <ClInclude Include="PageHandlerBase.h" />
+    <ClInclude Include="CiTunesIPCClient.h" />
+    <ClInclude Include="CiTunesIPCSvr.h" />
+    <ClInclude Include="CiTunesService.h" />
+    <ClInclude Include="CWinServiceManger.h" />
+    <ClInclude Include="protocol.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="skin\SDemoSkin.h" />
-    <ClInclude Include="skin\SSkinLoader.h" />
     <ClInclude Include="stdafx.h" />
-    <ClInclude Include="trayicon\SShellNofityHwnd2.h" />
-    <ClInclude Include="trayicon\SShellNotifyIcon.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="res\soui_res.rc2" />
-    <None Include="uires\theme_sys_res\uires.idx" />
-    <CustomBuild Include="uires\uires.idx">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">"$(SOUIPATH)\tools\uiresbuilder.exe" -i "%(FullPath)" -p uires -r .\res\soui_res.rc2 -h .\res\resource.h idtable</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Building SoUI Resource</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.\res\soui_res.rc2;%(Outputs)</Outputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(SOUIPATH)\tools\uiresbuilder.exe" -i "%(FullPath)" -p uires -r .\res\soui_res.rc2 -h .\res\resource.h idtable
-"$(SOUIPATH)\tools\7z.exe" a "$(TargetDir)uires.7z" "%(RootDir)%(Directory)*" -p"idou123321idou" -mhe</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Building SoUI Resource</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\res\soui_res.rc2;%(Outputs)</Outputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(SOUIPATH)\tools\uiresbuilder.exe" -i "%(FullPath)" -p uires -r .\res\soui_res.rc2 -h .\res\resource.h idtable</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Building SoUI Resource</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\res\soui_res.rc2;%(Outputs)</Outputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Building SoUI Resource</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\res\soui_res.rc2;%(Outputs)</Outputs>
-    </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
-    <Xml Include="uires\theme_sys_res\sys_xml_editmenu.xml" />
-    <Xml Include="uires\theme_sys_res\sys_xml_msgbox.xml" />
-    <Xml Include="uires\theme_sys_res\sys_xml_skin.xml" />
-    <Xml Include="uires\uidef\init.xml" />
-    <Xml Include="uires\values\color.xml">
-      <SubType>Designer</SubType>
-    </Xml>
-    <Xml Include="uires\values\skin.xml" />
-    <Xml Include="uires\values\string.xml" />
-    <Xml Include="uires\values\template.xml" />
-    <Xml Include="uires\xml\dlg_all.xml" />
-    <Xml Include="uires\xml\dlg_battry.xml" />
-    <Xml Include="uires\xml\dlg_itunesrepair.xml" />
-    <Xml Include="uires\xml\dlg_main.xml">
-      <SubType>Designer</SubType>
-    </Xml>
-    <Xml Include="uires\xml\page.xml" />
-    <Xml Include="uires\xml\page_appinfo.xml" />
-    <Xml Include="uires\xml\page_mydevice.xml" />
-    <Xml Include="uires\xml\page_mydeviceinfo.xml" />
-    <Xml Include="uires\xml\skin_menuex.xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="icon1.ico" />
-    <Image Include="uires\image\logo.ico" />
-    <Image Include="uires\image\page_icons.png" />
-    <Image Include="uires\image\soui.ico" />
-    <Image Include="uires\image\tab_main.png" />
-    <Image Include="uires\image\traymenu_icons.png" />
-    <Image Include="uires\theme_sys_res\sys_border.png" />
-    <Image Include="uires\theme_sys_res\sys_btn_close.png" />
-    <Image Include="uires\theme_sys_res\sys_btn_maximize.png" />
-    <Image Include="uires\theme_sys_res\sys_btn_minimize.png" />
-    <Image Include="uires\theme_sys_res\sys_btn_next.png" />
-    <Image Include="uires\theme_sys_res\sys_btn_prev.png" />
-    <Image Include="uires\theme_sys_res\sys_btn_restore.png" />
-    <Image Include="uires\theme_sys_res\sys_checkbox.png" />
-    <Image Include="uires\theme_sys_res\sys_dropbtn.png" />
-    <Image Include="uires\theme_sys_res\sys_focus_checkbox.png" />
-    <Image Include="uires\theme_sys_res\sys_focus_radio.png" />
-    <Image Include="uires\theme_sys_res\sys_header.png" />
-    <Image Include="uires\theme_sys_res\sys_icons.png" />
-    <Image Include="uires\theme_sys_res\sys_menu_arrow.png" />
-    <Image Include="uires\theme_sys_res\sys_menu_border.png" />
-    <Image Include="uires\theme_sys_res\sys_menu_check.png" />
-    <Image Include="uires\theme_sys_res\sys_menu_sep.png" />
-    <Image Include="uires\theme_sys_res\sys_menu_skin.png" />
-    <Image Include="uires\theme_sys_res\sys_prog_bar.png" />
-    <Image Include="uires\theme_sys_res\sys_prog_bkgnd.png" />
-    <Image Include="uires\theme_sys_res\sys_radio.png" />
-    <Image Include="uires\theme_sys_res\sys_scrollbar.png" />
-    <Image Include="uires\theme_sys_res\sys_slider_thumb.png" />
-    <Image Include="uires\theme_sys_res\sys_split_horz.png" />
-    <Image Include="uires\theme_sys_res\sys_split_vert.png" />
-    <Image Include="uires\theme_sys_res\sys_tab_page.png" />
-    <Image Include="uires\theme_sys_res\sys_tree_checkbox.png" />
-    <Image Include="uires\theme_sys_res\sys_Tree_toggle.png" />
-    <Image Include="uires\theme_sys_res\sys_vert_prog_bar.png" />
-    <Image Include="uires\theme_sys_res\sys_vert_prog_bkgnd.png" />
-    <Image Include="uires\theme_sys_res\sys_wnd_bkgnd.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -14,7 +14,6 @@ public:
 	virtual bool IsEm(LPCSTR udid) { return m_udid == udid; };
 };
 
-
 class CBattryInfoDlg :
 	public CBaseInfoDlg,
 	public TAutoEventMapReg<CBattryInfoDlg>

@@ -93,6 +93,9 @@
     <ClCompile Include="controls\SToggle2.cpp">
       <Filter>ctrls</Filter>
     </ClCompile>
+    <ClCompile Include="CiTunesRepairDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="iDou.rc">
@@ -154,6 +157,9 @@
     <ClInclude Include="controls\SToggle2.h">
       <Filter>ctrls</Filter>
     </ClInclude>
+    <ClInclude Include="CiTunesRepairDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="res\soui_res.rc2">
@@ -211,6 +217,9 @@
     </Xml>
     <Xml Include="uires\xml\page_appinfo.xml">
       <Filter>SoUI Resource\layout\device</Filter>
+    </Xml>
+    <Xml Include="uires\xml\dlg_itunesrepair.xml">
+      <Filter>SoUI Resource</Filter>
     </Xml>
   </ItemGroup>
   <ItemGroup>

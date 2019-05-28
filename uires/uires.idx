@@ -10,6 +10,7 @@
     <file name="XML_dlg_battry" path="xml\dlg_battry.xml"/>
     <file name="XML_dlg_all" path="xml\dlg_all.xml"/>
     <file name="XML_App_Info" path="xml\page_appinfo.xml"/>
+    <file name="XML_dlg_itunesrepair" path="xml\dlg_itunesrepair.xml"/>
   </LAYOUT>  
   <values>
   	<file name="string" path="values\string.xml"/>
