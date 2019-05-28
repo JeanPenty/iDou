@@ -1,7 +1,7 @@
 #pragma once
 #include <core\SHostWnd.h>
 #include "iTunesRepair\CiTunesIPCSvr.h"
-
+//两个远端库提交测试
 
 class CiTunesRepairDlg :public SHostDialog,public CiTunesIPCSvr,public IServer
 {
@@ -41,4 +41,3 @@ protected:
 		CHAIN_MSG_MAP(SHostDialog)
 	END_MSG_MAP()
 };
-
