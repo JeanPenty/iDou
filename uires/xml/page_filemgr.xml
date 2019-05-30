@@ -1,0 +1,57 @@
+﻿<include>
+  <window size="-2,36">
+  </window>
+  <hr size="-2,1" colorLine="@color/gray4"/>
+  <window size="-2,0" weight="1" layout="hbox">
+    <window size="166,-2">
+      <treectrl size="-2,-2">
+        <item text="文件系统">
+          <item text="用户系统"/>
+          <item text="越狱系统"/>
+        </item>
+        <item text="常用目录">
+          <item text="应用程序"/>
+          <item text="我的文档"/>
+          <item text="手机U盘"/>
+          <item text="语音备忘录"/>
+        </item>
+      </treectrl>
+    </window>
+    <hr size="1,-2" colorLine="@color/gray4" mode="vertical"/>
+    <window size="0,-2" weight="1" layout="vbox">
+      <window size="-2,52" layout="hbox" gravity="center" interval="8" colorBkgnd="@color/white">
+        <button inset="12,4,12,4" name="btn_installapp" text="新建文件夹"/>
+        <button inset="12,4,12,4" name="btn_uninstallapp" text="导入"/>
+        <button inset="12,4,12,4" name="btn_refershapp" text="导出"/>
+        <button inset="12,4,12,4" name="btn_refershapp" text="删除"/>
+        <button inset="12,4,12,4" name="btn_refershapp" text="刷新"/>
+      </window>
+      <hr size="-2,1" colorLine="@color/gray4"/>
+      <mclistviewex name="lv_appsList" canSwapItem="0" headerHeight="22" colorDropBk="#0064b3" colorBkgnd="@color/white" size="-2,0" weight="1">
+        <header2 name="apps_header" align="center" matchParent="1" itemSwapEnable="0" sortHeader="0" colorText="#000000ff" margin="0,0,0,1" colorBorder="@color/gray">
+          <items>
+            <item width="150">名称</item>
+            <item width="120">大小</item>
+            <item width="120">类型</item>
+            <item width="120">时间</item>
+          </items>
+        </header2>
+        <template itemHeight="58" colorHover="@color/item_hov" colorSelected="@color/item_sel">
+          <window name="name" clipClient="1" layout="hbox" gravity="center" interval="8">
+            <img size="40,40" name="img_fileIcon"/>
+            <text name="lable_appName" align="" size="0,-1" weight="1" dotted="1" />
+          </window>
+          <window name="ver" clipClient="1">
+            <text name="lable_appVer" pos="0,|" offset="0,-0.5"></text>
+          </window>
+          <window name="staticsize" clipClient="1">
+            <text name="lable_appSize" pos="0,|" offset="0,-0.5" ></text>
+          </window>
+          <window name="cachesize" clipClient="1">
+            <text name="lable_appCacheSize" pos="0,|" offset="0,-0.5"></text>
+          </window>
+        </template>
+      </mclistviewex>
+    </window>
+  </window>
+</include>

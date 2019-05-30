@@ -18,10 +18,12 @@ public:
 	virtual void OnDisconnected(IIpcConnection* pConn) override;
 	void OnCheckRet(Param_CHECKRET& ret);
 	void OnRepairRet(Param_REPAIR& ret);
-
+	void OnConnectedr(Param_CONNECTED& ret);
+	void OnOpenItunesUrl();
 	FUN_BEGINEX
 		FUN_HANDLEREX(Param_CHECKRET, OnCheckRet)
 		FUN_HANDLEREX(Param_REPAIR, OnRepairRet)
+		FUN_HANDLEREX(Param_CONNECTED, OnConnectedr)
 	FUN_END
 protected:
 	BOOL OnInitDialog(HWND hWnd, LPARAM lParam);
@@ -30,8 +32,9 @@ protected:
 	void OnRepair();
 
 	EVENT_MAP_BEGIN()
-		EVENT_NAME_COMMAND(L"btn_check", OnCheck)
+		//EVENT_NAME_COMMAND(L"btn_check", OnCheck)
 		EVENT_NAME_COMMAND(L"btn_repair", OnRepair)
+		EVENT_NAME_COMMAND(L"btn_openitunesurl",OnOpenItunesUrl)
 	EVENT_MAP_END()
 
 	BEGIN_MSG_MAP_EX(CiTunesRepairDlg)

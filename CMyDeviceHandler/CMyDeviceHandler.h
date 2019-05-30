@@ -33,7 +33,7 @@ protected:
 	void OnCheckWarrantyexpirationDate(EventArgs* pEArg);
 	//void OnAppsLvHeaderRelayout(EventArgs* e)
 	//{
-	//	SHeaderCtrl* pHeader = sobj_cast<SHeaderCtrl>(e->sender);
+	//	SHeaderCtrlEx* pHeader = sobj_cast<SHeaderCtrlEx>(e->sender);
 	//	int nItems = pHeader->GetItemCount();
 	//	if (nItems > 1)
 	//	{

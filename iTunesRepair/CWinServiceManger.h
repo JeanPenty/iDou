@@ -1,5 +1,7 @@
 #pragma once
-
+#include <memory>
+#include <io.h>
+#pragma comment(lib, "Version.lib")
 
 #define SALF_CLOSE_HANDLE(h_SCHandle) if(h_SCHandle)CloseServiceHandle(h_SCHandle);h_SCHandle=NULL;
 
@@ -49,14 +51,53 @@ public:
 		SERVICE_STATUS ServiceStatus = { 0 };
 		//获取当前的状态
 		BOOL bRet = ::QueryServiceStatus(m_ServiceHandle, &ServiceStatus);
-		/*SERVICE_RUNNING			已启动			
+		/*SERVICE_RUNNING			已启动
 			SERVICE_STOPPED			已停止
 			SERVICE_PAUSED			已暂停
 			SERVICE_CONTINUE_PENDING		正在恢复
 			SERVICE_PAUSE_PENDING			正在暂停
-			SERVICE_START_PENDING			正在启动			
+			SERVICE_START_PENDING			正在启动
 			SERVICE_STOP_PENDING			正在停止*/
-		return (bRet && ServiceStatus.dwCurrentState == SERVICE_RUNNING);			
+		return (bRet && ServiceStatus.dwCurrentState == SERVICE_RUNNING);
+	}
+
+	SStringT getProgramVersion(LPCWSTR filepath)
+	{
+		VS_FIXEDFILEINFO* pVsInfo;
+		unsigned int iFileInfoSize = sizeof(VS_FIXEDFILEINFO);
+
+		SStringT file = filepath;
+		file.Trim(L'\"');
+		int iVerInfoSize = GetFileVersionInfoSize(file, NULL);		
+		if (iVerInfoSize != 0) {
+			std::unique_ptr<wchar_t> pBuf(new wchar_t[iVerInfoSize]);
+			if (GetFileVersionInfo(file, 0, iVerInfoSize, pBuf.get())) {
+				if (VerQueryValue(pBuf.get(), L"\\", (void**)& pVsInfo, &iFileInfoSize)) {
+					return SStringT().Format(L"%d.%d.%d.%d", HIWORD(pVsInfo->dwFileVersionMS),
+						LOWORD(pVsInfo->dwFileVersionMS),
+						HIWORD(pVsInfo->dwFileVersionLS),
+						LOWORD(pVsInfo->dwFileVersionLS));
+				}
+			}
+		}
+		return L"";
+	}
+
+	bool GetServiceVer(SStringT& outver)
+	{
+		DWORD dwBuffNeed = 0;
+		BOOL bRet = ::QueryServiceConfig(m_ServiceHandle, NULL, 0, &dwBuffNeed);
+		if (ERROR_INSUFFICIENT_BUFFER == GetLastError())
+		{
+			DWORD dwRealNeed = dwBuffNeed;
+			std::unique_ptr<QUERY_SERVICE_CONFIG>  QUERY_SERVICE_CONFIGW((LPQUERY_SERVICE_CONFIG)new char[dwRealNeed]);
+			bRet = QueryServiceConfig(m_ServiceHandle, QUERY_SERVICE_CONFIGW.get(), dwRealNeed, &dwBuffNeed);
+			if (bRet)
+			{				
+				outver = getProgramVersion(QUERY_SERVICE_CONFIGW.get()->lpBinaryPathName);
+			}
+		}
+		return bRet;
 	}
 private:
 	SC_HANDLE m_ServiceHandle = NULL;

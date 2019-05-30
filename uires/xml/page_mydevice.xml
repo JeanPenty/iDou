@@ -37,14 +37,14 @@
           <pageTemplate>
             <page>
               <tabctrl size="-2,-2" name="tab_dev_cmd" tabHeight="0" curSel="0">
-                <page size="-2,-2">
+                <page>
                   <include src="layout:XML_MyDevice_Info"/>
                 </page>
-                <page layout="hbox" gravity="center">
+                <page layout="hbox">
                   <include src="layout:XML_App_Info"/>
                 </page>
-                <page layout="hbox" gravity="center">
-                  <text text="cmd3"/>
+                <page layout="vbox" colorBkgnd="@color/white">
+                  <include src="layout:XML_FileMgr"/>
                 </page>
                 <page layout="hbox" gravity="center">
                   <text text="cmd4"/>

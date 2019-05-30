@@ -11,6 +11,7 @@
     <file name="XML_dlg_all" path="xml\dlg_all.xml"/>
     <file name="XML_App_Info" path="xml\page_appinfo.xml"/>
     <file name="XML_dlg_itunesrepair" path="xml\dlg_itunesrepair.xml"/>
+    <file name="XML_FileMgr" path="xml\page_filemgr.xml"/>
   </LAYOUT>  
   <values>
   	<file name="string" path="values\string.xml"/>
@@ -45,6 +46,7 @@
     <file name="png_btn_edit" path="image\btn_edit.png"/>
     <file name="png_skin_apps" path="image\apps.png"/>
     <file name="png_shadow" path="image\shadow.png"/>
+    <file name="png_repair" path="image\repair.png"/>
   </IMG>
   <ICON>
     <file name="ICON_LOGO"  path="image\logo.ico"/>

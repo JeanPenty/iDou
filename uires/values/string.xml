@@ -5,7 +5,7 @@
     <waitpair value="等待设备配对..."/>
     <cmd1 value="设备信息"/>
     <cmd2 value="应用游戏"/>
-    <cmd3 value="待定..."/>
+    <cmd3 value="文件管理"/>
     <cmd4 value="待定..."/>
     <cmd5 value="待定..."/>
     <noname value="无法获取设备名"/>

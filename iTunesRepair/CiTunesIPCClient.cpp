@@ -21,12 +21,17 @@ void CiTunesIPCClient::BuildShareBufferName(ULONG_PTR idLocal, ULONG_PTR idRemot
 
 CiTunesIPCClientWnd::CiTunesIPCClientWnd() {}
 
-CiTunesIPCClientWnd::~CiTunesIPCClientWnd() {}
+CiTunesIPCClientWnd::~CiTunesIPCClientWnd() {} 
 
 BOOL CiTunesIPCClientWnd::OnInitDialog(HWND wndFocus, LPARAM lInitParam)
 {
 	SASSERT(::IsWindow(wndFocus));
 	HRESULT hr = GetIpcHandle()->ConnectTo((ULONG_PTR)m_hWnd, (ULONG_PTR)wndFocus);
+	if (hr == S_OK)
+	{
+		Param_CONNECTED conneced;
+		GetIpcHandle()->CallFun(&conneced);
+	}
 	return hr == S_OK;
 }
 
@@ -46,6 +51,11 @@ void CiTunesIPCClientWnd::OnStartCheck(Param_SATRTCHECK& param)
 	Param_CHECKRET checkRet;
 	if (m_iTunesService)
 	{
+		SStringT ver;
+		if (m_iTunesService.GetVer(ver))
+		{
+			checkRet.ver = ver;
+		}
 		checkRet.checkRet = m_iTunesService.IsRun() ? CHK_OK : CHK_FAILE;
 	}
 	else
@@ -59,7 +69,7 @@ void CiTunesIPCClientWnd::OnRepair(Param_REPAIR&)
 {
 	Param_REPAIR repairRet;
 	if (m_iTunesService)
-	{
+	{		
 		repairRet.repairRet = m_iTunesService.RunService()?REPAIR_OK: REPAIR_FAILE;
 	}
 	else

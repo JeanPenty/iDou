@@ -4,9 +4,6 @@
 #include "protocol.h"
 #include <commgr2.h>
 
-
-
-
 class CiTunesIPCSvrConnect : public SOUI::TObjRefImpl<SOUI::IIpcConnection>
 {
 public:

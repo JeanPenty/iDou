@@ -89,7 +89,14 @@ enum {
 	IID_SATRTCHECK,
 	IID_CHECKRET,
 	IID_REPAIR,
+	IID_CONNECTED,
 };
+
+struct Param_CONNECTED : FunParams_Base
+{
+	FUNID(IID_CONNECTED)
+};
+
 
 struct Param_CLOSE : FunParams_Base
 {
@@ -106,9 +113,10 @@ enum REPAIRRET
 };
 struct Param_REPAIR : FunParams_Base
 {
+	std::wstring ver;
 	REPAIRRET repairRet;
 	FUNID(IID_REPAIR)
-		PARAMS1(Input, repairRet)
+		PARAMS2(Input, repairRet,ver)
 };
 
 enum CHECKRET
@@ -120,7 +128,8 @@ enum CHECKRET
 
 struct Param_CHECKRET : FunParams_Base
 {
+	std::wstring ver;
 	CHECKRET checkRet;
 	FUNID(IID_CHECKRET)
-		PARAMS1(Input, checkRet)
+		PARAMS2(Input, checkRet, ver)
 };

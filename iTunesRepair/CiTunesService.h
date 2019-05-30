@@ -9,16 +9,14 @@ public:
 	CiTunesService();
 	~CiTunesService();
 	bool IsRun();
-	bool RunService()
-	{
-		return m_iTunesService.RunService();
-	}
+	static void OpeniTunesUrl();
+	bool RunService();
 	operator bool()
 	{
 		return m_iTunesService;
 	}
+	bool GetVer(SStringT&);
 private:
 	
 	CWinService m_iTunesService;
 };
-

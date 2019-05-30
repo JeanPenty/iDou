@@ -270,6 +270,7 @@
     </Xml>
     <Xml Include="uires\xml\page.xml" />
     <Xml Include="uires\xml\page_appinfo.xml" />
+    <Xml Include="uires\xml\page_filemgr.xml" />
     <Xml Include="uires\xml\page_mydevice.xml" />
     <Xml Include="uires\xml\page_mydeviceinfo.xml" />
     <Xml Include="uires\xml\skin_menuex.xml" />

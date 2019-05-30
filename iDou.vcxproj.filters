@@ -221,6 +221,9 @@
     <Xml Include="uires\xml\dlg_itunesrepair.xml">
       <Filter>SoUI Resource</Filter>
     </Xml>
+    <Xml Include="uires\xml\page_filemgr.xml">
+      <Filter>SoUI Resource\layout\device</Filter>
+    </Xml>
   </ItemGroup>
   <ItemGroup>
     <Image Include="uires\image\tab_main.png">
