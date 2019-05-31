@@ -28,7 +28,7 @@
       </window>
       <hr size="-2,1" colorLine="@color/gray4"/>
       <mclistviewex name="lv_appsList" canSwapItem="0" headerHeight="22" colorDropBk="#0064b3" colorBkgnd="@color/white" size="-2,0" weight="1">
-        <header2 name="apps_header" align="center" matchParent="1" itemSwapEnable="0" sortHeader="0" colorText="#000000ff" margin="0,0,0,1" colorBorder="@color/gray">
+        <header2 name="apps_header" align="center" matchParent="1"  cursor="hand" itemSwapEnable="0" sortHeader="0" colorText="#000000ff" margin="0,0,0,1" colorBorder="@color/gray">
           <items>
             <item width="150">名称</item>
             <item width="120">大小</item>
