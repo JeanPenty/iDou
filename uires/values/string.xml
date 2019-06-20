@@ -2,12 +2,13 @@
   <string>
     <title value="易点助手"/>
     <ver value="1.0"/>
+    <abouttitle value="关于软件"/>
     <waitpair value="等待设备配对..."/>
     <cmd1 value="设备信息"/>
     <cmd2 value="应用游戏"/>
     <cmd3 value="文件管理"/>
-    <cmd4 value="待定..."/>
-    <cmd5 value="待定..."/>
+    <cmd4 value="通讯录管理"/>
+    <cmd5 value="备份还原"/>
     <noname value="无法获取设备名"/>
     <FirmwareVersion value="固件版本"/>
     <SerialNumber value="序列号"/>
@@ -52,5 +53,7 @@
     <other value="其它"/>
     <free value="剩余"/>
     <charging value="正在充电"/>
-    <nocharging value="不在充电"/>    
+    <nocharging value="不在充电"/>
+    <loadtitle value="加载文件"/>
+    <loadding value="正在加载文件，请稍后..."/>
   </string>

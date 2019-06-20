@@ -20,7 +20,17 @@
 #include <WinSock2.h>
 #include <string/tstring.h>
 #include <zip.h>
-
+#include <list>
+#include <vector>
+struct AppInfo
+{
+	std::string AppID;
+	SOUI::SStringT DisplayName;
+	SOUI::SStringT Version;
+	uint64_t StaticDiskUsage;
+	uint64_t DynamicDiskUsage;
+	SOUI::CAutoRefPtr<SOUI::IBitmap> m_ico;
+};
 
 static const char* domains[] = {
 	"com.apple.disk_usage",
@@ -122,11 +132,43 @@ enum {
 	EVT_UPDATAAPPS_INFO,
 	EVT_UNINSTALL_APP,
 	EVT_INSTALL_APP,
+	EVT_AFC_INIT,
+	EVT_UPDATA_FILES,
+	EVT_OPEN_FILE_END,
 	EVT_END
 };
 
-SEVENT_BEGIN(EventScreenShot, EVT_SCREEN_SHOT)
+struct FILEINFO
+{
+	std::string m_path;
+	std::string m_fullpath;
+	struct stat m_stat;
+
+
+	FILEINFO(LPCSTR path,LPCSTR fullpath, struct stat _stat):m_path(path), m_fullpath(fullpath), m_stat(_stat){}
+};
+
+SEVENT_BEGIN(EventOpenFileRet, EVT_OPEN_FILE_END)
 std::string udid;
+bool bRet;
+SEVENT_END()
+
+
+SEVENT_BEGIN(EventUpdataFile, EVT_UPDATA_FILES)
+std::string udid;
+UINT taskId;
+std::list<FILEINFO> filelist;
+SEVENT_END()
+
+
+SEVENT_BEGIN(EventAFCInit, EVT_AFC_INIT)
+std::string udid;
+bool afc_sucssed;
+bool afc2_sucssed;
+SEVENT_END()
+
+SEVENT_BEGIN(EventScreenShot, EVT_SCREEN_SHOT)
+SOUI::SStringT udid;
 char* imgbuf;
 uint64_t bufsize;
 int code;
@@ -151,6 +193,7 @@ SEVENT_END()
 
 SEVENT_BEGIN(EventUpdataAppsInfo, EVT_UPDATAAPPS_INFO)
 SOUI::SStringT udid;
+std::vector<AppInfo> apps;
 bool bSucessed;
 SEVENT_END()
 
@@ -163,6 +206,7 @@ SEVENT_END()
 SEVENT_BEGIN(EventInstallApp, EVT_INSTALL_APP)
 SOUI::SStringT udid;
 std::string appid;
+AppInfo appinfo;
 bool bSucessed;
 SEVENT_END()
 //---------------------AsyncEventEnd-----------------------
@@ -218,6 +262,8 @@ namespace utils
 
 	int afc_download_file(afc_client_t afc, char** outbuf, const char* remotefile);
 
+	int afc_download_file(afc_client_t afc, HANDLE hfile, const char* remotefile);
+
 	int afc_get_file_size(afc_client_t afc, size_t& outsize, const char* remotefile);
 	
 	void afc_upload_dir(afc_client_t afc, const char* path, const char* afcpath);
@@ -227,6 +273,8 @@ namespace utils
 	int zip_get_app_directory(zip* zf, char** path);
 
 	int remove_directory(const char* path);
+
+	SOUI::SStringT& FormatTime(time_t time1, SOUI::SStringT& szTime);
 
 	struct entry {
 		char* name;

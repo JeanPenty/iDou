@@ -1,10 +1,10 @@
 ﻿<include>
   <tabctrl name="tab_apps" size="-2,-2" tabHeight="0">
     <page title="全部" layout="vbox">
-      <window size="-2,52" layout="hbox" gravity="center" interval="8" colorBkgnd="@color/white">
+      <window name="apps_ctrl_wnd" size="-2,52" layout="hbox" gravity="center" interval="8" colorBkgnd="@color/white">
         <toggle2 pos="8,2" name="app_check_all" extend_left="8" skin="skin_check"/>
         <button inset="12,4,12,4" name="btn_installapp" text="安装新应用"/>
-        <button inset="12,4,12,4" name="btn_uninstallapp" text="卸载"/>
+        <button inset="12,4,12,4" name="btn_uninstallapp" text="卸载" enable="false" colorTextDisable="@color/gray"/>
         <button inset="12,4,12,4" name="btn_refershapp" text="刷新"/>
       </window>
       <hr size="-2,1" colorLine="@color/gray4"/>

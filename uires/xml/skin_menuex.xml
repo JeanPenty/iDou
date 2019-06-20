@@ -1,7 +1,7 @@
-﻿<menuRoot itemHeight="38" font="face:微软雅黑,size:14"
-          maxWidth="260" minWidth="288"
-          skin="skin_menu_bk">
-  <menuItem id="699" height="207" margin="20,20,20,20">
+﻿<menuRoot itemHeight="32" font="face:微软雅黑,size:14"
+          maxWidth="266" minWidth="266" sepSkin="TrayMenu_menu_sep"
+          ncskin="skin_menu_bk"  itemSkin="TrayMenu_menu_bkgnd" bkcolor="@color/white" margin="12,16,12,12" >
+  <menuItem id="699" height="180">
     <window size="-2,-2" colorBkgnd="#ffffff" layout="vbox" interval="1">
       <window layout="hbox" size="-2,0" weight="1" interval="1">
         <t:skin_item>
@@ -36,8 +36,6 @@
           <data  id="608" colorBkgnd="#9f887a"/>
         </t:skin_item>
       </window>
-      <window size="-2,20">
-      </window>
     </window>
-  </menuItem>
+  </menuItem> 
 </menuRoot>

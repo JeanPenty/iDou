@@ -2,14 +2,16 @@
 #include <core\SHostWnd.h>
 #include <string>
 
-#include "iOsDeviceLib/CiOSDevice.h"
+#include "../iOsDeviceLib/CiOSDevice.h"
 
 class CBaseInfoDlg :public virtual SHostDialog
 {
 protected:
 	std::string m_udid;
 	SOUI::SStringW m_sudid;
-	CBaseInfoDlg(const std::string& udid) :m_udid(udid), SHostDialog(NULL) {}
+	CBaseInfoDlg(const std::string& udid) :m_udid(udid), SHostDialog(NULL) {
+		m_sudid = SOUI::S_CA2W(udid.c_str());
+	}
 public:
 	virtual bool IsEm(LPCSTR udid) { return m_udid == udid; };
 };

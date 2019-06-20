@@ -12,6 +12,8 @@
     <file name="XML_App_Info" path="xml\page_appinfo.xml"/>
     <file name="XML_dlg_itunesrepair" path="xml\dlg_itunesrepair.xml"/>
     <file name="XML_FileMgr" path="xml\page_filemgr.xml"/>
+    <file name="XML_dlg_loading" path="xml\dlg_loading.xml"/>
+    <file name="XML_dlg_about" path="xml\dlg_about.xml"/>
   </LAYOUT>  
   <values>
   	<file name="string" path="values\string.xml"/>
@@ -46,13 +48,16 @@
     <file name="png_btn_edit" path="image\btn_edit.png"/>
     <file name="png_skin_apps" path="image\apps.png"/>
     <file name="png_shadow" path="image\shadow.png"/>
+    <file name="png_shadow2" path="image\shadow2.png"/>
     <file name="png_repair" path="image\repair.png"/>
+    <file name="png_cmdicons" path="image\cmd_icons.png"/>
   </IMG>
   <ICON>
     <file name="ICON_LOGO"  path="image\logo.ico"/>
   </ICON>
   <SMENU>
     <file name="menu_skin" path="xml\skin_menuex.xml"/>
-    <file name="menu_tray" path="xml\menu_tray.xml"/>
+    <file name="menu_tray" path="xml\tray_menuex.xml"/>
+    <file name="menu_main" path="xml\main_menuex.xml"/>
   </SMENU>
 </resource>

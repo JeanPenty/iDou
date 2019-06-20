@@ -39,6 +39,9 @@
     <Filter Include="MyDeviceHandler">
       <UniqueIdentifier>{3796f741-ed05-487d-8a46-facf4dfcbd44}</UniqueIdentifier>
     </Filter>
+    <Filter Include="SoUI Resource\layout\menu">
+      <UniqueIdentifier>{efbe6ae0-5f62-42d4-8583-904d129a7480}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="license.txt" />
@@ -75,9 +78,6 @@
     <ClCompile Include="controls\STabCtrlTemplate.cpp">
       <Filter>ctrls</Filter>
     </ClCompile>
-    <ClCompile Include="CBaseInfoDlg.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="controls\SHeaderCtrlEx.cpp">
       <Filter>ctrls</Filter>
     </ClCompile>
@@ -95,6 +95,15 @@
     </ClCompile>
     <ClCompile Include="CiTunesRepairDlg.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Cafctask.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CMyDeviceHandler\CBaseInfoDlg.cpp">
+      <Filter>MyDeviceHandler</Filter>
+    </ClCompile>
+    <ClCompile Include="CMyDeviceHandler\CLoadingDlg.cpp">
+      <Filter>MyDeviceHandler</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -133,9 +142,6 @@
     <ClInclude Include="controls\STabCtrlTemplate.h">
       <Filter>ctrls</Filter>
     </ClInclude>
-    <ClInclude Include="CBaseInfoDlg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="controls\SHeaderCtrlEx.h">
       <Filter>ctrls</Filter>
     </ClInclude>
@@ -160,6 +166,21 @@
     <ClInclude Include="CiTunesRepairDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CMyDeviceHandler\LV_iOSFilesAdapter.h">
+      <Filter>MyDeviceHandler</Filter>
+    </ClInclude>
+    <ClInclude Include="Cafctask.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CMyDeviceHandler\TV_iOSFilesNavAdapter.h">
+      <Filter>MyDeviceHandler</Filter>
+    </ClInclude>
+    <ClInclude Include="CMyDeviceHandler\CBaseInfoDlg.h">
+      <Filter>MyDeviceHandler</Filter>
+    </ClInclude>
+    <ClInclude Include="CMyDeviceHandler\CLoadingDlg.h">
+      <Filter>MyDeviceHandler</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="res\soui_res.rc2">
@@ -170,9 +191,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Xml Include="uires\uidef\init.xml">
-      <Filter>SoUI Resource</Filter>
-    </Xml>
     <Xml Include="uires\xml\page.xml">
       <Filter>SoUI Resource</Filter>
     </Xml>
@@ -188,9 +206,6 @@
     <Xml Include="uires\xml\dlg_main.xml">
       <Filter>SoUI Resource\layout</Filter>
     </Xml>
-    <Xml Include="uires\xml\skin_menuex.xml">
-      <Filter>SoUI Resource\layout</Filter>
-    </Xml>
     <Xml Include="uires\values\color.xml">
       <Filter>SoUI Resource\value</Filter>
     </Xml>
@@ -200,14 +215,8 @@
     <Xml Include="uires\values\skin.xml">
       <Filter>SoUI Resource\value</Filter>
     </Xml>
-    <Xml Include="uires\xml\dlg_battry.xml">
-      <Filter>SoUI Resource\layout</Filter>
-    </Xml>
     <Xml Include="uires\values\template.xml">
       <Filter>SoUI Resource\value</Filter>
-    </Xml>
-    <Xml Include="uires\xml\dlg_all.xml">
-      <Filter>SoUI Resource\layout</Filter>
     </Xml>
     <Xml Include="uires\xml\page_mydeviceinfo.xml">
       <Filter>SoUI Resource\layout\device</Filter>
@@ -218,24 +227,39 @@
     <Xml Include="uires\xml\page_appinfo.xml">
       <Filter>SoUI Resource\layout\device</Filter>
     </Xml>
-    <Xml Include="uires\xml\dlg_itunesrepair.xml">
-      <Filter>SoUI Resource</Filter>
-    </Xml>
     <Xml Include="uires\xml\page_filemgr.xml">
       <Filter>SoUI Resource\layout\device</Filter>
     </Xml>
+    <Xml Include="uires\xml\dlg_loading.xml">
+      <Filter>SoUI Resource\layout\device</Filter>
+    </Xml>
+    <Xml Include="uires\xml\skin_menuex.xml">
+      <Filter>SoUI Resource\layout\menu</Filter>
+    </Xml>
+    <Xml Include="uires\xml\tray_menuex.xml">
+      <Filter>SoUI Resource\layout\menu</Filter>
+    </Xml>
+    <Xml Include="uires\xml\main_menuex.xml">
+      <Filter>SoUI Resource\layout\menu</Filter>
+    </Xml>
+    <Xml Include="uires\xml\dlg_itunesrepair.xml">
+      <Filter>SoUI Resource\layout</Filter>
+    </Xml>
+    <Xml Include="uires\uidef\init.xml">
+      <Filter>SoUI Resource\value</Filter>
+    </Xml>
+    <Xml Include="uires\xml\dlg_all.xml">
+      <Filter>SoUI Resource\layout\device</Filter>
+    </Xml>
+    <Xml Include="uires\xml\dlg_battry.xml">
+      <Filter>SoUI Resource\layout\device</Filter>
+    </Xml>
+    <Xml Include="uires\xml\dlg_about.xml">
+      <Filter>SoUI Resource\layout</Filter>
+    </Xml>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="uires\image\tab_main.png">
-      <Filter>SoUI Resource</Filter>
-    </Image>
-    <Image Include="uires\image\page_icons.png">
-      <Filter>SoUI Resource</Filter>
-    </Image>
     <Image Include="uires\image\soui.ico">
-      <Filter>SoUI Resource</Filter>
-    </Image>
-    <Image Include="uires\image\traymenu_icons.png">
       <Filter>SoUI Resource</Filter>
     </Image>
     <Image Include="uires\theme_sys_res\sys_border.png">

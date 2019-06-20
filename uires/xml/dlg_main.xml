@@ -9,6 +9,7 @@
         <window size="0,0" weight="1"/>
         <window size="-1,-1" layout="hbox" layout_gravity="top">
           <imgbtn name="btn_skin" skin="skin_btn"  animate="1"/>
+          <imgbtn name="btn_menu" skin="skin_menu" animate="1" />
           <imgbtn name="btn_min" skin="skin_min" animate="1" />
           <imgbtn name="btn_max" display="0" skin="skin_max"  animate="1" />
           <imgbtn name="btn_restore" display="0" skin="skin_restore" show="0" animate="1" />
@@ -23,8 +24,8 @@
           <include src="layout:XML_page"/>
         </page>
       </tabctrl>
-      <window size="-2,36" layout="hbox" gravity="center">
-        <text text="检查iTunes驱动" name="btn_CheckiTunes" extend_left="18" class="cls_btn_weblink"/>
+      <window size="-2,36" layout="hbox" gravity="center" interval="18">
+        <text text="检查iTunes驱动" name="btn_CheckiTunes" extend_left="18" class="cls_btn_weblink"/>        
       </window>
       <shellnotifyicon id="110" menu="SMENU:menu_tray" ico="ICON_LOGO:16" tip="110"/>
     </window>

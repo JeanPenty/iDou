@@ -9,7 +9,16 @@ struct DevInfo {
 	int nCmd;
 	bool bCan;
 	bool bUpdataApp;
-	std::string guid;
+	int appsCount=-1;
+	std::string udid;
+	SStringT MakeAppTitle()
+	{
+		if (appsCount!=-1)
+		{
+			return GETSTRING(L"@string/cmd2") + SStringT().Format(L"(%d)", appsCount);
+		}
+		return GETSTRING(L"@string/cmd2");
+	}
 };
 
 class CiOSDeviceTreeViewAdapter :public STreeAdapterBase<DevInfo>
@@ -32,6 +41,22 @@ public:
 		return m_tree.GetItemRef(item);
 	}
 
+	void ExpandItem(LPCSTR id)
+	{
+		HSTREEITEM node = m_tree.GetChildItem(ITEM_ROOT);
+		while (node)
+		{
+			ItemInfo& ii = m_tree.GetItemRef(node);
+			if (ii.data.udid == id)
+			{
+				SetItemExpanded(node, TRUE);
+				notifyBranchExpandChanged(node, FALSE, TRUE);							
+				break;
+			}
+			node = m_tree.GetNextSiblingItem(node);
+		}
+	}
+
 	HSTREEITEM GetFirstTreeItem()
 	{
 		HSTREEITEM hFistItem= m_tree.GetChildItem(ITEM_ROOT);
@@ -39,6 +64,7 @@ public:
 			return m_tree.GetChildItem(hFistItem);
 		return NULL;
 	}
+
 	~CiOSDeviceTreeViewAdapter() {}
 
 	virtual void getView(SOUI::HTREEITEM loc, SWindow* pItem, pugi::xml_node xmlTemplate)
@@ -73,7 +99,7 @@ public:
 			{
 				pItem->EnableWindow(TRUE);
 				SStringT devName;
-				if (CDataCenter::getSingleton().GetDevName(ii.data.guid.c_str(), devName))
+				if (CDataCenter::getSingleton().GetDevName(ii.data.udid.c_str(), devName))
 					pName->SetWindowText(devName);
 				else
 					pName->SetWindowText(GETSTRING(L"@string/noname"));
@@ -86,27 +112,34 @@ public:
 		}
 		else
 		{
+			SImageWnd* pIcon = pItem->FindChildByID2<SImageWnd>(R.id.face);
+			SASSERT(pIcon);
 			switch (ii.data.nCmd)
 			{
 			case 1:
 			{
+				pIcon->SetIcon(0);
 				pName->SetWindowText(GETSTRING(L"@string/cmd1"));
 			}break;
 			case 2:
 			{
-				pItem->FindChildByID(R.id.img_loading)->SetVisible(ii.data.bUpdataApp);
-				pName->SetWindowText(_MakeAppTitle(ii.data.guid.c_str()));
+				pIcon->SetIcon(1);
+				pItem->FindChildByID(R.id.img_loading)->SetVisible(ii.data.bUpdataApp?TRUE:FALSE);
+				pName->SetWindowText(ii.data.MakeAppTitle());
 			}break;
 			case 3:
 			{
+					pIcon->SetIcon(2);
 				pName->SetWindowText(GETSTRING(L"@string/cmd3"));
 			}break;
 			case 4:
 			{
+					pIcon->SetIcon(3);
 				pName->SetWindowText(GETSTRING(L"@string/cmd4"));
 			}break;
 			case 5:
 			{
+					pIcon->SetIcon(4);
 				pName->SetWindowText(GETSTRING(L"@string/cmd5"));
 			}break;
 			default:
@@ -114,12 +147,10 @@ public:
 			}
 			if (pItem->GetState() & WndState_Check)
 			{
-				//pItem->FindChildByID(R.id.bkwnd)->SetAttribute(L"skin", L"skin_bk");
 				((SItemPanel*)pItem)->SetSkin(GETSKIN(L"skin_bk",100));
 			}
 			else
 			{
-				//pItem->FindChildByID(R.id.bkwnd)->SetAttribute(L"skin", L"");
 				((SItemPanel*)pItem)->SetSkin(NULL);
 			}			
 		}
@@ -136,54 +167,7 @@ public:
 		pEvt->bubbleUp = false;
 		return true;
 	}
-
-/*
-
-	bool OnItemPanelClick(EventArgs* e)
-	{
-		SItemPanel* pItem = sobj_cast<SItemPanel>(e->sender);
-		if (NULL == pItem) return true;
-
-		int hItem = static_cast<SOUI::HTREEITEM>(pItem->GetItemIndex());
-		ItemInfo & ii = m_tree.GetItemRef((HSTREEITEM)hItem);
-		if (m_pListener)
-		{
-			m_pListener->ChildMenuItemClick(ii.data.guid.c_str(), ii.data.nCmd);
-		}
-
-		return true;
-	}
-
-	bool OnItemPanelDBClick(EventArgs* e)
-	{
-		SItemPanel* pItem = sobj_cast<SItemPanel>(e->sender);
-		if (NULL == pItem) return true;
-
-		int hItem = static_cast<SOUI::HTREEITEM>(pItem->GetItemIndex());
-		ItemInfo & ii = m_tree.GetItemRef((HSTREEITEM)hItem);
-		if (m_pListener)
-		{
-			m_pListener->ChildMenuItemDBClick(ii.data.guid.c_str(), ii.data.nCmd);
-		}
-
-		return true;
-	}
-
-	bool OnItemPanelRClick(EventArgs* e)
-	{
-		SItemPanel* pItem = sobj_cast<SItemPanel>(e->sender);
-		if (NULL == pItem) return true;
-
-		int hItem = static_cast<SOUI::HTREEITEM>(pItem->GetItemIndex());
-		ItemInfo & ii = m_tree.GetItemRef((HSTREEITEM)hItem);
-		if (m_pListener)
-		{
-			m_pListener->ChildMenuItemRClick(ii.data.guid.c_str(), ii.data.nCmd);
-		}
-
-		return true;
-	}
-	//*/
+	
 	virtual int getViewType(SOUI::HTREEITEM hItem) const
 	{
 		ItemInfo& ii = m_tree.GetItemRef((HSTREEITEM)hItem);
@@ -207,7 +191,7 @@ public:
 		HSTREEITEM node = m_tree.GetChildItem(ITEM_ROOT);
 		while (node)
 		{
-			if (m_tree.GetItem(node).data.guid == id)
+			if (m_tree.GetItem(node).data.udid == id)
 			{
 				notifyBranchInvalidated(node);
 				break;
@@ -215,21 +199,21 @@ public:
 			node = m_tree.GetNextSiblingItem(node);
 		}
 	}
-	void UpDataDevAppInfo(LPCSTR id)
+	void UpDataDevAppInfo(LPCSTR id,int appscount)
 	{
 		HSTREEITEM node = m_tree.GetChildItem(ITEM_ROOT);
 		while (node)
 		{
-			if (m_tree.GetItem(node).data.guid == id)
+			if (m_tree.GetItem(node).data.udid == id)
 			{
-				_UpdataChildItem(node,2);
+				_UpdataChildItem(node,2, appscount);
 				break;
 			}
 			node = m_tree.GetNextSiblingItem(node);
 		}
 	}
 	private:
-		void _UpdataChildItem(HSTREEITEM node,int id)
+		void _UpdataChildItem(HSTREEITEM node,int id,int appcount)
 		{
 			HSTREEITEM cnode = m_tree.GetChildItem(node);
 			while (cnode)
@@ -237,28 +221,21 @@ public:
 				if (m_tree.GetItem(cnode).data.nCmd == id)
 				{
 					m_tree.GetItemRef(cnode).data.bUpdataApp = false;
+					m_tree.GetItemRef(cnode).data.appsCount = appcount;
 					notifyBranchInvalidated(cnode);
 					break;
 				}
 				cnode = m_tree.GetNextSiblingItem(cnode);
 			}
 		}
-		SStringT _MakeAppTitle(LPCSTR udid)
-		{
-			const std::vector<AppInfo>* apps = CDataCenter::getSingleton().GetApps(udid);
-			if (apps)
-			{
-				return GETSTRING(L"@string/cmd2")+SStringT().Format(L"(%d)",apps->size());
-			}
-			return GETSTRING(L"@string/cmd2");
-		}
+		
 protected:
 	//添加一个设备id:udid can:是否可操作
 	void AddDev(LPCSTR id, bool can)
 	{
 		DevInfo item;
 		item.nCmd = 0;
-		item.guid = id;
+		item.udid = id;
 		item.bCan = can;
 		SOUI::HTREEITEM hRoot = InsertItem(item);
 		SetItemExpanded(hRoot, can ? TRUE : FALSE);
@@ -278,7 +255,7 @@ protected:
 		while (node)
 		{
 			ItemInfo& ii = m_tree.GetItemRef(node);
-			if (ii.data.guid == id)
+			if (ii.data.udid == id)
 			{
 				if (ii.data.bCan != can)
 				{
@@ -295,7 +272,7 @@ protected:
 		HSTREEITEM node = m_tree.GetChildItem(ITEM_ROOT);
 		while (node)
 		{
-			if (m_tree.GetItem(node).data.guid == id)
+			if (m_tree.GetItem(node).data.udid == id)
 			{
 				m_tree.DeleteItem(node);
 				notifyBranchInvalidated(ITEM_ROOT);

@@ -118,15 +118,15 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
       <WarningLevel>Level3</WarningLevel>
-      <AdditionalIncludeDirectories>$(SOUIPATH)\config;$(SOUIPATH)\components;$(SOUIPATH)\SOUI\include;$(SOUIPATH)\utilities\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SOUIPATH)\config;$(SOUIPATH)\components;$(SOUIPATH)\SOUI\include;$(SOUIPATH)\utilities\include;$(SolutionDir)..\libimobiledevice-vs\libimobiledevice;$(SolutionDir)..\libimobiledevice-vs\libplist\include;$(SolutionDir)..\libimobiledevice-vs\libusbmuxd\include;$(SolutionDir)..\libimobiledevice-vs\libimobiledevice\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>HAVE_OPENSSL;WIN32;_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <WholeProgramOptimization>true</WholeProgramOptimization>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalLibraryDirectories>$(SOUIPATH)\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)$(Platform)\$(Configuration)\;$(SOUIPATH)\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>utilities.lib;soui.lib;iOsDeviceLib.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
     </Link>
@@ -186,9 +186,11 @@
     <Text Include="readme.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="CBaseInfoDlg.cpp" />
+    <ClCompile Include="Cafctask.cpp" />
     <ClCompile Include="CDataCenter.cpp" />
     <ClCompile Include="CiTunesRepairDlg.cpp" />
+    <ClCompile Include="CMyDeviceHandler\CBaseInfoDlg.cpp" />
+    <ClCompile Include="CMyDeviceHandler\CLoadingDlg.cpp" />
     <ClCompile Include="CMyDeviceHandler\CMyDeviceHandler.cpp" />
     <ClCompile Include="controls\SHeaderCtrlEx.cpp" />
     <ClCompile Include="controls\SMCListViewEx.cpp" />
@@ -213,12 +215,16 @@
     <ResourceCompile Include="iDou.rc" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CBaseInfoDlg.h" />
+    <ClInclude Include="Cafctask.h" />
     <ClInclude Include="CDataCenter.h" />
     <ClInclude Include="CiTunesRepairDlg.h" />
+    <ClInclude Include="CMyDeviceHandler\CBaseInfoDlg.h" />
+    <ClInclude Include="CMyDeviceHandler\CLoadingDlg.h" />
     <ClInclude Include="CMyDeviceHandler\CMyDeviceHandler.h" />
     <ClInclude Include="CMyDeviceHandler\LV_iOSAppsAdapter.h" />
+    <ClInclude Include="CMyDeviceHandler\LV_iOSFilesAdapter.h" />
     <ClInclude Include="CMyDeviceHandler\TV_iOSDeviceAdapter.h" />
+    <ClInclude Include="CMyDeviceHandler\TV_iOSFilesNavAdapter.h" />
     <ClInclude Include="controls\SHeaderCtrlEx.h" />
     <ClInclude Include="controls\SMCListViewEx.h" />
     <ClInclude Include="controls\STabCtrlHeaderBinder.h" />
@@ -262,26 +268,27 @@
     <Xml Include="uires\values\skin.xml" />
     <Xml Include="uires\values\string.xml" />
     <Xml Include="uires\values\template.xml" />
+    <Xml Include="uires\xml\dlg_about.xml" />
     <Xml Include="uires\xml\dlg_all.xml" />
     <Xml Include="uires\xml\dlg_battry.xml" />
     <Xml Include="uires\xml\dlg_itunesrepair.xml" />
+    <Xml Include="uires\xml\dlg_loading.xml" />
     <Xml Include="uires\xml\dlg_main.xml">
       <SubType>Designer</SubType>
     </Xml>
+    <Xml Include="uires\xml\main_menuex.xml" />
     <Xml Include="uires\xml\page.xml" />
     <Xml Include="uires\xml\page_appinfo.xml" />
     <Xml Include="uires\xml\page_filemgr.xml" />
     <Xml Include="uires\xml\page_mydevice.xml" />
     <Xml Include="uires\xml\page_mydeviceinfo.xml" />
     <Xml Include="uires\xml\skin_menuex.xml" />
+    <Xml Include="uires\xml\tray_menuex.xml" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="icon1.ico" />
     <Image Include="uires\image\logo.ico" />
-    <Image Include="uires\image\page_icons.png" />
     <Image Include="uires\image\soui.ico" />
-    <Image Include="uires\image\tab_main.png" />
-    <Image Include="uires\image\traymenu_icons.png" />
     <Image Include="uires\theme_sys_res\sys_border.png" />
     <Image Include="uires\theme_sys_res\sys_btn_close.png" />
     <Image Include="uires\theme_sys_res\sys_btn_maximize.png" />

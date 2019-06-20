@@ -1,10 +1,10 @@
 #include "stdafx.h"
 #include "CBaseInfoDlg.h"
-#include "CDataCenter.h"
+#include "../CDataCenter.h"
 
 CBattryInfoDlg::CBattryInfoDlg(const std::string& udid) :CBaseInfoDlg(udid), SHostDialog(L"LAYOUT:XML_dlg_battry")
 {
-	m_sudid = SOUI::S_CA2W(udid.c_str());
+	
 }
 
 

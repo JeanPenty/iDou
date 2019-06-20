@@ -1,9 +1,6 @@
 #include "CiOSDevice.h"
 #include "CiOSDevice.h"
 #include "CiOSDevice.h"
-#include "CiOSDevice.h"
-#include "CiOSDevice.h"
-#include "CiOSDevice.h"
 #include "pch.h"
 #include "CiOSDevice.h"
 #include <zip.h>
@@ -14,19 +11,233 @@
 #include "libimobiledevice/diagnostics_relay.h"
 #include <souistd.h>
 #include <libimobiledevice/screenshotr.h>
-
 #include <libimobiledevice/mobilebackup2.h>
 #include <libimobiledevice/notification_proxy.h>
 #include <libimobiledevice/afc.h>
 #include <libimobiledevice/installation_proxy.h>
 #include <libimobiledevice/sbservices.h>
 #include <event/NotifyCenter.h>
-
 #include <libimobiledevice/installation_proxy.h>
 
 EXTERN_C{
 #include "base64.h"
 }
+
+/////////////////////////////////////////////
+static void notifier(const char* notification, void* unused)
+{
+	if (strlen(notification) == 0) {
+		return;
+	}
+	CiOSDevice* ios = (CiOSDevice*)unused;
+
+	ios->app_notifier_fun(notification);
+}
+
+void GetAppValue(plist_t appnode, LPCSTR nodename, std::string& outValue)
+{
+	SASSERT(appnode);
+	SASSERT(nodename);
+	plist_t DisplayNameNode = plist_dict_get_item(appnode, nodename);
+	if (DisplayNameNode)
+	{
+		char* strDisplayName = NULL;
+		plist_get_string_val(DisplayNameNode, &strDisplayName);
+		if (strDisplayName)
+		{
+			outValue = strDisplayName;
+			free(strDisplayName);
+		}
+	}
+}
+
+void GetAppValue(plist_t appnode, LPCSTR nodename, SOUI::SStringT& outValue)
+{
+	SASSERT(appnode);
+	SASSERT(nodename);
+	plist_t DisplayNameNode = plist_dict_get_item(appnode, nodename);
+	if (DisplayNameNode)
+	{
+		char* strDisplayName = NULL;
+		plist_get_string_val(DisplayNameNode, &strDisplayName);
+		if (strDisplayName)
+		{
+			outValue = SOUI::S_CA2W(strDisplayName, CP_UTF8);
+			free(strDisplayName);
+		}
+	}
+}
+
+void GetAppValue(plist_t appnode, LPCSTR nodename, uint64_t& outValue)
+{
+	SASSERT(appnode);
+	SASSERT(nodename);
+	plist_t DisplayNameNode = plist_dict_get_item(appnode, nodename);
+	if (DisplayNameNode)
+	{
+		plist_get_uint_val(DisplayNameNode, &outValue);
+	}
+}
+
+void GetAppValue(plist_t appnode, LPCSTR nodename, char* outValue, uint64_t& datalen)
+{
+	SASSERT(appnode);
+	SASSERT(nodename);
+	plist_t DisplayNameNode = plist_dict_get_item(appnode, nodename);
+	if (DisplayNameNode)
+	{
+		plist_get_data_val(DisplayNameNode, &outValue, &datalen);
+	}
+}
+
+void syslog_callback(char c, void* user_data)
+{
+	putchar(c);
+	if (c == '\n') {
+		fflush(stdout);
+	}
+}
+
+bool _GetAddress(lockdownd_client_t client, SOUI::SStringA& outAddress, LPCSTR nodename)
+{
+	plist_t address_node = NULL;
+	if (LOCKDOWN_E_SUCCESS == lockdownd_get_value(client, NULL, nodename, &address_node))
+	{
+		char* node_value = NULL;
+		plist_type type = plist_get_node_type(address_node);
+		switch (type)
+		{
+			case PLIST_STRING:
+				plist_get_string_val(address_node, &node_value); break;
+			case PLIST_BOOLEAN:
+				{
+					uint8_t boolvalue;
+					plist_get_bool_val(address_node, &boolvalue);
+					node_value = (char*)malloc(10);
+					strcpy_s(node_value, 10, boolvalue ? "true" : "false");
+				}break;
+			case PLIST_ARRAY:
+				{
+					plist_array_iter iter = NULL;
+					plist_array_new_iter(address_node, &iter);
+					while (iter)
+					{
+						plist_t item = NULL;
+						plist_array_next_item(address_node, iter, &item);
+						plist_type itemtype = plist_get_node_type(item);
+						if (PLIST_DICT == plist_get_node_type(item))
+						{
+							plist_dict_iter iter2 = NULL;
+							plist_dict_new_iter(item, &iter2);
+							plist_t val = NULL;
+							do{
+								char* key = NULL;
+								//plist_dict_get_item_key(item, &key);
+								plist_dict_next_item(item, iter2, &key, &val);
+								if (PLIST_STRING == plist_get_node_type(val))
+								{
+									char* item_val = NULL;
+									plist_get_string_val(val, &item_val);
+									if (item_val)
+										free(item_val);
+								}
+								if (key)
+									free(key);
+								
+							} while (val);
+						}
+					}
+
+				}break;
+		}
+		plist_free(address_node);
+		address_node = NULL;
+		if (node_value) {
+			using namespace SOUI;
+			outAddress = node_value;
+			free(node_value);
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+	else
+	{
+		return false;
+	}
+}
+
+void idevice_event_cb(const idevice_event_t* event, void* user_data)
+{
+	IDeviceEventCallBack* reCallBack = (IDeviceEventCallBack*)user_data;
+	if (reCallBack)
+		reCallBack->idevice_event_cb_t(event);
+}
+
+bool CheckError(lockdownd_error_t err)
+{
+	bool bRet = true;
+	switch (err) {
+		case LOCKDOWN_E_SUCCESS:
+			break;
+		case LOCKDOWN_E_PASSWORD_PROTECTED:
+			//("ERROR: Could not validate with device %s because a passcode is set. Please enter the passcode on the device and retry.\n", udid);
+			break;
+		case LOCKDOWN_E_INVALID_CONF:
+		case LOCKDOWN_E_INVALID_HOST_ID:
+			//("ERROR: Device %s is not paired with this host\n", udid);
+			break;
+		case LOCKDOWN_E_PAIRING_DIALOG_RESPONSE_PENDING:
+			//("ERROR: Please accept the trust dialog on the screen of device %s, then attempt to pair again.\n", udid);
+			break;
+		case LOCKDOWN_E_USER_DENIED_PAIRING:
+			//("ERROR: Device %s said that the user denied the trust dialog.\n", udid);
+			break;
+		default:
+			//("ERROR: Device %s returned unhandled error code %d\n", udid, err);
+			break;
+	}
+	return bRet;
+}
+
+void notify_cb(const char* notification, void* userdata)
+{
+	if (strlen(notification) == 0) {
+		return;
+	}
+	if (!strcmp(notification, NP_SYNC_CANCEL_REQUEST)) {
+		//PRINT_VERBOSE(1, "User has cancelled the backup process on the device.\n");
+		//quit_flag++;
+	}
+	else if (!strcmp(notification, NP_BACKUP_DOMAIN_CHANGED)) {
+		//backup_domain_changed = 1;
+	}
+	else {
+		//PRINT_VERBOSE(1, "Unhandled notification '%s' (TODO: implement)\n", notification);
+	}
+}
+
+typedef struct __stat64 stat_generic_t;
+
+static int stat_generic(const char* filename, stat_generic_t* stat_gen)
+{
+	return __stat64(filename, stat_gen);
+}
+
+static int stat_generic(const wchar_t* filename, stat_generic_t* stat_gen)
+{
+	return _wstat64(filename, stat_gen);
+}
+
+static void uninstallstatus_cb(plist_t command, plist_t status, void* unused)
+{
+	((CiOSDevice*)unused)->uninstallstatus_cb(command, status);
+}
+
+/////////////////////////////////////////////
+
 
 CiOSDevice::CiOSDevice()
 {
@@ -44,7 +255,12 @@ bool CiOSDevice::OpenDevice(LPCSTR udid)
 		if (idevice_new(&m_device, udid) == IDEVICE_E_SUCCESS)
 		{
 			m_iosInfo.m_strDevUDID = SOUI::S_CA2T(udid, CP_UTF8).MakeUpper();
-			return lockdownd_client_new_with_handshake(m_device, &m_client, "my_iOSDevice") == LOCKDOWN_E_SUCCESS;
+			if (lockdownd_client_new_with_handshake(m_device, &m_client, "my_iOSDevice") == LOCKDOWN_E_SUCCESS)
+			{
+				_InitCallBack();
+				_InitInstproxy();
+				return true;
+			}
 		}
 	}
 	return false;
@@ -57,21 +273,30 @@ void CiOSDevice::CloseDevice()
 	m_bUpdataBattreyInfo = false;
 	m_bUpdataDiskInfo = false;
 
+	StopLogging();
+
 	for (auto& th : m_workThread)
 	{
 		if (th.joinable())
 			th.join();
 	}
 
-	if (m_device)
-	{
-		idevice_free(m_device);
-		m_device = NULL;
-	}
+	if (m_npClient)
+		np_client_free(m_npClient);
+
+	if (m_instproxy)
+		instproxy_client_free(m_instproxy);
+
 	if (m_client)
 	{
 		lockdownd_client_free(m_client);
 		m_client = NULL;
+	}
+
+	if (m_device)
+	{
+		idevice_free(m_device);
+		m_device = NULL;
 	}
 }
 
@@ -108,22 +333,22 @@ bool CiOSDevice::_GetAddress(SStringT& outAddress, LPCSTR nodename)
 		plist_type type = plist_get_node_type(address_node);
 		switch (type)
 		{
-		case PLIST_STRING:
-			plist_get_string_val(address_node, &node_value); break;
-		case PLIST_BOOLEAN:
-		{
-			uint8_t boolvalue;
-			plist_get_bool_val(address_node, &boolvalue);
-			node_value = (char*)malloc(10);
-			strcpy_s(node_value, 10, boolvalue ? "true" : "false");
-		}break;
-		case PLIST_UINT:
-		{
-			uint64_t u64value;
-			plist_get_uint_val(address_node, &u64value);
-			node_value = (char*)malloc(66);
-			sprintf_s(node_value, 66, "%llX", u64value);
-		}break;
+			case PLIST_STRING:
+				plist_get_string_val(address_node, &node_value); break;
+			case PLIST_BOOLEAN:
+				{
+					uint8_t boolvalue;
+					plist_get_bool_val(address_node, &boolvalue);
+					node_value = (char*)malloc(10);
+					strcpy_s(node_value, 10, boolvalue ? "true" : "false");
+				}break;
+			case PLIST_UINT:
+				{
+					uint64_t u64value;
+					plist_get_uint_val(address_node, &u64value);
+					node_value = (char*)malloc(66);
+					sprintf_s(node_value, 66, "%llX", u64value);
+				}break;
 		}
 		plist_free(address_node);
 		address_node = NULL;
@@ -144,7 +369,7 @@ bool CiOSDevice::_GetAddress(SStringT& outAddress, LPCSTR nodename)
 	}
 }
 
-bool CiOSDevice::_GetDiskAddress(lockdownd_client_t client, DiskInfo & outAddress)
+bool CiOSDevice::_GetDiskAddress(lockdownd_client_t client, DiskInfo& outAddress)
 {
 	plist_t address_node = NULL;
 	//outAddress.bReady = false;
@@ -179,7 +404,7 @@ bool CiOSDevice::_GetDiskAddress(lockdownd_client_t client, DiskInfo & outAddres
 	return false;
 }
 
-bool CiOSDevice::GetWifiAddress(SStringT & outMac)
+bool CiOSDevice::GetWifiAddress(SStringT& outMac)
 {
 	if (m_iosInfo.m_strDevWiFiAddress.IsEmpty())
 	{
@@ -190,7 +415,7 @@ bool CiOSDevice::GetWifiAddress(SStringT & outMac)
 	return true;
 }
 
-bool CiOSDevice::GetBluetoothAddress(SStringT & outMac)
+bool CiOSDevice::GetBluetoothAddress(SStringT& outMac)
 {
 	if (m_iosInfo.m_strDevBluetoothAddress.IsEmpty())
 	{
@@ -214,79 +439,6 @@ bool CiOSDevice::SetDevName(LPCTSTR newName)
 		}
 	}
 	return false;
-}
-
-bool _GetAddress(lockdownd_client_t client, SOUI::SStringA & outAddress, LPCSTR nodename)
-{
-	plist_t address_node = NULL;
-	if (LOCKDOWN_E_SUCCESS == lockdownd_get_value(client, NULL, nodename, &address_node))
-	{
-		char* node_value = NULL;
-		plist_type type = plist_get_node_type(address_node);
-		switch (type)
-		{
-		case PLIST_STRING:
-			plist_get_string_val(address_node, &node_value); break;
-		case PLIST_BOOLEAN:
-		{
-			uint8_t boolvalue;
-			plist_get_bool_val(address_node, &boolvalue);
-			node_value = (char*)malloc(10);
-			strcpy_s(node_value, 10, boolvalue ? "true" : "false");
-		}break;
-		case PLIST_ARRAY:
-		{
-			plist_array_iter iter = NULL;
-			plist_array_new_iter(address_node, &iter);
-			while (iter)
-			{
-				plist_t item = NULL;
-				plist_array_next_item(address_node, iter, &item);
-				plist_type itemtype = plist_get_node_type(item);
-				if (PLIST_DICT == plist_get_node_type(item))
-				{
-					plist_dict_iter iter2 = NULL;
-					plist_dict_new_iter(item, &iter2);
-					while (iter2)
-					{
-						plist_t val = NULL;
-						char* key = NULL;
-						//plist_dict_get_item_key(item, &key);
-						plist_dict_next_item(item, iter2, &key, &val);
-						if (PLIST_STRING == plist_get_node_type(val))
-						{
-							char* item_val = NULL;
-							plist_get_string_val(val, &item_val);
-							if (item_val)
-								free(item_val);
-						}
-						if (key)
-							free(key);
-						else
-							break;
-					}
-				}
-			}
-
-		}break;
-		}
-		plist_free(address_node);
-		address_node = NULL;
-		if (node_value) {
-			using namespace SOUI;
-			outAddress = node_value;
-			free(node_value);
-			return true;
-		}
-		else
-		{
-			return false;
-		}
-	}
-	else
-	{
-		return false;
-	}
 }
 
 void CiOSDevice::_GetTypeFromProductName()
@@ -380,52 +532,6 @@ bool CiOSDevice::GetDeviceBaseInfo()
 	_GetDiskInfo();
 
 	m_iosInfo.m_bIsJailreak = _IsJailreak();
-	//
-#ifdef _DEBUG
-	/*int i = 0;
-	FILE* out;
-	out = fopen("e:\\abc.txt", "w+");
-	while (domains[i] != NULL) {
-		plist_t node = NULL;
-		if (lockdownd_get_value(m_client, domains[i], "NANDInfo", &node) == LOCKDOWN_E_SUCCESS) {
-			if (node) {
-				fprintf(out, "-----------%s-------------\n", domains[i]);
-				plist_print_to_stream(node, out);
-				plist_free(node);
-				node = NULL;
-			}
-		}
-		++i;
-	}
-	fclose(out);*/
-
-	/*
-	{
-		FILE* outbin;
-		outbin = fopen("e:\\bcd.bin", "w+");
-		plist_t node = NULL;
-		if (lockdownd_get_value(m_client, domains[1], "NANDInfo", &node) == LOCKDOWN_E_SUCCESS) {
-			if (node) {
-				char* test = NULL;
-				uint64_t len;
-				plist_get_data_val(node, &test, &len);
-				fwrite(test, 1, len, outbin);
-				//size_t len2=0;
-				//char* test2=(char*)base64decode(test,&len2);
-				free(test);
-				//free(test2);
-				//char* xml;
-				//uint32_t len3;
-				//plist_to_xml(node, &xml, &len3);
-				//free(xml);
-				plist_free(node);
-				node = NULL;
-			}
-		}
-		fclose(outbin);
-	}*/
-
-#endif // DEBUG
 
 	return true;
 }
@@ -434,6 +540,44 @@ void CiOSDevice::StartUpdata()
 {
 	if (!(m_workThread[Thread_Updata].joinable()))
 		m_workThread[Thread_Updata] = std::thread(&CiOSDevice::_Updata, this);
+}
+
+int CiOSDevice::StartLogging()
+{
+	StopLogging();
+	/* start syslog_relay service */
+	lockdownd_service_descriptor_t svc = NULL;
+	lockdownd_error_t lerr = lockdownd_start_service(m_client, SYSLOG_RELAY_SERVICE_NAME, &svc);
+	if (lerr == LOCKDOWN_E_PASSWORD_PROTECTED) {
+		return LOCKDOWN_E_PASSWORD_PROTECTED;
+	}
+	if (lerr != LOCKDOWN_E_SUCCESS) {
+		return -1;
+	}
+	/* connect to syslog_relay service */
+	syslog_relay_error_t serr = SYSLOG_RELAY_E_UNKNOWN_ERROR;
+	serr = syslog_relay_client_new(m_device, svc, &syslog);
+	lockdownd_service_descriptor_free(svc);
+	if (serr != SYSLOG_RELAY_E_SUCCESS) {
+		return -1;
+	}
+
+	/* start capturing syslog */
+	serr = syslog_relay_start_capture(syslog, syslog_callback, NULL);
+	if (serr != SYSLOG_RELAY_E_SUCCESS) {
+		syslog_relay_client_free(syslog);
+		syslog = NULL;
+		return -1;
+	}
+	return 0;
+}
+
+void CiOSDevice::StopLogging()
+{
+	if (syslog) {
+		syslog_relay_client_free(syslog);
+		syslog = NULL;
+	}
 }
 
 void CiOSDevice::StartUpdataDiskInfo()
@@ -453,43 +597,10 @@ const iOSDevInfo& CiOSDevice::GetiOSBaseInfo()
 	return m_iosInfo;
 }
 
-void idevice_event_cb(const idevice_event_t * event, void* user_data)
-{
-	IDeviceEventCallBack* reCallBack = (IDeviceEventCallBack*)user_data;
-	if (reCallBack)
-		reCallBack->idevice_event_cb_t(event);
-}
-
-idevice_error_t CiOSDevice::SetCallBack(IDeviceEventCallBack * relCallBack)
+idevice_error_t CiOSDevice::SetCallBack(IDeviceEventCallBack* relCallBack)
 {
 	idevice_event_unsubscribe();
 	return idevice_event_subscribe(idevice_event_cb, (void*)relCallBack);
-}
-
-bool CheckError(lockdownd_error_t err)
-{
-	bool bRet = true;
-	switch (err) {
-	case LOCKDOWN_E_SUCCESS:
-		break;
-	case LOCKDOWN_E_PASSWORD_PROTECTED:
-		//("ERROR: Could not validate with device %s because a passcode is set. Please enter the passcode on the device and retry.\n", udid);
-		break;
-	case LOCKDOWN_E_INVALID_CONF:
-	case LOCKDOWN_E_INVALID_HOST_ID:
-		//("ERROR: Device %s is not paired with this host\n", udid);
-		break;
-	case LOCKDOWN_E_PAIRING_DIALOG_RESPONSE_PENDING:
-		//("ERROR: Please accept the trust dialog on the screen of device %s, then attempt to pair again.\n", udid);
-		break;
-	case LOCKDOWN_E_USER_DENIED_PAIRING:
-		//("ERROR: Device %s said that the user denied the trust dialog.\n", udid);
-		break;
-	default:
-		//("ERROR: Device %s returned unhandled error code %d\n", udid, err);
-		break;
-	}
-	return bRet;
 }
 
 bool CiOSDevice::IsPair(LPCSTR udid)
@@ -515,7 +626,7 @@ bool CiOSDevice::IsPair(LPCSTR udid)
 	return false;
 }
 
-bool CiOSDevice::GetiOSDeviceGUIDList(std::vector<std::string> & iosList)
+bool CiOSDevice::GetiOSDeviceGUIDList(std::vector<std::string>& iosList)
 {
 	idevice_t device = NULL;
 	char** dev_list = NULL;
@@ -549,74 +660,21 @@ bool CiOSDevice::DoCmd(diagnostics_cmd_mode cmd)
 		if (diagnostics_relay_client_new(m_device, service, &diagnostics_client) == DIAGNOSTICS_RELAY_E_SUCCESS)
 		{
 			switch (cmd) {
-			case CMD_SLEEP:
-				if (diagnostics_relay_sleep(diagnostics_client) == DIAGNOSTICS_RELAY_E_SUCCESS) {
-					bRet = true;
-				}
-				break;
-			case CMD_RESTART:
-				if (diagnostics_relay_restart(diagnostics_client, DIAGNOSTICS_RELAY_ACTION_FLAG_WAIT_FOR_DISCONNECT) == DIAGNOSTICS_RELAY_E_SUCCESS) {
-					bRet = true;
-				}
-				break;
-			case CMD_SHUTDOWN:
-				if (diagnostics_relay_shutdown(diagnostics_client, DIAGNOSTICS_RELAY_ACTION_FLAG_WAIT_FOR_DISCONNECT) == DIAGNOSTICS_RELAY_E_SUCCESS) {
-					bRet = true;
-				}
-				break;
-				/*case CMD_MOBILEGESTALT:
-					if (diagnostics_relay_query_mobilegestalt(diagnostics_client, keys, &node) == DIAGNOSTICS_RELAY_E_SUCCESS) {
+				case CMD_SLEEP:
+					if (diagnostics_relay_sleep(diagnostics_client) == DIAGNOSTICS_RELAY_E_SUCCESS) {
 						bRet = true;
-						if (node) {
-							//print_xml(node);
-							//result = EXIT_SUCCESS;
-						}
 					}
 					break;
-			case CMD_IOREGISTRY_ENTRY:
-				if (diagnostics_relay_query_ioregistry_entry(diagnostics_client, "", "", &node) == DIAGNOSTICS_RELAY_E_SUCCESS) {
-					if (node) {
-						char* xml = NULL;
-						uint32_t len = 0;
-						plist_to_xml(node, &xml, &len);
-						if (xml) {
-							puts(xml);
-						}
-						free(xml);
-						plist_free(node);
-						//print_xml(node);
-						//result = EXIT_SUCCESS;
+				case CMD_RESTART:
+					if (diagnostics_relay_restart(diagnostics_client, DIAGNOSTICS_RELAY_ACTION_FLAG_WAIT_FOR_DISCONNECT) == DIAGNOSTICS_RELAY_E_SUCCESS) {
+						bRet = true;
 					}
-				}
-				break;
-			case CMD_IOREGISTRY:
-				if (diagnostics_relay_query_ioregistry_plane(diagnostics_client, "IOPower", &node) == DIAGNOSTICS_RELAY_E_SUCCESS) {
-					if (node) {
-						char* xml = NULL;
-						uint32_t len = 0;
-						plist_to_xml(node, &xml, &len);
-						if (xml) {
-							puts(xml);
-						}
-						free(xml);
-						plist_free(node);
+					break;
+				case CMD_SHUTDOWN:
+					if (diagnostics_relay_shutdown(diagnostics_client, DIAGNOSTICS_RELAY_ACTION_FLAG_WAIT_FOR_DISCONNECT) == DIAGNOSTICS_RELAY_E_SUCCESS) {
+						bRet = true;
 					}
-				}
-				break;
-			case CMD_DIAGNOSTICS:
-			default:
-				if (diagnostics_relay_request_diagnostics(diagnostics_client, "All", &node) == DIAGNOSTICS_RELAY_E_SUCCESS) {
-					if (node) {
-						char* xml = NULL;
-						uint32_t len = 0;
-						plist_to_xml(node, &xml, &len);
-						if (xml) {
-							puts(xml);
-						}
-						free(xml);
-						plist_free(node);
-					}
-				}/**/
+					break;
 			}
 			diagnostics_relay_goodbye(diagnostics_client);
 			diagnostics_relay_client_free(diagnostics_client);
@@ -630,12 +688,12 @@ bool CiOSDevice::DoCmd(diagnostics_cmd_mode cmd)
 	return true;
 }
 
-void CiOSDevice::GetBatteryBaseInfo(BatteryBaseInfo & outasGauge)
+void CiOSDevice::GetBatteryBaseInfo(BatteryBaseInfo& outasGauge)
 {
 	outasGauge = m_iosInfo.m_sGasGauge;
 }
 
-bool CiOSDevice::_GetBatteryBaseInfo(BatteryBaseInfo & outInfo)
+bool CiOSDevice::_GetBatteryBaseInfo(BatteryBaseInfo& outInfo)
 {
 	lockdownd_service_descriptor_t service = NULL;
 	diagnostics_relay_client_t diagnostics_client = NULL;
@@ -773,6 +831,8 @@ void CiOSDevice::_ScreenShot()
 {
 	EventScreenShot* pScreenshotEvt = new EventScreenShot(NULL);
 	pScreenshotEvt->code = -1;
+	pScreenshotEvt->udid = m_iosInfo.m_strDevUDID;
+	pScreenshotEvt->udid.MakeLower();
 	if (_GetScreenWallpaper(&pScreenshotEvt->imgbuf, pScreenshotEvt->bufsize))
 	{
 		pScreenshotEvt->code = 0;
@@ -783,12 +843,13 @@ void CiOSDevice::_ScreenShot()
 
 void CiOSDevice::_Updata()
 {
+	auto_bool_value flag(m_bUpdata);
+
 	lockdownd_client_t updataClient = NULL;
 	if (lockdownd_client_new_with_handshake(m_device, &updataClient, "my_iOSDeviceUpdata") != LOCKDOWN_E_SUCCESS)
 	{
 		return;
 	}
-	m_bUpdata = true;
 
 	SOUI::SStringT udid = m_iosInfo.m_strDevUDID;
 	udid.MakeLower();
@@ -809,24 +870,6 @@ void CiOSDevice::_Updata()
 		SOUI::SNotifyCenter::getSingleton().FireEventAsync(e);
 		e->Release();
 		std::this_thread::sleep_for(std::chrono::seconds(1));
-	}
-}
-
-//Library/AddressBook/AddressBook.sqlitedb
-void notify_cb(const char* notification, void* userdata)
-{
-	if (strlen(notification) == 0) {
-		return;
-	}
-	if (!strcmp(notification, NP_SYNC_CANCEL_REQUEST)) {
-		//PRINT_VERBOSE(1, "User has cancelled the backup process on the device.\n");
-		//quit_flag++;
-	}
-	else if (!strcmp(notification, NP_BACKUP_DOMAIN_CHANGED)) {
-		//backup_domain_changed = 1;
-	}
-	else {
-		//PRINT_VERBOSE(1, "Unhandled notification '%s' (TODO: implement)\n", notification);
 	}
 }
 
@@ -1277,7 +1320,7 @@ checkpoint:
 }
 
 template<class T>
-bool CiOSDevice::GetBattery(LPCSTR key, T & outValue)
+bool CiOSDevice::GetBattery(LPCSTR key, T& outValue)
 {
 	if (!IsOpen())
 		return false;
@@ -1315,7 +1358,7 @@ void CiOSDevice::StopUpdataBatteryInfo()
 
 void CiOSDevice::_UpdataBatteryInfo()
 {
-	m_bUpdataBattreyInfo = true;
+	auto_bool_value flag(m_bUpdataBattreyInfo);
 
 	lockdownd_service_descriptor_t service = NULL;
 	diagnostics_relay_client_t diagnostics_client = NULL;
@@ -1377,12 +1420,63 @@ void CiOSDevice::_UpdataBatteryInfo()
 		lockdownd_service_descriptor_free(service);
 		service = NULL;
 	}
-	m_bUpdataBattreyInfo = false;
+}
+
+void CiOSDevice::FreeAFCClient(afc_client_t afc_client)
+{
+	afc_client_free(afc_client);
+}
+
+bool CiOSDevice::CreateAFCClient(afc_client_t& afc_client)
+{
+	//afc_client = NULL;
+	lockdownd_service_descriptor_t service = NULL;
+	lockdownd_client_t CreateAFCClient = NULL;
+	bool bret = false;
+	if (lockdownd_client_new_with_handshake(m_device, &CreateAFCClient, "afc_client") != LOCKDOWN_E_SUCCESS)
+	{
+		return false;
+	}
+	if ((lockdownd_start_service(CreateAFCClient, "com.apple.afc", &service) !=
+		LOCKDOWN_E_SUCCESS) || !service) {
+		goto leave_cleanup;
+	}
+	if (afc_client_new(m_device, service, &afc_client) == AFC_E_SUCCESS) {
+		bret = true;
+	}
+leave_cleanup:
+	lockdownd_service_descriptor_free(service);
+	lockdownd_client_free(CreateAFCClient);
+	return bret;
+}
+
+bool CiOSDevice::CreateAFC2Client(afc_client_t& afc_client)
+{
+	lockdownd_service_descriptor_t service = NULL;
+	lockdownd_client_t CreateAFCClient = NULL;
+	bool bret = false;
+	if (lockdownd_client_new_with_handshake(m_device, &CreateAFCClient, "afc2_client") != LOCKDOWN_E_SUCCESS)
+	{
+		return false;
+	}
+	if ((lockdownd_start_service(CreateAFCClient, "com.apple.afc2", &service) !=
+		LOCKDOWN_E_SUCCESS) || !service) {
+		goto leave_cleanup;
+	}
+	if (afc_client_new(m_device, service, &afc_client) == AFC_E_SUCCESS) {
+		bret = true;
+	}
+leave_cleanup:
+	lockdownd_service_descriptor_free(service);
+	lockdownd_client_free(CreateAFCClient);
+	return bret;
 }
 
 void CiOSDevice::_UpdataDiskInfo()
 {
-	m_bUpdataDiskInfo = true;
+	auto_bool_value flag(m_bUpdataDiskInfo);
+
+	//m_bUpdataDiskInfo = true;
 	m_iosInfo.m_diskInfo.bReady = false;
 
 	SOUI::SStringA udid = SOUI::S_CW2A(m_iosInfo.m_strDevUDID);
@@ -1394,13 +1488,13 @@ void CiOSDevice::_UpdataDiskInfo()
 
 		if (_GetDiskAddress(updataDiskClient, m_iosInfo.m_diskInfo))
 		{
-			
+
 			break;
 		}
 		std::this_thread::sleep_for(std::chrono::seconds(1));
 	}*/
 	afc_client_t afc = NULL;
-	lockdownd_service_descriptor_t service = NULL;	
+	lockdownd_service_descriptor_t service = NULL;
 	lockdownd_client_t updataDiskClient = NULL;
 	if (lockdownd_client_new_with_handshake(m_device, &updataDiskClient, "updataDiskClient") != LOCKDOWN_E_SUCCESS)
 	{
@@ -1416,11 +1510,11 @@ void CiOSDevice::_UpdataDiskInfo()
 	//  /var/mobile/Containers/Bundle/Application
 
 #define AppDirPath "/User/Applications"
-	size_t size=0;
+	size_t size = 0;
 	if (utils::afc_get_file_size(afc, size, AppDirPath) == 0)
 		m_iosInfo.m_diskInfo.AppUsage;
 #define UDiskPath "/general_storage"
-	if(utils::afc_get_file_size(afc, size, UDiskPath)==0)
+	if (utils::afc_get_file_size(afc, size, UDiskPath) == 0)
 		m_iosInfo.m_diskInfo.UDisk = size;
 #define PhotePath "/DCIM"
 	if (utils::afc_get_file_size(afc, size, PhotePath) == 0)
@@ -1435,28 +1529,93 @@ leave_cleanup:
 	afc_client_free(afc);
 	lockdownd_service_descriptor_free(service);
 	lockdownd_client_free(updataDiskClient);
-	m_bUpdataDiskInfo = false;
 }
 
-static void notifier(const char* notification, void* unused)
+void CiOSDevice::app_notifier_fun(const char* notification)
 {
-	(void)notification;
-	(void)unused;
+	if (m_instproxy)
+	{
+		if ((strcmp(notification, NP_APP_INSTALLED) == 0)
+			|| (strcmp(notification, NP_APP_UNINSTALLED) == 0)) {
+			//安装重新拉取列表。
+			instproxy_error_t err;
+			plist_t client_opts = instproxy_client_options_new();
+			instproxy_client_options_add(client_opts, "ApplicationType", "User", NULL);
+			plist_t apps = NULL;
+			instproxy_client_options_set_return_attributes(client_opts,
+				"CFBundleIdentifier",
+				NULL
+			);
+
+			if (m_instproxy == NULL)
+				_InitInstproxy();
+			if (m_instproxy == NULL)
+				return;
+			err = instproxy_browse(m_instproxy, client_opts, &apps);
+
+			instproxy_client_options_free(client_opts);
+			if (!apps || (plist_get_node_type(apps) != PLIST_ARRAY)) {
+				return;
+			}
+
+			WLocker locker(m_appsLocker);
+			std::set<std::string> oldlist = m_applist;
+			m_applist.clear();
+			uint32_t size = plist_array_get_size(apps);
+			//新安装数
+			int newinstallcount = 0;
+			for (uint32_t i = 0; i < size; i++)
+			{
+				plist_t app = plist_array_get_item(apps, i);
+				if (app)
+				{
+					std::string id;
+					GetAppValue(app, "CFBundleIdentifier", id);
+					//原列表没有的说明是新安装的；
+					if (oldlist.count(id) == 0)
+					{
+						++newinstallcount;
+						const char* ids[] = { id.c_str(),NULL };
+						_GetInstallAppInfo(ids);
+					}
+					m_applist.insert(id);
+				}
+			}
+			//如果新列表大于老列表加安装的应用数则说明有卸载的应用
+			if (m_applist.size() < (oldlist.size() + newinstallcount))
+			{
+				//老列表有，新列表没有，则说明是卸载的应用
+				for (auto& ite : oldlist)
+				{
+					if (m_applist.count(ite) == 0)
+					{
+						EventUninstallApp* e = new EventUninstallApp(NULL);
+						e->udid = m_iosInfo.m_strDevUDID;
+						e->udid.MakeLower();
+						e->appid = ite;
+						e->bSucessed = true;
+						SOUI::SNotifyCenter::getSingleton().FireEventAsync(e);
+						e->Release();
+					}
+				}
+			}
+			plist_free(apps);
+		}
+	}
 }
 
 void CiOSDevice::StartUpdataApps()
 {
-	if (!(m_workThread[Thread_UpdataAppsInfo].joinable()))
-		m_workThread[Thread_UpdataAppsInfo] = std::thread(&CiOSDevice::_UpdataAppsInfo, this);
+	if (m_bUpdataApps)
+		return;
+	if (m_workThread[Thread_UpdataAppsInfo].joinable())
+		m_workThread[Thread_UpdataAppsInfo].join();
+	m_workThread[Thread_UpdataAppsInfo] = std::thread(&CiOSDevice::_UpdataAppsInfo, this);
 }
 
-const std::vector<AppInfo>* CiOSDevice::GetApps()
+int CiOSDevice::GetAppsCount()
 {
-
-	RTryLocker locker(m_appsLocker);
-	if (locker)
-		return &m_apps;
-	return NULL;
+	return m_applist.size();
 }
 
 void CiOSDevice::IntallApp(LPCWSTR appfile)
@@ -1466,7 +1625,7 @@ void CiOSDevice::IntallApp(LPCWSTR appfile)
 	m_workThread[Thread_InstallApp] = std::thread(&CiOSDevice::_InstallApp, this, std::wstring(appfile), true);
 }
 
-bool CiOSDevice::_GetAppIcon(LPCSTR id, char** outBuf, uint64_t & len)
+bool CiOSDevice::_GetAppIcon(LPCSTR id, char** outBuf, uint64_t& len)
 {
 	if (id == NULL)
 		return false;
@@ -1480,7 +1639,7 @@ bool CiOSDevice::_GetAppIcon(LPCSTR id, char** outBuf, uint64_t & len)
 	return SBSERVICES_E_SUCCESS == ret;
 }
 
-bool CiOSDevice::_GetScreenWallpaper(char** outBuf, uint64_t & len)
+bool CiOSDevice::_GetScreenWallpaper(char** outBuf, uint64_t& len)
 {
 	sbservices_client_t sbclient = NULL;
 	if (sbservices_client_start_service(m_device, &sbclient, "geticon") != SBSERVICES_E_SUCCESS)
@@ -1490,68 +1649,12 @@ bool CiOSDevice::_GetScreenWallpaper(char** outBuf, uint64_t & len)
 	return SBSERVICES_E_SUCCESS == ret;
 }
 
-void GetAppValue(plist_t appnode, LPCSTR nodename, std::string & outValue)
-{
-	SASSERT(appnode);
-	SASSERT(nodename);
-	plist_t DisplayNameNode = plist_dict_get_item(appnode, nodename);
-	if (DisplayNameNode)
-	{
-		char* strDisplayName = NULL;
-		plist_get_string_val(DisplayNameNode, &strDisplayName);
-		if (strDisplayName)
-		{
-			outValue = strDisplayName;
-			free(strDisplayName);
-		}
-	}
-}
-
-void GetAppValue(plist_t appnode, LPCSTR nodename, SOUI::SStringT & outValue)
-{
-	SASSERT(appnode);
-	SASSERT(nodename);
-	plist_t DisplayNameNode = plist_dict_get_item(appnode, nodename);
-	if (DisplayNameNode)
-	{
-		char* strDisplayName = NULL;
-		plist_get_string_val(DisplayNameNode, &strDisplayName);
-		if (strDisplayName)
-		{
-			outValue = SOUI::S_CA2W(strDisplayName, CP_UTF8);
-			free(strDisplayName);
-		}
-	}
-}
-
-void GetAppValue(plist_t appnode, LPCSTR nodename, uint64_t & outValue)
-{
-	SASSERT(appnode);
-	SASSERT(nodename);
-	plist_t DisplayNameNode = plist_dict_get_item(appnode, nodename);
-	if (DisplayNameNode)
-	{
-		plist_get_uint_val(DisplayNameNode, &outValue);
-	}
-}
-
-void GetAppValue(plist_t appnode, LPCSTR nodename, char* outValue, uint64_t & datalen)
-{
-	SASSERT(appnode);
-	SASSERT(nodename);
-	plist_t DisplayNameNode = plist_dict_get_item(appnode, nodename);
-	if (DisplayNameNode)
-	{
-		plist_get_data_val(DisplayNameNode, &outValue, &datalen);
-	}
-}
-
 void CiOSDevice::_UpdataApps(plist_t apps)
 {
 	if (apps)
 	{
 		WLocker locker(m_appsLocker);
-		m_apps.clear();
+		m_applist.clear();
 		/*char* xml = NULL;
 		uint32_t len = 0;
 		plist_to_xml(apps, &xml, &len);
@@ -1560,6 +1663,7 @@ void CiOSDevice::_UpdataApps(plist_t apps)
 			free(xml);
 		}*/
 		uint32_t size = plist_array_get_size(apps);
+		EventUpdataAppsInfo* e = new EventUpdataAppsInfo(NULL);
 		for (uint32_t i = 0; i < size; i++)
 		{
 			plist_t app = plist_array_get_item(apps, i);
@@ -1567,7 +1671,7 @@ void CiOSDevice::_UpdataApps(plist_t apps)
 			{
 				AppInfo appInfo;
 				GetAppValue(app, "CFBundleIdentifier", appInfo.AppID);
-
+				m_applist.insert(appInfo.AppID);
 				char* pngdata = NULL; uint64_t len;
 				if (_GetAppIcon(appInfo.AppID.c_str(), &pngdata, len))
 				{
@@ -1578,20 +1682,14 @@ void CiOSDevice::_UpdataApps(plist_t apps)
 				GetAppValue(app, "CFBundleShortVersionString", appInfo.Version);
 				GetAppValue(app, "DynamicDiskUsage", appInfo.DynamicDiskUsage);
 				GetAppValue(app, "StaticDiskUsage", appInfo.StaticDiskUsage);
-				m_apps.push_back(appInfo);
+				e->apps.push_back(appInfo);
 			}
 		}
-		EventUpdataAppsInfo* e = new EventUpdataAppsInfo(NULL);
 		e->udid = m_iosInfo.m_strDevUDID;
 		e->udid.MakeLower();
 		SOUI::SNotifyCenter::getSingleton().FireEventAsync(e);
 		e->Release();
 	}
-}
-
-static void uninstallstatus_cb(plist_t command, plist_t status, void* unused)
-{
-	((CiOSDevice*)unused)->uninstallstatus_cb(command, status);
 }
 
 void CiOSDevice::uninstallstatus_cb(plist_t command, plist_t status)
@@ -1603,15 +1701,6 @@ void CiOSDevice::uninstallstatus_cb(plist_t command, plist_t status)
 		if (strcmp(command_name, "Uninstall") != 0) {
 			return;
 		}
-
-		/*char* xml = NULL;
-		uint32_t len = 0;
-		plist_to_xml(command, &xml, &len);
-		if (xml) {
-			SOUI::SStringW wxml = SOUI::S_CA2W(xml, CP_UTF8);
-			free(xml);
-		}*/
-		//command_name==Uninstall ApplicationIdentifier
 		char* appid = NULL;
 		char* error_name = NULL;
 		char* error_description = NULL;
@@ -1622,34 +1711,28 @@ void CiOSDevice::uninstallstatus_cb(plist_t command, plist_t status)
 		/* get status */
 		char* status_name = NULL;
 		instproxy_status_get_name(status, &status_name);
-		bool command_completed = false;
+		bool exit = false;
 		if (status_name) {
 			//完成
 			if (!strcmp(status_name, "Complete")) {
-
-				appUnistallcv.notify_one();
-
 				{
 					WLocker locker(m_appsLocker);
-					auto iter = m_apps.begin();
-					while (iter != m_apps.end())
+
+					auto iter = m_applist.find(appid);
+
+					if (iter != m_applist.end())
 					{
-						if (iter->AppID == appid)
-						{
-							m_apps.erase(iter);
-							break;
-						}
-						iter++;
+						m_applist.erase(iter);
+						EventUninstallApp* e = new EventUninstallApp(NULL);
+						e->udid = m_iosInfo.m_strDevUDID;
+						e->udid.MakeLower();
+						e->appid = appid;
+						e->bSucessed = true;
+						SOUI::SNotifyCenter::getSingleton().FireEventAsync(e);
+						e->Release();
 					}
 				}
-
-				EventUninstallApp* e = new EventUninstallApp(NULL);
-				e->udid = m_iosInfo.m_strDevUDID;
-				e->udid.MakeLower();
-				e->appid = appid;
-				e->bSucessed = true;
-				SOUI::SNotifyCenter::getSingleton().FireEventAsync(e);
-				e->Release();
+				exit = true;
 
 				goto clearup;
 			}
@@ -1676,7 +1759,6 @@ void CiOSDevice::uninstallstatus_cb(plist_t command, plist_t status)
 			}
 		}
 		else {
-			appUnistallcv.notify_one();
 			EventUninstallApp* e = new EventUninstallApp(NULL);
 			e->udid = m_iosInfo.m_strDevUDID;
 			e->udid.MakeLower();
@@ -1684,6 +1766,7 @@ void CiOSDevice::uninstallstatus_cb(plist_t command, plist_t status)
 			e->bSucessed = false;
 			SOUI::SNotifyCenter::getSingleton().FireEventAsync(e);
 			e->Release();
+			exit = true;
 		}
 	clearup:
 		/* clean up */
@@ -1692,6 +1775,9 @@ void CiOSDevice::uninstallstatus_cb(plist_t command, plist_t status)
 		free(error_description);
 		free(command_name);
 		command_name = NULL;
+
+		if (exit)
+			appUnistallcv.notify_one();
 	}
 	else {
 		fprintf(stderr, "ERROR: %s was called with invalid arguments!\n", __func__);
@@ -1701,6 +1787,59 @@ void CiOSDevice::uninstallstatus_cb(plist_t command, plist_t status)
 static void installstatus_cb(plist_t command, plist_t status, void* unused)
 {
 	((CiOSDevice*)unused)->installstatus_cb(command, status);
+}
+
+void CiOSDevice::_GetInstallAppInfo(LPCSTR* appid)
+{
+	if (m_instproxy && appid)
+	{
+		plist_t client_opts = instproxy_client_options_new();
+		plist_t apps = NULL;
+		instproxy_client_options_set_return_attributes(client_opts,
+			"CFBundleIdentifier",
+			"CFBundleDisplayName",
+			"CFBundleShortVersionString",
+			"StaticDiskUsage",
+			"DynamicDiskUsage",
+			NULL
+		);
+		if (instproxy_lookup(m_instproxy, appid, client_opts, &apps) == INSTPROXY_E_SUCCESS)
+		{
+			plist_dict_iter ite = NULL;
+			plist_dict_new_iter(apps, &ite);
+			plist_t app = NULL;
+				
+			do{
+				char* key = NULL;
+				plist_dict_next_item(apps, ite, &key, &app);
+				free(key);
+				if (app)
+				{
+					EventInstallApp* e = new EventInstallApp(NULL);
+					e->udid = m_iosInfo.m_strDevUDID;
+					e->udid.MakeLower();
+					e->bSucessed = true;
+					GetAppValue(app, "CFBundleIdentifier", e->appinfo.AppID);
+					m_applist.insert(e->appinfo.AppID);
+					char* pngdata = NULL; uint64_t len;
+					if (_GetAppIcon(e->appinfo.AppID.c_str(), &pngdata, len))
+					{
+						e->appinfo.m_ico.Attach(SOUI::SResLoadFromMemory::LoadImage(pngdata, (uint32_t)len));
+						free(pngdata);
+					}
+					GetAppValue(app, "CFBundleDisplayName", e->appinfo.DisplayName);
+					GetAppValue(app, "CFBundleShortVersionString", e->appinfo.Version);
+					GetAppValue(app, "DynamicDiskUsage", e->appinfo.DynamicDiskUsage);
+					GetAppValue(app, "StaticDiskUsage", e->appinfo.StaticDiskUsage);
+
+					SOUI::SNotifyCenter::getSingleton().FireEventAsync(e);
+					e->Release();
+				}
+			}while (app);
+		}
+		plist_free(apps);
+		instproxy_client_options_free(client_opts);
+	}
 }
 
 void CiOSDevice::installstatus_cb(plist_t command, plist_t status)
@@ -1734,29 +1873,17 @@ void CiOSDevice::installstatus_cb(plist_t command, plist_t status)
 			if (!strcmp(status_name, "Complete")) {
 
 				appIstallcv.notify_one();
-				/*
 				{
 					WLocker locker(m_appsLocker);
-					auto iter = m_apps.begin();
-					while (iter != m_apps.end())
-					{
-						if (iter->AppID == appid)
-						{
-							m_apps.erase(iter);
-							break;
-						}
-						iter++;
-					}
-				}*/
-				EventInstallApp* e = new EventInstallApp(NULL);
-				e->udid = m_iosInfo.m_strDevUDID;
-				e->udid.MakeLower();
-				e->appid = appid;
-				e->bSucessed = true;
-				SOUI::SNotifyCenter::getSingleton().FireEventAsync(e);
-				e->Release();
 
-				goto clearup;
+					auto iter = m_applist.find(appid);
+					if (iter == m_applist.end())
+					{
+						const char* ids[] = { appid,NULL };
+						_GetInstallAppInfo(ids);
+					}
+					goto clearup;
+				}
 			}
 		}
 
@@ -1807,63 +1934,67 @@ void CiOSDevice::UninstallApp(LPCSTR appID)
 {
 	if (m_workThread[Thread_UninstallApp].joinable())
 		m_workThread[Thread_UninstallApp].join();
-	m_workThread[Thread_UninstallApp] = std::thread(&CiOSDevice::_UninstallApp, this, std::string(appID));
+
+	std::vector<std::string> apps;
+	apps.push_back(appID);
+	m_workThread[Thread_UninstallApp] = std::thread(&CiOSDevice::_UninstallApp, this, apps);
+}
+
+void CiOSDevice::UninstallApp(std::vector<std::string>& apps)
+{
+	if (m_workThread[Thread_UninstallApp].joinable())
+		m_workThread[Thread_UninstallApp].join();
+	m_workThread[Thread_UninstallApp] = std::thread(&CiOSDevice::_UninstallApp, this, apps);
+}
+
+void CiOSDevice::_InitCallBack()
+{
+	lockdownd_service_descriptor_t service = NULL;
+	if ((lockdownd_start_service
+	(m_client, "com.apple.mobile.notification_proxy",
+		&service) != LOCKDOWN_E_SUCCESS) || !service) {
+		//"Could not start com.apple.mobile.notification_proxy!\n");		
+		return;
+	}
+
+	np_error_t nperr = np_client_new(m_device, service, &m_npClient);
+
+	lockdownd_service_descriptor_free(service);
+
+	if (nperr != NP_E_SUCCESS) {
+		//fprintf(stderr, "Could not connect to notification_proxy!\n");		
+		return;
+	}
+	np_set_notify_callback(m_npClient, notifier, this);
+
+	const char* noties[3] = { NP_APP_INSTALLED, NP_APP_UNINSTALLED, NULL };
+
+	np_observe_notifications(m_npClient, noties);
+
+}
+
+void CiOSDevice::_InitInstproxy()
+{
+	lockdownd_service_descriptor_t service = NULL;
+
+	if ((lockdownd_start_service(m_client, "com.apple.mobile.installation_proxy",
+		&service) != LOCKDOWN_E_SUCCESS) || !service) {
+		//"Could not start com.apple.mobile.installation_proxy!\n");
+		goto leave_cleanup;
+	}
+	instproxy_client_new(m_device, service, &m_instproxy);
+leave_cleanup:
+	lockdownd_service_descriptor_free(service);
 }
 
 void CiOSDevice::_UpdataAppsInfo()
 {
-	lockdownd_service_descriptor_t service = NULL;
-	instproxy_client_t ipc = NULL;
-	lockdownd_client_t updataAppsClient = NULL;
+	auto_bool_value flag(m_bUpdataApps);
 	instproxy_error_t err;
-	np_client_t np = NULL;
-
-	if (lockdownd_client_new_with_handshake(m_device, &updataAppsClient, "updataAppsClient") != LOCKDOWN_E_SUCCESS)
-	{
-		return;
-	}
-	if ((lockdownd_start_service
-	(updataAppsClient, "com.apple.mobile.notification_proxy",
-		&service) != LOCKDOWN_E_SUCCESS) || !service) {
-		//"Could not start com.apple.mobile.notification_proxy!\n");		
-		goto leave_cleanup;
-	}
-	np_error_t nperr = np_client_new(m_device, service, &np);
-	if (service) {
-		lockdownd_service_descriptor_free(service);
-		service = NULL;
-	}
-	if (nperr != NP_E_SUCCESS) {
-		//fprintf(stderr, "Could not connect to notification_proxy!\n");		
-		goto leave_cleanup;
-	}
-
-	np_set_notify_callback(np, notifier, this);
-
-	const char* noties[3] = { NP_APP_INSTALLED, NP_APP_UNINSTALLED, NULL };
-
-	np_observe_notifications(np, noties);
-
-
-	if ((lockdownd_start_service(updataAppsClient, "com.apple.mobile.installation_proxy",
-		&service) != LOCKDOWN_E_SUCCESS) || !service) {
-		//"Could not start com.apple.mobile.installation_proxy!\n");		
-		goto leave_cleanup;
-	}
-	err = instproxy_client_new(m_device, service, &ipc);
-	if (service) {
-		lockdownd_service_descriptor_free(service);
-		service = NULL;
-	}
-
-	if (err != INSTPROXY_E_SUCCESS) {
-		//"Could not connect to installation_proxy!\n");		
-		goto leave_cleanup;
-	}
-
 	plist_t client_opts = instproxy_client_options_new();
 	instproxy_client_options_add(client_opts, "ApplicationType", "User", NULL);
 	plist_t apps = NULL;
+	//此处不请求占用大小可以加快请求速度
 	instproxy_client_options_set_return_attributes(client_opts,
 		"CFBundleIdentifier",
 		"CFBundleDisplayName",
@@ -1873,116 +2004,29 @@ void CiOSDevice::_UpdataAppsInfo()
 		NULL
 	);
 
-	clock_t start = clock();
-	err = instproxy_browse(ipc, client_opts, &apps);
-	clock_t end = clock();
-
-	clock_t dif = end - start;
+	if (m_instproxy == NULL)
+		_InitInstproxy();
+	if (m_instproxy == NULL)
+		return;
+	err = instproxy_browse(m_instproxy, client_opts, &apps);
 
 	instproxy_client_options_free(client_opts);
 	if (!apps || (plist_get_node_type(apps) != PLIST_ARRAY)) {
-		//"ERROR: instproxy_browse returnd an invalid plist!\n");				
-		goto leave_cleanup;
+		return;
 	}
 	_UpdataApps(apps);
 	plist_free(apps);
-	/*
-	err = instproxy_browse_with_callback(ipc, client_opts, status_cb, NULL);
-	if (err == INSTPROXY_E_RECEIVE_TIMEOUT) {
-		fprintf(stderr, "NOTE: timeout waiting for device to browse apps, trying again...\n");
-	}
-	*/
-
-	if (err != INSTPROXY_E_SUCCESS) {
-		fprintf(stderr, "ERROR: instproxy_browse returned %d\n", err);
-		goto leave_cleanup;
-	}
-leave_cleanup:
-	lockdownd_service_descriptor_free(service);
-	np_client_free(np);
-	instproxy_client_free(ipc);
-	lockdownd_client_free(updataAppsClient);
 }
 
-void CiOSDevice::_UninstallApp(std::string appID)
+void CiOSDevice::_UninstallApp(const std::vector<std::string> appID)
 {
-	lockdownd_service_descriptor_t service = NULL;
-	instproxy_client_t ipc = NULL;
-	lockdownd_client_t updataAppsClient = NULL;
-	instproxy_error_t err;
-	np_client_t np = NULL;
-
 	std::mutex _mx;
 	std::unique_lock<std::mutex> lck(_mx);
-
-	if (lockdownd_client_new_with_handshake(m_device, &updataAppsClient, "updataAppsClient") != LOCKDOWN_E_SUCCESS)
+	for (auto& iter : appID)
 	{
-		return;
+		instproxy_uninstall(m_instproxy, iter.c_str(), NULL, ::uninstallstatus_cb, this);
+		appUnistallcv.wait(lck);
 	}
-	if ((lockdownd_start_service
-	(updataAppsClient, "com.apple.mobile.notification_proxy",
-		&service) != LOCKDOWN_E_SUCCESS) || !service) {
-		//"Could not start com.apple.mobile.notification_proxy!\n");		
-		goto leave_cleanup;
-	}
-	np_error_t nperr = np_client_new(m_device, service, &np);
-	if (service) {
-		lockdownd_service_descriptor_free(service);
-		service = NULL;
-	}
-	if (nperr != NP_E_SUCCESS) {
-		//fprintf(stderr, "Could not connect to notification_proxy!\n");		
-		goto leave_cleanup;
-	}
-
-	np_set_notify_callback(np, notifier, this);
-
-	const char* noties[3] = { NP_APP_INSTALLED, NP_APP_UNINSTALLED, NULL };
-
-	np_observe_notifications(np, noties);
-
-
-	if ((lockdownd_start_service(updataAppsClient, "com.apple.mobile.installation_proxy",
-		&service) != LOCKDOWN_E_SUCCESS) || !service) {
-		//"Could not start com.apple.mobile.installation_proxy!\n");		
-		goto leave_cleanup;
-	}
-	err = instproxy_client_new(m_device, service, &ipc);
-	if (service) {
-		lockdownd_service_descriptor_free(service);
-		service = NULL;
-	}
-
-	if (err != INSTPROXY_E_SUCCESS) {
-		//"Could not connect to installation_proxy!\n");		
-		goto leave_cleanup;
-	}
-
-	instproxy_uninstall(ipc, appID.c_str(), NULL, ::uninstallstatus_cb, this);
-
-	appUnistallcv.wait(lck);
-
-	if (err != INSTPROXY_E_SUCCESS) {
-		fprintf(stderr, "ERROR: instproxy_browse returned %d\n", err);
-		goto leave_cleanup;
-	}
-leave_cleanup:
-	lockdownd_service_descriptor_free(service);
-	np_client_free(np);
-	instproxy_client_free(ipc);
-	lockdownd_client_free(updataAppsClient);
-}
-
-typedef struct __stat64 stat_generic_t;
-
-static int stat_generic(const char* filename, stat_generic_t * stat_gen)
-{
-	return __stat64(filename, stat_gen);
-}
-
-static int stat_generic(const wchar_t* filename, stat_generic_t * stat_gen)
-{
-	return _wstat64(filename, stat_gen);
 }
 
 void CiOSDevice::_InstallApp(const std::wstring apppath, bool bInstall)

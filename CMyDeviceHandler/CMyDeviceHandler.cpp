@@ -1,9 +1,16 @@
 #include "stdafx.h"
 #include "CMyDeviceHandler.h"
 #include "..\CDataCenter.h"
-#include "..\CBaseInfoDlg.h"
 #include "..\iOsDeviceLib/iOSUtils.h"
 #include <..\controls.extend\dlghelp\souidlgs.h>
+#include "LV_iOSFilesAdapter.h"
+#include "TV_iOSFilesNavAdapter.h"
+#include "..\Cafctask.h"
+#include "CBaseInfoDlg.h"
+#include "CLoadingDlg.h"
+
+
+using namespace SOUI;
 
 CMyDeviceHandler::CMyDeviceHandler()
 {
@@ -40,16 +47,35 @@ void CMyDeviceHandler::AddDev(const idevice_event_t* event, bool bCan)
 	pTab->SetItemTitle(idx, S_CA2W(event->udid));
 
 	SWindow* pTabPage = pTab->GetPage(idx);
+
 	SMCListViewEx* appslist = pTabPage->FindChildByID2<SMCListViewEx>(R.id.lv_appsList);
 	if (appslist)
 	{
-		CAppsListAdapter* iosAppsAdapter = new CAppsListAdapter(event->udid, m_pPageRoot->FindChildByID2<SToggle2>(R.id.app_check_all));
+		CAppsListAdapter* iosAppsAdapter = new CAppsListAdapter(event->udid, m_pPageRoot->FindChildByID(R.id.apps_ctrl_wnd));
 		appslist->SetAdapter(iosAppsAdapter);
 		iosAppsAdapter->Release();
 	}
+
+	STreeView* PTvFilesMgr = pTabPage->FindChildByID2<STreeView>(R.id.tv_files_mgr);
+	if (PTvFilesMgr)
+	{
+		CiOSFilesTreeViewAdapter* iosFilesMgr = new CiOSFilesTreeViewAdapter(event->udid);
+		PTvFilesMgr->SetAdapter(iosFilesMgr);
+		iosFilesMgr->Release();
+	}
+
+	SMCListViewEx* filesslist = pTabPage->FindChildByID2<SMCListViewEx>(R.id.lv_filesList);
+	if (filesslist)
+	{
+		CFilesListAdapter* iosFilessAdapter = new CFilesListAdapter(event->udid);
+		filesslist->SetAdapter(iosFilessAdapter);
+		iosFilessAdapter->Release();
+	}
+
 	CDataCenter::getSingleton().BindInfoWindow(event->udid, pTabPage);
 	if (bCan)
 	{
+		Cafctask::getSingleton().AddDev(event->udid);
 		CDataCenter::getSingleton().UpdataBaseInfo(event->udid);
 		CDataCenter::getSingleton().BeginUpdataInfoASync(event->udid);
 		if (m_pTreeViewAdapter->GetItemCount() == 1)
@@ -72,6 +98,8 @@ void CMyDeviceHandler::RemoveDev(const idevice_event_t* event)
 	}
 	STabCtrlTemplate* pTab = m_pPageRoot->FindChildByID2<STabCtrlTemplate>(R.id.nav_dev_cmd);
 	SASSERT(pTab);
+	Cafctask::getSingleton().RemoveDev(event->udid);
+	CDataCenter::getSingleton().RemoveDevGUID(event->udid);
 	pTab->RemoveItem(pTab->GetPageIndex(S_CA2T(event->udid), TRUE), 0);
 
 }
@@ -81,8 +109,10 @@ void CMyDeviceHandler::PairDev(const idevice_event_t* event, bool bCan)
 	m_pTreeViewAdapter->SetDevCan(event->udid, bCan);
 	if (bCan)
 	{
+		Cafctask::getSingleton().AddDev(event->udid);
 		CDataCenter::getSingleton().UpdataBaseInfo(event->udid);
 		CDataCenter::getSingleton().BeginUpdataInfoASync(event->udid);
+		m_pTreeViewAdapter->ExpandItem(event->udid);
 		if (m_pTreeViewAdapter->GetItemCount() == 1)
 		{
 			STreeView* pTreeView = m_pPageRoot->FindChildByID2<STreeView>(R.id.tv_ios);
@@ -90,7 +120,16 @@ void CMyDeviceHandler::PairDev(const idevice_event_t* event, bool bCan)
 			{
 				pTreeView->SetSel(m_pTreeViewAdapter->GetFirstTreeItem(), TRUE);
 			}
-		}
+		}		
+	}
+}
+
+void CMyDeviceHandler::TryEndInfoDlg(LPCSTR udid)
+{
+	if (m_pHostDlg && m_pHostDlg->IsEm(udid))
+	{
+		m_pHostDlg->EndDialog(IDCANCEL);
+		m_pHostDlg = NULL;
 	}
 }
 
@@ -130,7 +169,8 @@ void CMyDeviceHandler::OnScreenShot(EventArgs* pEArg)
 		free(pSS->imgbuf);
 		if (bitmap)
 		{
-			m_pPageRoot->FindChildByID2<SImageWnd>(R.id.img_srceenshot)->SetImage(bitmap);
+			SWindow* pWnd = GetDevCmdWindow(pSS->udid, 0);
+			pWnd->FindChildByID2<SImageWnd>(R.id.img_srceenshot)->SetImage(bitmap);
 			bitmap->Release();
 		}
 	}
@@ -141,9 +181,7 @@ void CMyDeviceHandler::OnUpdataInfo(EventArgs* pEArg)
 	EventUpdataInfo* pUpdataInfo = sobj_cast<EventUpdataInfo>(pEArg);
 	if (pUpdataInfo)
 	{
-		STabCtrlTemplate* pTab = m_pPageRoot->FindChildByID2<STabCtrlTemplate>(R.id.nav_dev_cmd);
-		SASSERT(pTab);
-		SWindow* pWnd = pTab->GetPage(pUpdataInfo->udid);
+		SWindow* pWnd = GetDevCmdWindow(pUpdataInfo->udid, 0);
 		pWnd->FindChildByID2<SImageWnd>(R.id.batterybk)->SetIcon(pUpdataInfo->BatteryCurrentCapacity < 20 ? 1 : 0);
 		pWnd->FindChildByID(R.id.lable_BatteryCurrentCapacity)->SetWindowText(SStringW().Format(L"%d%%", pUpdataInfo->BatteryCurrentCapacity));
 		pWnd->FindChildByID(R.id.lable_BatteryIsCapacity)->SetWindowText(pUpdataInfo->BatteryIsCharging ? GETSTRING(L"@string/charging") : GETSTRING(L"@string/nocharging"));
@@ -179,7 +217,7 @@ void CMyDeviceHandler::OnEditDevName()
 	}
 }
 
-void CMyDeviceHandler::OnKillFoucusByDevName(EventArgs * pEArg)
+void CMyDeviceHandler::OnKillFoucusByDevName(EventArgs* pEArg)
 {
 	SWindow* pET = sobj_cast<SWindow>(pEArg->sender);
 	if (pET)
@@ -198,41 +236,41 @@ void CMyDeviceHandler::OnKillFoucusByDevName(EventArgs * pEArg)
 	}
 }
 
-void CMyDeviceHandler::OnKeyDownByDevName(EventArgs * pEArg)
+void CMyDeviceHandler::OnKeyDownByDevName(EventArgs* pEArg)
 {
 	EventKeyDown* evt = sobj_cast<EventKeyDown>(pEArg);
 	SWindow* pET = sobj_cast<SWindow>(pEArg->sender);
 	switch (evt->nChar)
 	{
-	case VK_RETURN:
-	{
-		std::string udid = CDataCenter::getSingleton().GetUDIDByWindow((SWindow*)pET->GetUserData());
-		CiOSDevice* dev = CDataCenter::getSingleton().GetDevByUDID(udid.c_str());
-		SWindow* pTEXT = pET->GetParent()->FindChildByID(R.id.txt_devname);
-		if (dev && dev->SetDevName(pET->GetWindowText()))
-		{
-			m_pTreeViewAdapter->UpDataDev(udid.c_str());
-			SASSERT(pTEXT);
-			pTEXT->SetWindowText(pET->GetWindowText());
-		}
-		pET->SetVisible(FALSE, TRUE);
-		pTEXT->SetVisible(TRUE, TRUE);
-		evt->bCancel = true;
+		case VK_RETURN:
+			{
+				std::string udid = CDataCenter::getSingleton().GetUDIDByWindow((SWindow*)pET->GetUserData());
+				CiOSDevice* dev = CDataCenter::getSingleton().GetDevByUDID(udid.c_str());
+				SWindow* pTEXT = pET->GetParent()->FindChildByID(R.id.txt_devname);
+				if (dev && dev->SetDevName(pET->GetWindowText()))
+				{
+					m_pTreeViewAdapter->UpDataDev(udid.c_str());
+					SASSERT(pTEXT);
+					pTEXT->SetWindowText(pET->GetWindowText());
+				}
+				pET->SetVisible(FALSE, TRUE);
+				pTEXT->SetVisible(TRUE, TRUE);
+				evt->bCancel = true;
 
-	}break;
-	case VK_ESCAPE:
-	{
-		SWindow* pTEXT = pET->GetParent()->FindChildByID(R.id.txt_devname);
-		pET->SetVisible(FALSE, TRUE);
-		pTEXT->SetVisible(TRUE, TRUE);
-		evt->bCancel = true;
-	}break;
-	default:
-		break;
+			}break;
+		case VK_ESCAPE:
+			{
+				SWindow* pTEXT = pET->GetParent()->FindChildByID(R.id.txt_devname);
+				pET->SetVisible(FALSE, TRUE);
+				pTEXT->SetVisible(TRUE, TRUE);
+				evt->bCancel = true;
+			}break;
+		default:
+			break;
 	}
 }
 
-void CMyDeviceHandler::OnUpdataDiskInfo(EventArgs * pEArg)
+void CMyDeviceHandler::OnUpdataDiskInfo(EventArgs* pEArg)
 {
 	EventUpdataDiskInfo* evt = sobj_cast<EventUpdataDiskInfo>(pEArg);
 	if (evt)
@@ -241,7 +279,7 @@ void CMyDeviceHandler::OnUpdataDiskInfo(EventArgs * pEArg)
 	}
 }
 
-void CMyDeviceHandler::OnUpdataAppsInfo(EventArgs * pEArg)
+void CMyDeviceHandler::OnUpdataAppsInfo(EventArgs* pEArg)
 {
 	EventUpdataAppsInfo* evt = sobj_cast<EventUpdataAppsInfo>(pEArg);
 	if (evt)
@@ -254,16 +292,16 @@ void CMyDeviceHandler::OnUpdataAppsInfo(EventArgs * pEArg)
 		if (appslist)
 		{
 			CAutoRefPtr<CAppsListAdapter> iosAppsAdapter = (CAppsListAdapter*)appslist->GetAdapter();
-			iosAppsAdapter->notifyDataSetChanged();
+			iosAppsAdapter->InitApps(std::move(evt->apps));
+			m_pTreeViewAdapter->UpDataDevAppInfo(S_CW2A(evt->udid), iosAppsAdapter->getCount());
 		}
-		m_pTreeViewAdapter->UpDataDevAppInfo(S_CW2A(evt->udid));
 	}
 }
 
 void CMyDeviceHandler::OnUnistallApp(EventArgs* pEArg)
 {
 	EventUninstallApp* evt = sobj_cast<EventUninstallApp>(pEArg);
-	if (evt&&evt->bSucessed)
+	if (evt && evt->bSucessed)
 	{
 		STabCtrlTemplate* pTab = m_pPageRoot->FindChildByID2<STabCtrlTemplate>(R.id.nav_dev_cmd);
 		SASSERT(pTab);
@@ -273,21 +311,78 @@ void CMyDeviceHandler::OnUnistallApp(EventArgs* pEArg)
 		if (appslist)
 		{
 			CAutoRefPtr<CAppsListAdapter> iosAppsAdapter = (CAppsListAdapter*)appslist->GetAdapter();
-			iosAppsAdapter->notifyDataSetChanged();
+			iosAppsAdapter->RemoveApp(evt->appid.c_str());
+			m_pTreeViewAdapter->UpDataDevAppInfo(S_CW2A(evt->udid), iosAppsAdapter->getCount());
 		}
-		m_pTreeViewAdapter->UpDataDevAppInfo(S_CW2A(evt->udid));
+		
 	}
 }
 
-void CMyDeviceHandler::OnTVSelChanged(EventArgs * pEArg)
+void CMyDeviceHandler::OnTVSelChanged(EventArgs* pEArg)
 {
 	EventTVSelChanged* pE2 = sobj_cast<EventTVSelChanged>(pEArg);
 	SASSERT(pE2);
 
 	const CiOSDeviceTreeViewAdapter::ItemInfo& data = m_pTreeViewAdapter->GetData(pE2->hNewSel);
 
-	ChildMenuItemClick(data.data.guid.c_str(), data.data.nCmd);
+	ChildMenuItemClick(data.data.udid.c_str(), data.data.nCmd);
 	m_pTreeViewAdapter->notifyBranchInvalidated(pE2->hNewSel);
+}
+
+void CMyDeviceHandler::OnTVFilesMgrSelChanged(EventArgs* pEArg)
+{
+	EventTVSelChanged* pE2 = sobj_cast<EventTVSelChanged>(pEArg);
+	SASSERT(pE2);
+
+	STreeView* pTv = sobj_cast<STreeView>(pEArg->sender);
+	SASSERT(pTv);
+	CiOSFilesTreeViewAdapter* iosFilessAdapter = (CiOSFilesTreeViewAdapter*)pTv->GetAdapter();
+	int cmd = iosFilessAdapter->GetCmd(pE2->hNewSel);
+
+	SEdit* pETPATH = pTv->GetParent()->GetParent()->FindChildByID2<SEdit>(R.id.et_path);
+	SASSERT(pETPATH);
+	UINT taskid = -1;
+	switch (cmd)
+	{
+		//用户系统
+		case 1:
+			taskid = Cafctask::getSingleton().Updata(iosFilessAdapter->m_udid.c_str(), "/", false);
+			pETPATH->SetWindowText(L"/");
+			break;
+			//越狱系统
+		case 2:
+			taskid = Cafctask::getSingleton().Updata(iosFilessAdapter->m_udid.c_str(), "/", true);
+			pETPATH->SetWindowText(L"/");
+			break;
+
+			//我的文档
+		case 11:
+			taskid = Cafctask::getSingleton().Updata(iosFilessAdapter->m_udid.c_str(), "/MyDocuments", false);
+			pETPATH->SetWindowText(L"/MyDocuments");
+			break;
+			//手机U盘
+		case 12:
+			taskid = Cafctask::getSingleton().Updata(iosFilessAdapter->m_udid.c_str(), "/general_storage", false);
+			pETPATH->SetWindowText(L"/general_storage");
+			break;
+			//语音备忘录
+		case 13:
+			taskid = Cafctask::getSingleton().Updata(iosFilessAdapter->m_udid.c_str(), "/Recordings", false);
+			pETPATH->SetWindowText(L"/Recordings");
+			break;
+			//应用程序
+		case 14:
+			taskid = Cafctask::getSingleton().Updata(iosFilessAdapter->m_udid.c_str(), "/var/mobile/Containers/Bundle/Application", true);
+			pETPATH->SetWindowText(L"/var/mobile/Containers/Bundle/Application");
+			break;
+	}
+	if (taskid != -1)
+	{
+		SMCListViewEx* pFilesList = pTv->GetParent()->FindChildByID2<SMCListViewEx>(R.id.lv_filesList);
+		SASSERT(pFilesList);
+		CFilesListAdapter* iosFilesListAdapter = (CFilesListAdapter*)pFilesList->GetAdapter();
+		iosFilesListAdapter->SetTaskID(taskid, (cmd == 2) || (cmd == 14));
+	}
 }
 
 void CMyDeviceHandler::OnInstallApp(EventArgs* pEArg)
@@ -299,16 +394,16 @@ void CMyDeviceHandler::OnInstallApp(EventArgs* pEArg)
 		CiOSDevice* dev = CDataCenter::getSingleton().GetDevByUDID(udid.c_str());
 		if (dev)
 		{
-			CFileDialog appfiledlg(TRUE, NULL,NULL, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, L"iOS应用程序\0*.ipa\0\0");//;*.ipcc
+			CFileDialog appfiledlg(TRUE, NULL, NULL, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, L"iOS应用程序\0*.ipa\0\0");//;*.ipcc
 			if (IDOK == appfiledlg.DoModal(m_pPageRoot->GetContainer()->GetHostHwnd()))
-			{				
+			{
 				dev->IntallApp(appfiledlg.m_szFileName);
 			}
 		}
 	}
 }
 
-void CMyDeviceHandler::OnCheckWarrantyexpirationDate(EventArgs * pEArg)
+void CMyDeviceHandler::OnCheckWarrantyexpirationDate(EventArgs* pEArg)
 {
 	SWindow* pET = sobj_cast<SWindow>(pEArg->sender);
 	if (pET)
@@ -321,9 +416,157 @@ void CMyDeviceHandler::OnCheckWarrantyexpirationDate(EventArgs * pEArg)
 
 			SStringT url;
 			url.Format(strUrl, dev->GetiOSBaseInfo().m_strDevSerialNumber);
-			ShellExecute(NULL, L"open",url, NULL, NULL, SW_SHOWNORMAL);
+			ShellExecute(NULL, L"open", url, NULL, NULL, SW_SHOWNORMAL);
 		}
 	}
+}
+
+void CMyDeviceHandler::OnInitAfc(EventArgs* pEArg)
+{
+	EventAFCInit* e = sobj_cast<EventAFCInit>(pEArg);
+	SASSERT(e);
+	SWindow* pWnd = GetDevCmdWindow(S_CA2W(e->udid.c_str()), 2);
+	SASSERT(pWnd);
+	STreeView* pTvFilesNav = pWnd->FindChildByID2<STreeView>(R.id.tv_files_mgr);
+	SASSERT(pTvFilesNav);
+	CiOSFilesTreeViewAdapter* pAd = (CiOSFilesTreeViewAdapter*)pTvFilesNav->GetAdapter();
+	pAd->InitAfc(e->afc_sucssed, e->afc2_sucssed);
+}
+
+void CMyDeviceHandler::OnFilesNavTvEventOfPanel(EventArgs* pEvt)
+{
+	EventOfPanel* e2 = sobj_cast<EventOfPanel>(pEvt);
+	SASSERT(e2);
+	if ((e2->pOrgEvt->GetID() == EventItemPanelDbclick::EventID) || (e2->pOrgEvt->GetID() == EventItemPanelClick::EventID))
+	{
+		STreeView* pTv = sobj_cast<STreeView>(e2->sender);
+		SASSERT(pTv);
+		SItemPanel* pSender = sobj_cast<SItemPanel>(e2->pOrgEvt->sender);
+		SASSERT(pSender);
+
+		//if (pTv->GetSel() == pSender->GetItemIndex())
+		{
+			CiOSFilesTreeViewAdapter* iosFilessAdapter = (CiOSFilesTreeViewAdapter*)pTv->GetAdapter();
+			int cmd = iosFilessAdapter->GetCmd(pSender->GetItemIndex());
+
+			SEdit* pETPATH = pTv->GetParent()->GetParent()->FindChildByID2<SEdit>(R.id.et_path);
+			SASSERT(pETPATH);
+			UINT taskid = -1;
+			switch (cmd)
+			{
+				//用户系统
+				case 1:
+					taskid = Cafctask::getSingleton().Updata(iosFilessAdapter->m_udid.c_str(), "/", false);
+					pETPATH->SetWindowText(L"/");
+					break;
+					//越狱系统
+				case 2:
+					taskid = Cafctask::getSingleton().Updata(iosFilessAdapter->m_udid.c_str(), "/", true);
+					pETPATH->SetWindowText(L"/");
+					break;
+					//我的文档
+				case 11:
+					taskid = Cafctask::getSingleton().Updata(iosFilessAdapter->m_udid.c_str(), "/MyDocuments", false);
+					pETPATH->SetWindowText(L"/MyDocuments");
+					break;
+					//手机U盘
+				case 12:
+					taskid = Cafctask::getSingleton().Updata(iosFilessAdapter->m_udid.c_str(), "/general_storage", false);
+					pETPATH->SetWindowText(L"/general_storage");
+					break;
+					//语音备忘录
+				case 13:
+					taskid = Cafctask::getSingleton().Updata(iosFilessAdapter->m_udid.c_str(), "/Recordings", false);
+					pETPATH->SetWindowText(L"/Recordings");
+					break;
+					//应用程序
+				case 14:
+					taskid = Cafctask::getSingleton().Updata(iosFilessAdapter->m_udid.c_str(), "/var/mobile/Containers/Bundle/Application", true);
+					pETPATH->SetWindowText(L"/var/mobile/Containers/Bundle/Application");
+					break;
+			}
+			if (taskid != -1)
+			{
+				SMCListViewEx* pFilesList = pTv->GetParent()->FindChildByID2<SMCListViewEx>(R.id.lv_filesList);
+				SASSERT(pFilesList);
+				CFilesListAdapter* iosFilesListAdapter = (CFilesListAdapter*)pFilesList->GetAdapter();
+				iosFilesListAdapter->SetTaskID(taskid, (cmd == 2) || (cmd == 14));
+			}
+		}
+	}
+
+}
+
+void CMyDeviceHandler::OnFileslvEventOfPanel(EventArgs* pEvt)
+{
+	EventOfPanel* e2 = sobj_cast<EventOfPanel>(pEvt);
+	SASSERT(e2);
+	if (e2->pOrgEvt->GetID() == EventItemPanelDbclick::EventID)
+	{
+		SMCListViewEx* pFilesList = sobj_cast<SMCListViewEx>(e2->sender);
+		SASSERT(pFilesList);
+		CFilesListAdapter* pFilesListAdapter = (CFilesListAdapter*)pFilesList->GetAdapter();
+		EventItemPanelDbclick* e3 = sobj_cast<EventItemPanelDbclick>(e2->pOrgEvt);
+		SItemPanel* pSender = sobj_cast<SItemPanel>(e3->sender);
+		SASSERT(pSender);
+		int iItem = pSender->GetItemIndex();
+		bool isdir, isfile;
+		std::string path = pFilesListAdapter->GetItemFullPath(iItem, isdir, isfile);
+		if (!path.empty())
+		{
+			if (isdir)
+			{
+				pFilesListAdapter->UpdataTaskID(
+					Cafctask::getSingleton().Updata(pFilesListAdapter->m_udid.c_str(), path.c_str(), pFilesListAdapter->CurIsJailreak())
+				);
+				SWindow* petpath = pFilesList->GetParent()->GetParent()->GetParent()->FindChildByID(R.id.et_path);
+				SASSERT(petpath);
+				petpath->SetWindowText(S_CA2W(path.c_str(), CP_UTF8));
+			}
+			else if (isfile)
+			{
+				Cafctask::getSingleton().OpenFile(pFilesListAdapter->m_udid.c_str(), path.c_str(), pFilesListAdapter->CurIsJailreak());
+				ShowInfoDlg<CLoadingDlg>(pFilesListAdapter->m_udid);
+			}
+		}
+	}
+}
+
+void CMyDeviceHandler::OnUnpdataFileList(EventArgs* e)
+{
+	EventUpdataFile* updatafiles = sobj_cast<EventUpdataFile>(e);
+
+	SWindow* pPage = GetDevCmdWindow(S_CA2W(updatafiles->udid.c_str()), 2);
+	SASSERT(pPage);
+	SMCListViewEx* pFilesList = pPage->FindChildByID2<SMCListViewEx>(R.id.lv_filesList);
+	SASSERT(pFilesList);
+
+	CFilesListAdapter* filesListAdapter = (CFilesListAdapter*)pFilesList->GetAdapter();
+
+	if (filesListAdapter->IsCurTask(updatafiles->taskId))
+	{
+		filesListAdapter->Updata(updatafiles->filelist);
+	}
+}
+
+void CMyDeviceHandler::OnOpenFileRet(EventArgs* e)
+{
+	if (m_pHostDlg)
+	{
+		m_pHostDlg->EndDialog(IDCANCEL);
+		m_pHostDlg = NULL;
+	}
+}
+
+SWindow* CMyDeviceHandler::GetDevCmdWindow(LPCWSTR udid, int cmd)
+{
+	STabCtrlTemplate* pTab = m_pPageRoot->FindChildByID2<STabCtrlTemplate>(R.id.nav_dev_cmd);
+	SASSERT(pTab);
+	SWindow* devpage = pTab->GetPage(udid);
+	SASSERT(devpage);
+	STabCtrl* devtab = devpage->FindChildByID2<STabCtrl>(R.id.tab_dev_cmd);
+	SASSERT(devtab);
+	return devtab->GetPage(cmd);
 }
 
 void CMyDeviceHandler::ChildMenuItemClick(LPCSTR udid, int nGID)
@@ -342,5 +585,91 @@ void CMyDeviceHandler::ChildMenuItemClick(LPCSTR udid, int nGID)
 			SASSERT(pTabCmd);
 			pTabCmd->SetCurSel(nGID - 1);
 		}
+	}
+}
+
+template<class T>
+void CMyDeviceHandler::ShowInfoDlg(const std::string& udid)
+{
+	T battryInfo(udid);
+	m_pHostDlg = &battryInfo;
+	m_pHostDlg->DoModal(m_pPageRoot->GetContainer()->GetHostHwnd());
+	m_pHostDlg = NULL;
+}
+
+void CMyDeviceHandler::OnBatteryInfo(EventArgs* pEArg)
+{
+	SWindow* pWnd = sobj_cast<SWindow>(pEArg->sender);
+	if (pWnd)
+	{
+		std::string udid = CDataCenter::getSingleton().GetUDIDByWindow((SWindow*)pWnd->GetUserData());
+		if (!udid.empty())
+		{
+			ShowInfoDlg<CBattryInfoDlg>(udid);
+		}
+	}
+}
+
+void CMyDeviceHandler::OnDevInfo(EventArgs* pEArg)
+{
+	SWindow* pWnd = sobj_cast<SWindow>(pEArg->sender);
+	if (pWnd)
+	{
+		std::string udid = CDataCenter::getSingleton().GetUDIDByWindow((SWindow*)pWnd->GetUserData());
+		if (!udid.empty())
+		{
+			ShowInfoDlg<CDevInfoDlg>(udid);
+		}
+	}
+}
+
+void CMyDeviceHandler::OnUninstallapps(EventArgs* pEArg)
+{
+	SWindow* pWnd = sobj_cast<SWindow>(pEArg->sender);
+	SASSERT(pWnd);
+	CiOSDevice* iosdev = CDataCenter::getSingleton().GetDevByWindow((SWindow*)pWnd->GetParent()->GetUserData());
+	
+	if (iosdev)
+	{
+		SMCListViewEx* plist = pWnd->GetParent()->GetParent()->FindChildByID2 < SMCListViewEx >(R.id.lv_appsList);
+		SASSERT(plist);
+		CAppsListAdapter* pAppsListAd = (CAppsListAdapter*)plist->GetAdapter();
+		std::vector<std::string>& selApps =pAppsListAd->GetAllSelApps();
+		if ((!selApps.empty())&&
+			(SMessageBox(m_pPageRoot->GetContainer()->GetHostHwnd(),
+				SStringT().Format(L"你确信要卸载选中的%d个应用吗？",selApps.size()),L"卸载APP",MB_OKCANCEL)== IDOK))
+		{
+			iosdev->UninstallApp(selApps);
+		}
+	}
+}
+
+void CMyDeviceHandler::OnRefershapp(EventArgs* pEArg)
+{
+	SWindow* pWnd = sobj_cast<SWindow>(pEArg->sender);
+	SASSERT(pWnd);
+	CiOSDevice* iosdev = CDataCenter::getSingleton().GetDevByWindow((SWindow*)pWnd->GetParent()->GetUserData());
+	if (iosdev)
+	{
+		iosdev->StartUpdataApps();
+	}
+}
+
+void CMyDeviceHandler::OnInstallAppCb(EventArgs* pEArg)
+{
+	EventInstallApp* evt = sobj_cast<EventInstallApp>(pEArg);
+	if (evt && evt->bSucessed)
+	{
+		STabCtrlTemplate* pTab = m_pPageRoot->FindChildByID2<STabCtrlTemplate>(R.id.nav_dev_cmd);
+		SASSERT(pTab);
+		SWindow* pWnd = pTab->GetPage(evt->udid);
+		SASSERT(pWnd);
+		SMCListViewEx* appslist = pWnd->FindChildByID2<SMCListViewEx>(R.id.lv_appsList);
+		if (appslist)
+		{
+			CAutoRefPtr<CAppsListAdapter> iosAppsAdapter = (CAppsListAdapter*)appslist->GetAdapter();
+			iosAppsAdapter->AddApp(evt->appinfo);
+			m_pTreeViewAdapter->UpDataDevAppInfo(S_CW2A(evt->udid), iosAppsAdapter->getCount());
+		}		
 	}
 }

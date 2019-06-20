@@ -15,6 +15,7 @@ EXTERN_C{
 #include <libimobiledevice/libimobiledevice.h>
 #include <libimobiledevice/lockdown.h>
 #include <common/userpref.h>
+#include <include\libimobiledevice\syslog_relay.h>
 #pragma comment(lib,"imobiledevice.lib")
 #pragma comment(lib,"plist.lib")
 #pragma comment(lib,"usbmuxd.lib")
@@ -25,16 +26,6 @@ struct IDeviceEventCallBack
 {
 public:
 	virtual void idevice_event_cb_t(const idevice_event_t* event) = NULL;
-};
-
-struct AppInfo
-{
-	std::string AppID;
-	SStringT DisplayName;
-	SStringT Version;
-	uint64_t StaticDiskUsage;
-	uint64_t DynamicDiskUsage;
-	SOUI::CAutoRefPtr<SOUI::IBitmap> m_ico;
 };
 
 struct BatteryBaseInfo
@@ -118,6 +109,8 @@ public:
 	//获取不耗时的信息
 	bool GetDeviceBaseInfo();
 	void StartUpdata();
+	int StartLogging();
+	void StopLogging();
 	void StartUpdataDiskInfo();
 	void StartCapshot();
 	void StartUpdataBatteryInfo();
@@ -125,13 +118,27 @@ public:
 	const iOSDevInfo& GetiOSBaseInfo();
 	bool DoCmd(diagnostics_cmd_mode cmd);
 	void GetBatteryBaseInfo(BatteryBaseInfo& outasGauge);
+	
 	void StartUpdataApps();
-	const std::vector<AppInfo>* GetApps();
+	int GetAppsCount();
 	void IntallApp(LPCWSTR appfile);
-	void uninstallstatus_cb(plist_t command, plist_t status);
-	void installstatus_cb(plist_t command, plist_t status);
+	
 	void UninstallApp(LPCSTR appID);
+	void UninstallApp(std::vector<std::string>& apps);
+	
+	static void FreeAFCClient(afc_client_t afc_client);
+	bool CreateAFCClient(afc_client_t &afc_client);
+	bool CreateAFC2Client(afc_client_t &afc_client);
+	
+	//异步回调
+	void uninstallstatus_cb(plist_t command, plist_t status);
+	void _GetInstallAppInfo(LPCSTR *appid);
+	void installstatus_cb(plist_t command, plist_t status);
+	void app_notifier_fun(const char* notification);
 protected:
+	void _InitCallBack();
+	void _InitInstproxy();
+	
 	bool _GetAppIcon(LPCSTR id, char** outBuf, uint64_t& len);
 	bool _GetScreenWallpaper(char** outBuf, uint64_t& len);
 	void _UpdataApps(plist_t apps);
@@ -146,11 +153,16 @@ protected:
 	void _Backup(LPCSTR pDir);
 	void _UpdataBatteryInfo();
 	void _UpdataDiskInfo();
+	//拉取所有的软件信息
 	void _UpdataAppsInfo();
-	void _UninstallApp(std::string appID);
-	void _InstallApp(const std::wstring apppath, bool bInstall);	
+	void _UninstallApp(const std::vector<std::string> appID);	
+	void _InstallApp(const std::wstring apppath, bool bInstall);
+
 	lockdownd_client_t m_client = NULL;
 	idevice_t m_device = NULL;
+	np_client_t m_npClient = NULL;
+	instproxy_client_t m_instproxy=NULL;
+	syslog_relay_client_t syslog = NULL;
 public:
 	//设备设备改变回调
 	static idevice_error_t SetCallBack(IDeviceEventCallBack* relCallBack);
@@ -169,18 +181,26 @@ private:
 		Thread_InstallApp = 6,
 		Thread_end
 	};
-	std::vector<AppInfo> m_apps;
-
+	std::set<std::string> m_applist;
 	//static void idevice_event_cb_t(const idevice_event_t* event, void* user_data);
 	std::thread m_workThread[Thread_end];
 	std::atomic_bool m_bCap=false;
 	std::atomic_bool m_bUpdata = false;
 	std::atomic_bool m_bUpdataBattreyInfo = false;
 	std::atomic_bool m_bUpdataDiskInfo = false;
+	std::atomic_bool m_bUpdataApps = false;
 	//app列表读写锁。
 	WfirstRWLock m_appsLocker;
 	std::condition_variable appUnistallcv;
 	std::condition_variable appIstallcv;
 private:
 	iOSDevInfo m_iosInfo;
+};
+
+class auto_bool_value
+{
+	std::atomic_bool& m_value;
+public:
+	auto_bool_value(std::atomic_bool& inval) :m_value(inval) { inval = true; }
+	~auto_bool_value() { m_value = false; }
 };

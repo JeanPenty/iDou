@@ -688,6 +688,46 @@ namespace utils
 		return 0;
 	}
 
+	int afc_download_file(afc_client_t afc,HANDLE hfile, const char* remotefile)
+	{
+		uint64_t af = 0;
+
+		char** fileinfo = NULL;
+		if ((afc_get_file_info(afc, remotefile, &fileinfo) != AFC_E_SUCCESS) || !fileinfo) {
+			return -1;
+		}
+		int i;
+		size_t fsize = 0;
+		for (i = 0; fileinfo[i]; i += 2) {
+			if (!strcmp(fileinfo[i], "st_size")) {
+				fsize = atoi(fileinfo[i + 1]);
+				break;
+			}
+		}
+		afc_dictionary_free(fileinfo);
+
+		if (fsize == 0)
+			return -1;
+
+		if ((afc_file_open(afc, remotefile, AFC_FOPEN_RDONLY, &af) != AFC_E_SUCCESS) || !af) {
+			return -1;
+		}
+		std::unique_ptr<char> buf(new char[10240]);				
+
+		size_t amount = 0;
+		while(fsize>0)
+		{
+			if (afc_file_read(afc, af, buf.get(), fsize>10240?10240: fsize, &amount) != AFC_E_SUCCESS)
+				break;
+			fsize -= amount;
+			DWORD writesize;
+			if (!WriteFile(hfile, buf.get(), amount, &writesize, NULL))
+				break;
+		}
+		afc_file_close(afc, af);
+		return 0;
+	}
+
 	int afc_get_file_size(afc_client_t afc, size_t &outsize, const char* remotefile)
 	{
 		char** fileinfo = NULL;
@@ -701,16 +741,10 @@ namespace utils
 				break;
 			}
 		}
-		i = 0;
-		while (fileinfo[i]) {
-			free(fileinfo[i]);
-			i++;
-		}
-		free(fileinfo);
+		afc_dictionary_free(fileinfo);
 		return 0;
 
 	}
-
 
 	void afc_upload_dir(afc_client_t afc, const char* path, const char* afcpath)
 	{
@@ -890,7 +924,7 @@ namespace utils
 		return time1;
 	}
 
-	void FormatTime(time_t time1, SOUI::SStringT & szTime)
+	SOUI::SStringT& FormatTime(time_t time1, SOUI::SStringT & szTime)
 	{
 		struct tm tm1;
 
@@ -901,6 +935,7 @@ namespace utils
 #endif
 		szTime.Format(L"%4.4d-%2.2d-%2.2d",
 			tm1.tm_year + 1900, tm1.tm_mon + 1, tm1.tm_mday);
+		return szTime;
 	}
 
 	std::map<SOUI::SStringT, SOUI::SStringT> OriginID = {

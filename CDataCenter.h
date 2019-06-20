@@ -32,10 +32,11 @@ public:
 	void Sleep(SWindow* pWnd);
 	std::string GetUDIDByWindow(SWindow* pWnd);
 	CiOSDevice* GetDevByUDID(LPCSTR udid);
+	CiOSDevice* GetDevByWindow(SWindow* pWnd);
 	bool GetGasGauge(LPCSTR udid, BatteryBaseInfo& out);
-	bool UpdataDiskInfo(LPCSTR udid);
-	const std::vector<AppInfo>* GetApps(LPCSTR udid);
+	bool UpdataDiskInfo(LPCSTR udid);	
 	void UninstallApp(LPCSTR udid,LPCSTR appid);
+	int GetAppsCount(LPCSTR udid);
 private:	
 	void _docmd(SWindow* pWnd, diagnostics_cmd_mode cmd);
 

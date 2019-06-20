@@ -30,5 +30,9 @@
   <imglist name="skin_btn_edit" src="img:png_btn_edit" states="3"/>
   <imglist name="skin_apps" src="img:png_skin_apps" states="3"/>
   <imgframe name="skin_shadow" src="img:png_shadow" margin="9,5,9,11"/>
+  <imgframe name="skin_shadow2" src="img:png_shadow2" margin="9,5,9,11"/>
   <imglist name="skin_repair" src="img:png_repair" states="3"/>
+  <colorrect name="TrayMenu_menu_bkgnd" hover="#03b69e" />
+  <colorrect name="TrayMenu_menu_sep" normal="#cccccc" />
+  <imglist name="skin_cmdicons" src="img:png_cmdicons" states="5"/>
 </skin>

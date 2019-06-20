@@ -41,6 +41,7 @@ bool CDataCenter::PairDev(LPCSTR udid, bool& bCan)
 		{
 			if (m_listDev[udid].iOSDevObject.OpenDevice(udid))
 			{
+				m_listDev[udid].iOSDevObject.GetDeviceBaseInfo();
 				bCan = true;
 			}
 		}
@@ -48,7 +49,6 @@ bool CDataCenter::PairDev(LPCSTR udid, bool& bCan)
 	}
 	return false;
 }
-
 
 bool CDataCenter::GetDevName(LPCSTR udid, SStringT & outName)
 {
@@ -70,7 +70,6 @@ bool CDataCenter::AddDevUDID(LPCSTR udid, bool& bCan)
 			if (m_listDev[udid].iOSDevObject.OpenDevice(udid))
 			{
 				m_listDev[udid].iOSDevObject.GetDeviceBaseInfo();
-
 				bCan = true;
 			}
 		}
@@ -145,11 +144,15 @@ CDataCenter::CDataCenter()
 	SNotifyCenter::getSingleton().addEvent(EVENTID(EventUpdataDiskInfo));
 	SNotifyCenter::getSingleton().addEvent(EVENTID(EventUpdataAppsInfo));
 	SNotifyCenter::getSingleton().addEvent(EVENTID(EventUninstallApp));
-	SNotifyCenter::getSingleton().addEvent(EVENTID(EventInstallApp));	
+	SNotifyCenter::getSingleton().addEvent(EVENTID(EventInstallApp));
+	SNotifyCenter::getSingleton().addEvent(EVENTID(EventAFCInit));
+	SNotifyCenter::getSingleton().addEvent(EVENTID(EventUpdataFile));
+	SNotifyCenter::getSingleton().addEvent(EVENTID(EventOpenFileRet));
 }
 
 CDataCenter::~CDataCenter()
 {
+	SNotifyCenter::getSingleton().removeAllEvents();
 }
 
 void CDataCenter::_docmd(SWindow * pWnd, diagnostics_cmd_mode cmd)
@@ -192,6 +195,18 @@ CiOSDevice* CDataCenter::GetDevByUDID(LPCSTR udid)
 	if (iter == m_listDev.end())
 		return NULL;
 	return &iter->second.iOSDevObject;
+}
+
+CiOSDevice* CDataCenter::GetDevByWindow(SWindow* pWnd)
+{
+	for (auto& iter : m_listDev)
+	{
+		if (iter.second.InfoWnd == pWnd)
+		{
+			return GetDevByUDID(iter.first.c_str());
+		}
+	}
+	return NULL;
 }
 
 void CDataCenter::ShutDown(SWindow * pWnd)
@@ -390,7 +405,6 @@ void _initiphonediskinfo2(SWindow * pInfoWnd, const DiskInfo & diskInfo)
 	}
 }
 
-
 bool CDataCenter::_initdevbaseinfo(const iOSDevInfo & devInfo, SWindow * pInfoWnd)
 {
 	SASSERT(pInfoWnd);
@@ -435,6 +449,8 @@ bool CDataCenter::_initdevbaseinfo(const iOSDevInfo & devInfo, SWindow * pInfoWn
 		pInfoWnd->FindChildByID(R.id.btn_reboot)->SetUserData((ULONG_PTR)pInfoWnd);
 		pInfoWnd->FindChildByID(R.id.btn_shutdown)->SetUserData((ULONG_PTR)pInfoWnd);
 		pInfoWnd->FindChildByID(R.id.btn_sleep)->SetUserData((ULONG_PTR)pInfoWnd);
+		pInfoWnd->FindChildByID(R.id.apps_ctrl_wnd)->SetUserData((ULONG_PTR)pInfoWnd);		
+
 		const WCHAR * screenskin[] = { L"skin_iphonescreen",L"skin_ipadscreen", };
 		switch (devInfo.m_type)
 		{
@@ -494,19 +510,6 @@ bool CDataCenter::UpdataDiskInfo(LPCSTR udid)
 	return false;
 }
 
-const std::vector<AppInfo>* CDataCenter::GetApps(LPCSTR udid)
-{
-	SASSERT(udid);
-	if (udid)
-	{
-		auto ite = m_listDev.find(udid);
-		if (ite == m_listDev.end())
-			return NULL;
-		return ite->second.iOSDevObject.GetApps();
-	}
-	return NULL;
-}
-
 void CDataCenter::UninstallApp(LPCSTR udid,LPCSTR appid)
 {
 	SASSERT(udid);
@@ -517,4 +520,17 @@ void CDataCenter::UninstallApp(LPCSTR udid,LPCSTR appid)
 			return;
 		ite->second.iOSDevObject.UninstallApp(appid);
 	}
+}
+
+int CDataCenter::GetAppsCount(LPCSTR udid)
+{
+	SASSERT(udid);
+	if (udid)
+	{
+		auto ite = m_listDev.find(udid);
+		if (ite == m_listDev.end())
+			return 0;
+		return ite->second.iOSDevObject.GetAppsCount();
+	}
+	return 0;
 }
