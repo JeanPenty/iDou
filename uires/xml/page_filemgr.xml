@@ -1,6 +1,8 @@
 ﻿<include>
-  <window size="-2,36"> 
-    <edit name="et_path" size="-2,-2" autoSel="0"/>
+  <window size="-2,36" name="wnd_file_uri">
+    <button size="36,-2" name="btn_goback" text="&lt;" enable="0"/>
+    <button size="36,-2" name="btn_goforward" text="&gt;" enable="0"/>
+    <edit name="et_path" size="-2,-2" autoSel="0" readOnly="1"/>
   </window>
   <hr size="-2,1" colorLine="@color/gray4"/>
   <window size="-2,0" weight="1" layout="hbox">
@@ -32,7 +34,7 @@
       </window>
       <hr size="-2,1" colorLine="@color/gray4"/>
       <mclistviewex name="lv_filesList" canSwapItem="0" headerHeight="26" colorDropBk="#0064b3" colorBkgnd="@color/white" size="-2,0" weight="1">
-        <header2 name="apps_header" align="center" matchParent="1" itemSkin="" cursor="hand" itemSwapEnable="0" sortHeader="0" colorText="#000000ff" margin="0,0,0,1" colorBorder="@color/gray3">
+        <header2 name="apps_header" align="center" matchParent="1" itemSkin="" minWidth="38" cursor="hand" itemSwapEnable="0" sortHeader="0" colorText="#000000ff" margin="0,0,0,1" colorBorder="@color/gray3">
           <items>
             <item width="150">名称</item>
             <item width="66">大小</item>

@@ -283,12 +283,12 @@ namespace utils
 		{L"iphone9,2",9},
 		{L"iphone9,3",9},
 		{L"iphone9,4",9},
-		{L"iphone10.1",10},//8 X
-		{L"iphone10.2",10},
-		{L"iphone10.3",11},
-		{L"iphone10.4",10},
-		{L"iphone10.5",10},
-		{L"iphone10.6",11},
+		{L"iphone10,1",10},//8 X
+		{L"iphone10,2",10},
+		{L"iphone10,3",11},
+		{L"iphone10,4",10},
+		{L"iphone10,5",10},
+		{L"iphone10,6",11},
 	};
 
 	SOUI::SStringT getphonecolor(SOUI::SStringT DevProductType, const SOUI::SStringT & DeviceColor, const SOUI::SStringT & DeviceEnclosureColor,

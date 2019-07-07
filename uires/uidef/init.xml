@@ -22,5 +22,6 @@
 
   <objattr>
     <button skin="skin_button" drawFocusRect="0"/>
+    <hr colorLine="@color/gray3"/>
   </objattr>
 </UIDEF>

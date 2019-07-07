@@ -92,6 +92,7 @@ bool CDataCenter::BeginUpdataInfoASync(LPCSTR udid)
 		ite->second.iOSDevObject.StartUpdataApps();
 		ite->second.iOSDevObject.StartCapshot();
 		ite->second.iOSDevObject.StartUpdataDiskInfo();
+		ite->second.iOSDevObject.StartGetContacts();
 		return true;
 	}
 	return false;
@@ -148,6 +149,7 @@ CDataCenter::CDataCenter()
 	SNotifyCenter::getSingleton().addEvent(EVENTID(EventAFCInit));
 	SNotifyCenter::getSingleton().addEvent(EVENTID(EventUpdataFile));
 	SNotifyCenter::getSingleton().addEvent(EVENTID(EventOpenFileRet));
+	SNotifyCenter::getSingleton().addEvent(EVENTID(EventUpdataContacts));
 }
 
 CDataCenter::~CDataCenter()
@@ -295,7 +297,7 @@ void _initipaddiskinfo(SWindow * pInfoWnd, const DiskInfo & diskInfo)
 	}
 }
 
-void _initiphonediskinfo(SWindow * pInfoWnd, const DiskInfo & diskInfo)
+void _initidiskinfo(SWindow * pInfoWnd, const DiskInfo & diskInfo)
 {
 	if (pInfoWnd)
 	{
@@ -366,7 +368,7 @@ void _initiphonediskinfo(SWindow * pInfoWnd, const DiskInfo & diskInfo)
 	}
 }
 
-void _initipaddiskinfo2(SWindow* pInfoWnd, const DiskInfo& diskInfo)
+void _initidiskinfo2(SWindow* pInfoWnd, const DiskInfo& diskInfo)
 {
 	if (pInfoWnd)
 	{
@@ -449,12 +451,11 @@ bool CDataCenter::_initdevbaseinfo(const iOSDevInfo & devInfo, SWindow * pInfoWn
 		pInfoWnd->FindChildByID(R.id.btn_reboot)->SetUserData((ULONG_PTR)pInfoWnd);
 		pInfoWnd->FindChildByID(R.id.btn_shutdown)->SetUserData((ULONG_PTR)pInfoWnd);
 		pInfoWnd->FindChildByID(R.id.btn_sleep)->SetUserData((ULONG_PTR)pInfoWnd);
-		pInfoWnd->FindChildByID(R.id.apps_ctrl_wnd)->SetUserData((ULONG_PTR)pInfoWnd);		
-
+		pInfoWnd->FindChildByID(R.id.apps_ctrl_wnd)->SetUserData((ULONG_PTR)pInfoWnd);
+		pInfoWnd->FindChildByID(R.id.wnd_file_uri)->SetUserData((ULONG_PTR)pInfoWnd);
+		
 		const WCHAR * screenskin[] = { L"skin_iphonescreen",L"skin_ipadscreen", };
-		switch (devInfo.m_type)
-		{
-		case Type_iPhone:
+		if (devInfo.m_bIsJailreak)
 		{
 			SStringT color1, color2;
 			SStringT color = utils::getphonecolor(devInfo.m_strDevProductType, devInfo.m_strDeviceColor, devInfo.m_strDeviceEnclosureColor, color1, color2);
@@ -463,16 +464,15 @@ bool CDataCenter::_initdevbaseinfo(const iOSDevInfo & devInfo, SWindow * pInfoWn
 			pSrceenShotBk->SetAttribute(L"skin", screenskin[0]);
 			pSrceenShotBk->SetAttribute(L"inset", L"15,47,14,46");
 			pInfoWnd->FindChildByID(R.id.lable_DevColor)->SetWindowText(color2);
-			_initiphonediskinfo(pInfoWnd, devInfo.m_diskInfo);
-		}break;
-		case Type_iPad:
+			_initidiskinfo(pInfoWnd, devInfo.m_diskInfo);
+		}
+		else
 		{
-			_initipaddiskinfo(pInfoWnd, devInfo.m_diskInfo);
+			_initidiskinfo2(pInfoWnd, devInfo.m_diskInfo);
 			SWindow* pSrceenShotBk = pInfoWnd->FindChildByID(R.id.img_srceenshotbk);
 			//pSrceenShotBk->SetAttribute(L"colorBkgnd", color);
 			pSrceenShotBk->SetAttribute(L"skin", screenskin[1]);
 			pSrceenShotBk->SetAttribute(L"inset", L"13,28,14,29");
-		}
 		}
 
 		return true;
@@ -492,20 +492,16 @@ bool CDataCenter::UpdataDiskInfo(LPCSTR udid)
 		const iOSDevInfo & devInfo = ite->second.iOSDevObject.GetiOSBaseInfo();
 		if (devInfo.m_diskInfo.bReady)
 		{
-			switch (devInfo.m_type)
-			{
-			case Type_iPhone:
+			if (devInfo.m_bIsJailreak)
 			{
 				_initiphonediskinfo2(ite->second.InfoWnd, devInfo.m_diskInfo);
-			}break;
-			case Type_iPad:
+			}
+			else
 			{
-				_initipaddiskinfo2(ite->second.InfoWnd, devInfo.m_diskInfo);
-			}break;
+				_initidiskinfo2(ite->second.InfoWnd, devInfo.m_diskInfo);
 			}
 			return true;
-		}
-		else return false;
+		}		
 	}
 	return false;
 }

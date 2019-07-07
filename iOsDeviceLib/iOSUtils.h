@@ -135,6 +135,7 @@ enum {
 	EVT_AFC_INIT,
 	EVT_UPDATA_FILES,
 	EVT_OPEN_FILE_END,
+	EVT_UPDATA_CONTACTS,
 	EVT_END
 };
 
@@ -147,6 +148,12 @@ struct FILEINFO
 
 	FILEINFO(LPCSTR path,LPCSTR fullpath, struct stat _stat):m_path(path), m_fullpath(fullpath), m_stat(_stat){}
 };
+
+SEVENT_BEGIN(EventUpdataContacts, EVT_UPDATA_CONTACTS)
+SOUI::SStringT udid;
+bool bRet;
+std::vector<SOUI::SStringW> contacts;
+SEVENT_END()
 
 SEVENT_BEGIN(EventOpenFileRet, EVT_OPEN_FILE_END)
 std::string udid;

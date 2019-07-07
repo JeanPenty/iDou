@@ -8,12 +8,13 @@
 #include "..\Cafctask.h"
 #include "CBaseInfoDlg.h"
 #include "CLoadingDlg.h"
+#include "LV_contactsAdapter.h"
 
 
 using namespace SOUI;
 
 CMyDeviceHandler::CMyDeviceHandler()
-{
+{	
 }
 
 CMyDeviceHandler::~CMyDeviceHandler()
@@ -72,9 +73,18 @@ void CMyDeviceHandler::AddDev(const idevice_event_t* event, bool bCan)
 		iosFilessAdapter->Release();
 	}
 
+	SMCListViewEx* plv_contactsList = pTabPage->FindChildByID2<SMCListViewEx>(R.id.lv_contactsList);
+	if (plv_contactsList)
+	{
+		CContactsListAdapter* contactsAdapter = new CContactsListAdapter(event->udid);
+		plv_contactsList->SetAdapter(contactsAdapter);
+		contactsAdapter->Release();
+	}
+
 	CDataCenter::getSingleton().BindInfoWindow(event->udid, pTabPage);
 	if (bCan)
 	{
+		m_filerecords[event->udid];
 		Cafctask::getSingleton().AddDev(event->udid);
 		CDataCenter::getSingleton().UpdataBaseInfo(event->udid);
 		CDataCenter::getSingleton().BeginUpdataInfoASync(event->udid);
@@ -99,6 +109,9 @@ void CMyDeviceHandler::RemoveDev(const idevice_event_t* event)
 	STabCtrlTemplate* pTab = m_pPageRoot->FindChildByID2<STabCtrlTemplate>(R.id.nav_dev_cmd);
 	SASSERT(pTab);
 	Cafctask::getSingleton().RemoveDev(event->udid);
+
+	m_filerecords.erase(event->udid);
+
 	CDataCenter::getSingleton().RemoveDevGUID(event->udid);
 	pTab->RemoveItem(pTab->GetPageIndex(S_CA2T(event->udid), TRUE), 0);
 
@@ -109,6 +122,7 @@ void CMyDeviceHandler::PairDev(const idevice_event_t* event, bool bCan)
 	m_pTreeViewAdapter->SetDevCan(event->udid, bCan);
 	if (bCan)
 	{
+		m_filerecords[event->udid];
 		Cafctask::getSingleton().AddDev(event->udid);
 		CDataCenter::getSingleton().UpdataBaseInfo(event->udid);
 		CDataCenter::getSingleton().BeginUpdataInfoASync(event->udid);
@@ -341,7 +355,55 @@ void CMyDeviceHandler::OnTVFilesMgrSelChanged(EventArgs* pEArg)
 
 	SEdit* pETPATH = pTv->GetParent()->GetParent()->FindChildByID2<SEdit>(R.id.et_path);
 	SASSERT(pETPATH);
+	//重置历史记录列表
+	ResetRecord(iosFilessAdapter->m_udid);
+	pTv->GetParent()->GetParent()->FindChildByID(R.id.btn_goback)->EnableWindow(FALSE,TRUE);
+	pTv->GetParent()->GetParent()->FindChildByID(R.id.btn_goforward)->EnableWindow(FALSE, TRUE);
+
 	UINT taskid = -1;
+
+	const char* path[] = { "/","/","/MyDocuments","/general_storage" ,"/Recordings" ,"/var/mobile/Containers/Bundle/Application" };
+	const wchar_t* wpath[] = { L"/",L"/",L"/MyDocuments",L"/general_storage" ,L"/Recordings" ,L"/var/mobile/Containers/Bundle/Application" };
+	switch (cmd)
+	{
+		//用户系统
+		case 1:
+			taskid = Cafctask::getSingleton().Updata(iosFilessAdapter->m_udid.c_str(), path[0], false);
+			PushFileRecord(iosFilessAdapter->m_udid, false, path[0]);
+			pETPATH->SetWindowText(L"/");
+			break;
+			//越狱系统
+		case 2:
+			taskid = Cafctask::getSingleton().Updata(iosFilessAdapter->m_udid.c_str(), "/", true);
+			PushFileRecord(iosFilessAdapter->m_udid, true, path[1]);
+			pETPATH->SetWindowText(L"/");
+			break;
+			//我的文档
+		case 11:
+			taskid = Cafctask::getSingleton().Updata(iosFilessAdapter->m_udid.c_str(), "/MyDocuments", false);
+			PushFileRecord(iosFilessAdapter->m_udid, false, path[2]);
+			pETPATH->SetWindowText(L"/MyDocuments");
+			break;
+			//手机U盘
+		case 12:
+			taskid = Cafctask::getSingleton().Updata(iosFilessAdapter->m_udid.c_str(), "/general_storage", false);
+			PushFileRecord(iosFilessAdapter->m_udid, false, path[3]);
+			pETPATH->SetWindowText(L"/general_storage");
+			break;
+			//语音备忘录
+		case 13:
+			taskid = Cafctask::getSingleton().Updata(iosFilessAdapter->m_udid.c_str(), "/Recordings", false);
+			PushFileRecord(iosFilessAdapter->m_udid, false, path[4]);
+			pETPATH->SetWindowText(L"/Recordings");
+			break;
+			//应用程序
+		case 14:
+			taskid = Cafctask::getSingleton().Updata(iosFilessAdapter->m_udid.c_str(), "/var/mobile/Containers/Bundle/Application", true);
+			PushFileRecord(iosFilessAdapter->m_udid, true, path[5]);
+			pETPATH->SetWindowText(L"/var/mobile/Containers/Bundle/Application");
+			break;
+	}
+	/*
 	switch (cmd)
 	{
 		//用户系统
@@ -354,7 +416,6 @@ void CMyDeviceHandler::OnTVFilesMgrSelChanged(EventArgs* pEArg)
 			taskid = Cafctask::getSingleton().Updata(iosFilessAdapter->m_udid.c_str(), "/", true);
 			pETPATH->SetWindowText(L"/");
 			break;
-
 			//我的文档
 		case 11:
 			taskid = Cafctask::getSingleton().Updata(iosFilessAdapter->m_udid.c_str(), "/MyDocuments", false);
@@ -375,7 +436,7 @@ void CMyDeviceHandler::OnTVFilesMgrSelChanged(EventArgs* pEArg)
 			taskid = Cafctask::getSingleton().Updata(iosFilessAdapter->m_udid.c_str(), "/var/mobile/Containers/Bundle/Application", true);
 			pETPATH->SetWindowText(L"/var/mobile/Containers/Bundle/Application");
 			break;
-	}
+	}*/
 	if (taskid != -1)
 	{
 		SMCListViewEx* pFilesList = pTv->GetParent()->FindChildByID2<SMCListViewEx>(R.id.lv_filesList);
@@ -452,36 +513,48 @@ void CMyDeviceHandler::OnFilesNavTvEventOfPanel(EventArgs* pEvt)
 			SEdit* pETPATH = pTv->GetParent()->GetParent()->FindChildByID2<SEdit>(R.id.et_path);
 			SASSERT(pETPATH);
 			UINT taskid = -1;
+			//重置历史记录
+			ResetRecord(iosFilessAdapter->m_udid);
+			pTv->GetParent()->GetParent()->FindChildByID(R.id.btn_goback)->EnableWindow(FALSE, TRUE);
+			pTv->GetParent()->GetParent()->FindChildByID(R.id.btn_goforward)->EnableWindow(FALSE, TRUE);
+			const char* path[] = {"/","/","/MyDocuments","/general_storage" ,"/Recordings" ,"/var/mobile/Containers/Bundle/Application" };
+			const wchar_t* wpath[] = { L"/",L"/",L"/MyDocuments",L"/general_storage" ,L"/Recordings" ,L"/var/mobile/Containers/Bundle/Application" };
 			switch (cmd)
 			{
 				//用户系统
 				case 1:
-					taskid = Cafctask::getSingleton().Updata(iosFilessAdapter->m_udid.c_str(), "/", false);
+					taskid = Cafctask::getSingleton().Updata(iosFilessAdapter->m_udid.c_str(), path[0], false);
+					PushFileRecord(iosFilessAdapter->m_udid,false, path[0]);
 					pETPATH->SetWindowText(L"/");
 					break;
 					//越狱系统
 				case 2:
 					taskid = Cafctask::getSingleton().Updata(iosFilessAdapter->m_udid.c_str(), "/", true);
+					PushFileRecord(iosFilessAdapter->m_udid, true, path[1]);
 					pETPATH->SetWindowText(L"/");
 					break;
 					//我的文档
 				case 11:
 					taskid = Cafctask::getSingleton().Updata(iosFilessAdapter->m_udid.c_str(), "/MyDocuments", false);
+					PushFileRecord(iosFilessAdapter->m_udid, false, path[2]);
 					pETPATH->SetWindowText(L"/MyDocuments");
 					break;
 					//手机U盘
 				case 12:
 					taskid = Cafctask::getSingleton().Updata(iosFilessAdapter->m_udid.c_str(), "/general_storage", false);
+					PushFileRecord(iosFilessAdapter->m_udid, false, path[3]);
 					pETPATH->SetWindowText(L"/general_storage");
 					break;
 					//语音备忘录
 				case 13:
 					taskid = Cafctask::getSingleton().Updata(iosFilessAdapter->m_udid.c_str(), "/Recordings", false);
+					PushFileRecord(iosFilessAdapter->m_udid, false, path[4]);
 					pETPATH->SetWindowText(L"/Recordings");
 					break;
 					//应用程序
 				case 14:
 					taskid = Cafctask::getSingleton().Updata(iosFilessAdapter->m_udid.c_str(), "/var/mobile/Containers/Bundle/Application", true);
+					PushFileRecord(iosFilessAdapter->m_udid, true, path[5]);
 					pETPATH->SetWindowText(L"/var/mobile/Containers/Bundle/Application");
 					break;
 			}
@@ -516,6 +589,10 @@ void CMyDeviceHandler::OnFileslvEventOfPanel(EventArgs* pEvt)
 		{
 			if (isdir)
 			{
+				PushFileRecord(pFilesListAdapter->m_udid,pFilesListAdapter->CurIsJailreak(), path);
+				pFilesList->GetParent()->GetParent()->GetParent()->FindChildByID(R.id.btn_goback)->EnableWindow(TRUE, TRUE);
+				pFilesList->GetParent()->GetParent()->GetParent()->FindChildByID(R.id.btn_goforward)->EnableWindow(FALSE, TRUE);
+
 				pFilesListAdapter->UpdataTaskID(
 					Cafctask::getSingleton().Updata(pFilesListAdapter->m_udid.c_str(), path.c_str(), pFilesListAdapter->CurIsJailreak())
 				);
@@ -532,7 +609,7 @@ void CMyDeviceHandler::OnFileslvEventOfPanel(EventArgs* pEvt)
 	}
 }
 
-void CMyDeviceHandler::OnUnpdataFileList(EventArgs* e)
+void CMyDeviceHandler::OnUpdataFileList(EventArgs* e)
 {
 	EventUpdataFile* updatafiles = sobj_cast<EventUpdataFile>(e);
 
@@ -544,7 +621,7 @@ void CMyDeviceHandler::OnUnpdataFileList(EventArgs* e)
 	CFilesListAdapter* filesListAdapter = (CFilesListAdapter*)pFilesList->GetAdapter();
 
 	if (filesListAdapter->IsCurTask(updatafiles->taskId))
-	{
+	{		
 		filesListAdapter->Updata(updatafiles->filelist);
 	}
 }
@@ -672,4 +749,81 @@ void CMyDeviceHandler::OnInstallAppCb(EventArgs* pEArg)
 			m_pTreeViewAdapter->UpDataDevAppInfo(S_CW2A(evt->udid), iosAppsAdapter->getCount());
 		}		
 	}
+}
+
+void CMyDeviceHandler::OnGoBack(EventArgs* pEArg)
+{
+	SWindow* btn = sobj_cast<SWindow>(pEArg->sender);
+	SASSERT(btn);
+	SWindow* hostwnd = btn->GetParent();
+	std::string udid= CDataCenter::getSingleton().GetUDIDByWindow((SWindow*)hostwnd->GetUserData());
+	SASSERT(!udid.empty());
+	FileRecord record;
+	if (PopFileRecord(udid, record))
+	{
+		SMCListViewEx* pFilesList = hostwnd->GetParent()->FindChildByID2<SMCListViewEx>(R.id.lv_filesList);
+		SASSERT(pFilesList);
+		CFilesListAdapter* iosFilesListAdapter = (CFilesListAdapter*)pFilesList->GetAdapter();		
+
+		iosFilesListAdapter->UpdataTaskID(
+			Cafctask::getSingleton().Updata(udid.c_str(), record.path.c_str(), record.isAfc2)
+		);
+		SWindow* petpath = hostwnd->FindChildByID(R.id.et_path);
+		SASSERT(petpath);
+		petpath->SetWindowText(S_CA2W(record.path.c_str(), CP_UTF8));
+		hostwnd->FindChildByID(R.id.btn_goforward)->EnableWindow(TRUE, TRUE);
+		btn->EnableWindow(m_filerecords[udid].record1.empty()?FALSE:TRUE);
+	}
+}
+
+void CMyDeviceHandler::OnGoForward(EventArgs* pEArg)
+{
+	SWindow* btn = sobj_cast<SWindow>(pEArg->sender);
+	SASSERT(btn);
+	SWindow* hostwnd = btn->GetParent();
+	std::string udid = CDataCenter::getSingleton().GetUDIDByWindow((SWindow*)hostwnd->GetUserData());
+	SASSERT(!udid.empty());
+
+}
+
+void CMyDeviceHandler::OnUpdataContacts(EventArgs* pEArg)
+{
+	EventUpdataContacts* e = sobj_cast<EventUpdataContacts>(pEArg);
+	SWindow* pContactsWindow = GetDevCmdWindow(e->udid,3);
+	if (pContactsWindow)
+	{
+		SMCListViewEx* plv_contactsList = pContactsWindow->FindChildByID2<SMCListViewEx>(R.id.lv_contactsList);
+		if (plv_contactsList)
+		{
+			CContactsListAdapter *pContactsAdpter=(CContactsListAdapter*) plv_contactsList->GetAdapter();
+			SASSERT(pContactsAdpter);
+			pContactsAdpter->CopyForm(std::move(e->contacts));
+		}
+	}
+}
+
+void CMyDeviceHandler::PushFileRecord(const std::string& udid, bool isafc2, const std::string& path)
+{
+	std::deque<FileRecord>& record = m_filerecords[udid].record1;
+	while (record.size()>28)
+		record.pop_front();
+	record.push_back({ isafc2, path });
+	m_filerecords[udid].record2.clear();
+}
+
+bool CMyDeviceHandler::PopFileRecord(const std::string& udid, FileRecord& filerecord)
+{
+	std::deque<FileRecord>& record = m_filerecords[udid].record1;	
+	if(record.empty())
+		return false;
+	filerecord = record.back();
+	m_filerecords[udid].record2.push_back(filerecord);
+	record.pop_back();
+	return true;
+}
+
+void CMyDeviceHandler::ResetRecord(const std::string &udid)
+{
+	m_filerecords[udid].record1.clear();
+	m_filerecords[udid].record2.clear();
 }

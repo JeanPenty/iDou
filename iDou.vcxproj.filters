@@ -181,6 +181,9 @@
     <ClInclude Include="CMyDeviceHandler\CLoadingDlg.h">
       <Filter>MyDeviceHandler</Filter>
     </ClInclude>
+    <ClInclude Include="CMyDeviceHandler\LV_contactsAdapter.h">
+      <Filter>MyDeviceHandler</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="res\soui_res.rc2">
@@ -256,6 +259,12 @@
     </Xml>
     <Xml Include="uires\xml\dlg_about.xml">
       <Filter>SoUI Resource\layout</Filter>
+    </Xml>
+    <Xml Include="uires\xml\page_backuprestore.xml">
+      <Filter>SoUI Resource\layout\device</Filter>
+    </Xml>
+    <Xml Include="uires\xml\page_contacts.xml">
+      <Filter>SoUI Resource\layout\device</Filter>
     </Xml>
   </ItemGroup>
   <ItemGroup>

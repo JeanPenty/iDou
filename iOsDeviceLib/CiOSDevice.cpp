@@ -18,6 +18,7 @@
 #include <libimobiledevice/sbservices.h>
 #include <event/NotifyCenter.h>
 #include <libimobiledevice/installation_proxy.h>
+#include <libimobiledevice/src/mobilesync.h>
 
 EXTERN_C{
 #include "base64.h"
@@ -130,7 +131,7 @@ bool _GetAddress(lockdownd_client_t client, SOUI::SStringA& outAddress, LPCSTR n
 							plist_dict_iter iter2 = NULL;
 							plist_dict_new_iter(item, &iter2);
 							plist_t val = NULL;
-							do{
+							do {
 								char* key = NULL;
 								//plist_dict_get_item_key(item, &key);
 								plist_dict_next_item(item, iter2, &key, &val);
@@ -143,7 +144,7 @@ bool _GetAddress(lockdownd_client_t client, SOUI::SStringA& outAddress, LPCSTR n
 								}
 								if (key)
 									free(key);
-								
+
 							} while (val);
 						}
 					}
@@ -530,6 +531,7 @@ bool CiOSDevice::GetDeviceBaseInfo()
 	_GetBatteryBaseInfo(m_iosInfo.m_sGasGauge);
 	//获取硬盘信息有一定机率会失败后面处理
 	_GetDiskInfo();
+	//_MobileSync();
 
 	m_iosInfo.m_bIsJailreak = _IsJailreak();
 
@@ -717,8 +719,7 @@ bool CiOSDevice::_GetBatteryBaseInfo(BatteryBaseInfo& outInfo)
 #define	TEST
 #endif // _DEBUG Device Characteristics
 			//Device Characteristics AppleH4CamIn  ASPStorage
-
-			if (diagnostics_relay_query_ioregistry_entry(diagnostics_client, "", "ASPStorage", &node) == DIAGNOSTICS_RELAY_E_SUCCESS) {
+			if (diagnostics_relay_query_ioregistry_entry(diagnostics_client, "ASPStorage", "", &node) == DIAGNOSTICS_RELAY_E_SUCCESS) {
 				if (node) {
 #ifdef TEST	
 					{
@@ -767,8 +768,10 @@ bool CiOSDevice::_GetBatteryBaseInfo(BatteryBaseInfo& outInfo)
 					node = NULL;
 				}
 			}
-
+			//IOPMPowerSource AppleSmartBattery
 			if (diagnostics_relay_query_ioregistry_entry(diagnostics_client, "AppleARMPMUCharger", NULL, &node) == DIAGNOSTICS_RELAY_E_SUCCESS) {
+				if (node == NULL)//新版本上类名不一样
+					diagnostics_relay_query_ioregistry_entry(diagnostics_client, "AppleSmartBattery", NULL, &node);
 				if (node) {
 					using namespace SOUI;
 					plist_t batterysnnode = plist_dict_get_item(plist_dict_get_item(node, "IORegistry"), "Serial");
@@ -1381,7 +1384,9 @@ void CiOSDevice::_UpdataBatteryInfo()
 			udid.MakeLower();
 			while (m_bUpdataBattreyInfo)
 			{
-				if (diagnostics_relay_query_ioregistry_entry(diagnostics_client, "AppleARMPMUCharger", "", &node) == DIAGNOSTICS_RELAY_E_SUCCESS) {
+				if (diagnostics_relay_query_ioregistry_entry(diagnostics_client, "AppleARMPMUCharger", NULL, &node) == DIAGNOSTICS_RELAY_E_SUCCESS) {
+					if (node == NULL)
+						diagnostics_relay_query_ioregistry_entry(diagnostics_client, "AppleSmartBattery", NULL, &node);
 					if (node) {
 						using namespace SOUI;
 						EventUpdataBattreyInfo* e = new EventUpdataBattreyInfo(NULL);
@@ -1406,6 +1411,7 @@ void CiOSDevice::_UpdataBatteryInfo()
 						}
 
 						plist_free(node);
+						node = NULL;
 						SOUI::SNotifyCenter::getSingleton().FireEventAsync(e);
 						e->Release();
 					}
@@ -1808,8 +1814,8 @@ void CiOSDevice::_GetInstallAppInfo(LPCSTR* appid)
 			plist_dict_iter ite = NULL;
 			plist_dict_new_iter(apps, &ite);
 			plist_t app = NULL;
-				
-			do{
+
+			do {
 				char* key = NULL;
 				plist_dict_next_item(apps, ite, &key, &app);
 				free(key);
@@ -1835,7 +1841,7 @@ void CiOSDevice::_GetInstallAppInfo(LPCSTR* appid)
 					SOUI::SNotifyCenter::getSingleton().FireEventAsync(e);
 					e->Release();
 				}
-			}while (app);
+			} while (app);
 		}
 		plist_free(apps);
 		instproxy_client_options_free(client_opts);
@@ -2282,4 +2288,114 @@ leave_cleanup:
 	np_client_free(np);
 	instproxy_client_free(ipc);
 	lockdownd_client_free(updataAppsClient);
+}
+
+void CiOSDevice::StartGetContacts()
+{
+	if (m_bUpdataContacts)
+		return;
+	if (m_workThread[Thread_Contacts].joinable())
+		m_workThread[Thread_Contacts].join();
+	m_workThread[Thread_Contacts] = std::thread(&CiOSDevice::_MobileSync, this);
+}
+
+void CiOSDevice::_MobileSync()
+{
+	auto_bool_value flag(m_bUpdataContacts);
+	/*
+	com.apple.Contacts
+com.apple.Calendars
+com.apple.Bookmarks
+com.apple.Notes
+com.apple.MailAccounts
+	*/
+	SOUI::SStringW wxml;
+	mobilesync_client_t client = NULL;
+	if (MOBILESYNC_E_SUCCESS != mobilesync_client_start_service(m_device, &client, "MobileSync"))
+		return;
+	mobilesync_sync_type_t type = MOBILESYNC_SYNC_TYPE_SLOW;
+	char* errstr = NULL;
+	mobilesync_anchors_t anchors;
+	mobilesync_anchors_new(NULL, "Windows", &anchors);
+	uint64_t devicever;
+	mobilesync_error_t error = mobilesync_start(client, "com.apple.Contacts", anchors, 106, &type, &devicever, &errstr);
+	free(errstr);
+	if (error != MOBILESYNC_E_SUCCESS)
+		goto clear;
+
+
+	if (mobilesync_get_all_records_from_device(client) != MOBILESYNC_E_SUCCESS)
+		goto clear;
+	plist_t entities = NULL, actions = NULL;
+	uint8_t out;
+
+	error = mobilesync_receive_changes(client, &entities, &out, &actions);
+	if (error != MOBILESYNC_E_SUCCESS)
+		goto clear;
+	/*uint32_t len;
+	char* xml = NULL;
+	plist_to_xml(entities, &xml, &len);
+	wxml = SOUI::S_CA2W(xml, CP_UTF8);
+	free(xml);*/
+
+	plist_dict_iter iter = NULL;
+	plist_dict_new_iter(entities, &iter);
+	plist_t val = NULL;
+
+	EventUpdataContacts* e = new EventUpdataContacts(NULL);
+	e->udid = m_iosInfo.m_strDevUDID;
+	e->udid.MakeLower();
+	do {
+		char* key = NULL;
+		plist_dict_next_item(entities, iter, &key, &val);
+		if (val&&(PLIST_DICT == plist_get_node_type(val)))
+		{
+			/*
+		<dict>
+		<key>display as company</key>
+		<string>person</string>
+		<key>last name</key>
+		<string>x</string>
+		<key>com.apple.syncservices.RecordEntityName</key>
+		<string>com.apple.contacts.Contact</string>
+		<key>first name</key>
+		<string>xx</string>
+	</dict>
+			*/
+			SStringT Name;
+			plist_t lastNameNode = plist_dict_get_item(val, "last name");
+			if (lastNameNode)
+			{
+				char* strLastName = NULL;
+				plist_get_string_val(lastNameNode, &strLastName);
+				if (strLastName)
+				{
+					Name=SOUI::S_CA2W(strLastName,CP_UTF8);
+					free(strLastName);
+				}
+			}
+			plist_t firstNameNode = plist_dict_get_item(val, "first name");
+			if (firstNameNode)
+			{
+				char* strFirstName = NULL;
+				plist_get_string_val(firstNameNode, &strFirstName);
+				if (strFirstName)
+				{
+					Name += SOUI::S_CA2W(strFirstName, CP_UTF8);
+					free(strFirstName);
+				}
+			}
+			e->contacts.push_back(Name);
+		}
+		if (key)
+			free(key);
+	} while (val);
+	SOUI::SNotifyCenter::getSingleton().FireEventAsync(e);
+	e->Release();
+
+	plist_free(entities);
+	plist_free(actions);
+clear:
+	mobilesync_anchors_free(anchors);
+	mobilesync_client_free(client);
 }

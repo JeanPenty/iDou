@@ -125,7 +125,8 @@ public:
 	
 	void UninstallApp(LPCSTR appID);
 	void UninstallApp(std::vector<std::string>& apps);
-	
+	void StartGetContacts();
+
 	static void FreeAFCClient(afc_client_t afc_client);
 	bool CreateAFCClient(afc_client_t &afc_client);
 	bool CreateAFC2Client(afc_client_t &afc_client);
@@ -158,6 +159,8 @@ protected:
 	void _UninstallApp(const std::vector<std::string> appID);	
 	void _InstallApp(const std::wstring apppath, bool bInstall);
 
+	void _MobileSync();
+
 	lockdownd_client_t m_client = NULL;
 	idevice_t m_device = NULL;
 	np_client_t m_npClient = NULL;
@@ -179,6 +182,7 @@ private:
 		Thread_UpdataAppsInfo = 4,
 		Thread_UninstallApp =5,
 		Thread_InstallApp = 6,
+		Thread_Contacts=7,
 		Thread_end
 	};
 	std::set<std::string> m_applist;
@@ -189,6 +193,7 @@ private:
 	std::atomic_bool m_bUpdataBattreyInfo = false;
 	std::atomic_bool m_bUpdataDiskInfo = false;
 	std::atomic_bool m_bUpdataApps = false;
+	std::atomic_bool m_bUpdataContacts = false;
 	//appÁÐ±í¶ÁÐ´Ëø¡£
 	WfirstRWLock m_appsLocker;
 	std::condition_variable appUnistallcv;

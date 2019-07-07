@@ -14,6 +14,8 @@
     <file name="XML_FileMgr" path="xml\page_filemgr.xml"/>
     <file name="XML_dlg_loading" path="xml\dlg_loading.xml"/>
     <file name="XML_dlg_about" path="xml\dlg_about.xml"/>
+    <file name="XML_Backup_Restore" path="xml\page_backuprestore.xml"/>
+    <file name="XML_Contacts" path="xml\page_contacts.xml"/>
   </LAYOUT>  
   <values>
   	<file name="string" path="values\string.xml"/>
@@ -51,6 +53,7 @@
     <file name="png_shadow2" path="image\shadow2.png"/>
     <file name="png_repair" path="image\repair.png"/>
     <file name="png_cmdicons" path="image\cmd_icons.png"/>
+    <file name="png_devbackup" path="image\backup.png"/>
   </IMG>
   <ICON>
     <file name="ICON_LOGO"  path="image\logo.ico"/>

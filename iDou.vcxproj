@@ -221,6 +221,7 @@
     <ClInclude Include="CMyDeviceHandler\CBaseInfoDlg.h" />
     <ClInclude Include="CMyDeviceHandler\CLoadingDlg.h" />
     <ClInclude Include="CMyDeviceHandler\CMyDeviceHandler.h" />
+    <ClInclude Include="CMyDeviceHandler\LV_contactsAdapter.h" />
     <ClInclude Include="CMyDeviceHandler\LV_iOSAppsAdapter.h" />
     <ClInclude Include="CMyDeviceHandler\LV_iOSFilesAdapter.h" />
     <ClInclude Include="CMyDeviceHandler\TV_iOSDeviceAdapter.h" />
@@ -279,6 +280,8 @@
     <Xml Include="uires\xml\main_menuex.xml" />
     <Xml Include="uires\xml\page.xml" />
     <Xml Include="uires\xml\page_appinfo.xml" />
+    <Xml Include="uires\xml\page_backuprestore.xml" />
+    <Xml Include="uires\xml\page_contacts.xml" />
     <Xml Include="uires\xml\page_filemgr.xml" />
     <Xml Include="uires\xml\page_mydevice.xml" />
     <Xml Include="uires\xml\page_mydeviceinfo.xml" />

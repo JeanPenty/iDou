@@ -47,10 +47,10 @@
                   <include src="layout:XML_FileMgr"/>
                 </page>
                 <page layout="hbox" gravity="center">
-                  <text text="cmd4"/>
+                  <include src="layout:XML_Contacts"/>
                 </page>
                 <page layout="hbox" gravity="center">
-                  <text text="cmd5"/>
+                  <include src="layout:XML_Backup_Restore"/>
                 </page>
               </tabctrl>
             </page>

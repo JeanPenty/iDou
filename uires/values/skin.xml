@@ -35,4 +35,5 @@
   <colorrect name="TrayMenu_menu_bkgnd" hover="#03b69e" />
   <colorrect name="TrayMenu_menu_sep" normal="#cccccc" />
   <imglist name="skin_cmdicons" src="img:png_cmdicons" states="5"/>
+  <imglist name="skin_backup" src="img:png_devbackup" states="2"/>
 </skin>
