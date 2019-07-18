@@ -1,0 +1,51 @@
+﻿<SOUI name="mainWindow" title="@string/title" bigIcon="ICON_LOGO:32" smallIcon="ICON_LOGO:16" width="566" height="388"
+      resizable="0" wndType="normal" toolWindow="1" sendWheel2Hover="1" translucent="1">
+  <root size="-2,-2">
+    <window name="root" size="-2,-2" skin="skin_bk" alpha="238" colorBorder="@color/black" margin="1,1,1,1" layout="vbox">
+      <caption size="-2,38" layout="hbox" colorText="@color/white" interval="18" gravity="center">
+        <text extend_left="18" text="iTunes修复"/>
+        <window size="0,0" weight="1"/>
+        <window size="-1,-1" layout="hbox" layout_gravity="top">
+          <imgbtn id="IDCANCEL" skin="skin_close" tip="close" animate="1" extend_right="2"/>
+        </window>
+      </caption>
+      <window name="tab_main"  size="-2,0" weight="1" colorBkgnd="@color/white" layout="vbox" gravity="center">
+        <animateimg extend_top="18" skin="skin_repair"/>
+        <tabctrl name="tab_repair" tabHeight="0" size="-2,0" weight="1" animateSteps="0">
+          <page>
+            <button name="btn_check" pos="|,|" offset="-0.5,-0.5" text="开始诊断" enable="false" inset="22,12,22,12" colorTextDisable="@color/gray"/>
+          </page>
+          <page>
+            <text pos="|,|" offset="-0.5,-0.5" multiLines="1" text="小的无能，不能正常启动诊断程序！\n如果重试仍无法解决，请尝试查看是否有新版本软件！"/>
+          </page>
+          <page layout="vbox" gravity="center">
+            <window size="-2,0" weight="1" layout="vbox" gravity="center" font="adding:3" interval="10">              
+              <text multiLines="1" text="经小的诊断，您的驱动程序运行正常！\n如果仍然无法连接请尝试重新安装驱动" font="adding:12"/>
+              <window size="-1,-1" layout="hbox">
+                <text text="Apple Mobile Device Service(版本:"/>
+                <text name="lable_amds_ver" text="0.0.0.0"/>
+                <text text=")"/>
+              </window>
+            </window>
+            <window size="-1,58" layout="hbox" interval="66" gravity="center">              
+              <button name="btn_openitunesurl" text="下载其它版本" inset="22,12,22,12"/>
+              <button id="IDOK" text="关闭诊断" inset="22,12,22,12"/>              
+            </window>
+          </page>
+          <page>
+            <button name="btn_repair" pos="|,|" offset="-0.5,-0.5" text="开始修复" inset="22,12,22,12" colorTextDisable="@color/gray"/>
+          </page>
+          <page>
+            <text pos="|,|" offset="-0.5,-0.5" multiLines="1" text="小的无能，不能修复！\n如果重试仍无法解决，请尝试查看是否有新版本软件！"/>
+          </page>
+          <page>
+            <text pos="|,|" offset="-0.5,-0.5" multiLines="1" text="修复成功！"/>
+          </page>
+          <page>
+            <text name="lable_error_msg" pos="|,|" offset="-0.5,-0.5" multiLines="1"/>
+          </page>
+        </tabctrl>
+      </window>
+    </window>
+  </root>
+</SOUI>

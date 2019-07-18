@@ -159,7 +159,9 @@ protected:
 	void _UninstallApp(const std::vector<std::string> appID);	
 	void _InstallApp(const std::wstring apppath, bool bInstall);
 
-	void _MobileSync();
+	bool EnableSyncContacts();
+
+	void _SyncContacts();
 
 	lockdownd_client_t m_client = NULL;
 	idevice_t m_device = NULL;

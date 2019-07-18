@@ -1,0 +1,18 @@
+﻿<SOUI width="288" height="-1" resizable="0" toolWindow="1" translucent="1">
+  <root>
+    <window class="shadow_wnd" alpha="220">
+      <window size="-2,-1" layout="vbox" padding="1,1,1,1">
+        <window size="-2,38" layout="hbox" gravity="top" colorText="#ffffff">
+          <text extend_left="10" text="@string/loadtitle" layout_gravity="center"/>
+          <text weight="1"/>          
+        </window>
+        <window size="-2,-1" layout="hbox" colorBkgnd="#ffffff" gravity="center" padding="10,10,10,10">
+          <window weight="1"/>
+          <animateimg skin="skin_loading"/>
+          <text text="@string/loadding"/>
+          <window weight="1"/>
+        </window>
+      </window>
+    </window>
+  </root>
+</SOUI>

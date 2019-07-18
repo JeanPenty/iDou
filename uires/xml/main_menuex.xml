@@ -1,0 +1,10 @@
+﻿<menuRoot itemHeight="32" font="face:微软雅黑,size:14" colorBkgnd="@color/white" margin="9,5,9,11"
+          maxWidth="128" minWidth="128" sepSkin="TrayMenu_menu_sep" iconBarWidth="0"
+          ncskin="skin_shadow2" itemSkin="TrayMenu_menu_bkgnd">
+  <menuItem id="701" colorTextHover="@color/white"  align="center">
+    意见反馈
+  </menuItem>
+  <menuItem id="702" colorTextHover="@color/white" align="center">
+    关于
+  </menuItem>
+</menuRoot>

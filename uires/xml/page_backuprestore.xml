@@ -1,0 +1,58 @@
+﻿<include>
+  <window size="-2,-2" layout="vbox" interval="12" colorBkgnd="@color/white" inset="28,28,28,28">
+    <window size="-2,-1" layout="hbox" gravity="center" interval="28">
+      <img skin="skin_backup" iconIndex="0"/>
+      <text text="备份"/>
+    </window>
+    <hr size="-2,1"/>
+    <window size="-1,-1" layout="hbox">
+      <button size="120,120" text="全新备份"/>
+      <button size="120,120" text="增量备份"/>
+    </window>
+    <window size="-2,-1" layout="hbox" gravity="center" interval="28">
+      <img skin="skin_backup" iconIndex="1"/>
+      <text text="还原"/>
+    </window>
+    <hr size="-2,1"/>
+    <mclistviewex name="lv_backupList" canSwapItem="0" headerHeight="26" colorDropBk="#0064b3" colorBkgnd="@color/white" size="-2,0" weight="1"  margin="1,1,1,1" colorBorder="@color/gray3">
+      <header2 align="center" matchParent="0" itemSkin="" cursor="hand" itemSwapEnable="0" sortHeader="0" colorText="#000000ff" margin="0,0,0,1" colorBorder="@color/gray3">
+        <items>
+          <item width="168">设备名称</item>
+          <item width="168">设备类型</item>
+          <item width="99">版本</item>
+          <item width="168">备份时间</item>
+          <item width="128">大小</item>
+          <item width="128">是否加密</item>
+          <item width="198">操作</item>
+        </items>
+      </header2>
+      <template itemHeight="38" colorHover="@color/item_hov" colorSelected="@color/item_sel">
+        <window name="name" clipClient="1" layout="hbox" gravity="center" interval="4">
+          <icon size="16,16" name="img_fileIcon" extend_left="4"/>
+          <text name="lable_path" size="0,-1" weight="1" dotted="1" />
+        </window>
+        <window name="size" clipClient="1">
+          <text name="lable_size" pos="|,|" offset="-0.5,-0.5"></text>
+        </window>
+        <window name="type" clipClient="1">
+          <text name="lable_type" pos="|,|" offset="-0.5,-0.5" ></text>
+        </window>
+        <window name="time" clipClient="1">
+          <text name="lable_time" pos="|,|" offset="-0.5,-0.5"></text>
+        </window>
+        <window name="time" clipClient="1">
+          <text name="lable_time" pos="|,|" offset="-0.5,-0.5"></text>
+        </window>
+        <window name="time" clipClient="1">
+          <text name="lable_time" pos="|,|" offset="-0.5,-0.5"></text>
+        </window>
+        <window name="time" clipClient="1">
+          <text name="lable_time" pos="|,|" offset="-0.5,-0.5"></text>
+        </window>
+        <window name="time" clipClient="1">
+          <text name="lable_time" pos="|,|" offset="-0.5,-0.5"></text>
+        </window>
+      </template>
+    </mclistviewex>
+  </window>
+</include>

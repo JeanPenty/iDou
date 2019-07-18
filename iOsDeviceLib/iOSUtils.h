@@ -22,6 +22,7 @@
 #include <zip.h>
 #include <list>
 #include <vector>
+#include <map>
 struct AppInfo
 {
 	std::string AppID;
@@ -139,6 +140,11 @@ enum {
 	EVT_END
 };
 
+enum PhoneType {
+	unknown,
+	mobile,
+};
+
 struct FILEINFO
 {
 	std::string m_path;
@@ -149,10 +155,17 @@ struct FILEINFO
 	FILEINFO(LPCSTR path,LPCSTR fullpath, struct stat _stat):m_path(path), m_fullpath(fullpath), m_stat(_stat){}
 };
 
+struct ContactInfo
+{
+	SOUI::SStringW FirstName;
+	SOUI::SStringW LastName;
+	std::vector<SOUI::SStringW> PhoneNumber;
+};
+
 SEVENT_BEGIN(EventUpdataContacts, EVT_UPDATA_CONTACTS)
 SOUI::SStringT udid;
 bool bRet;
-std::vector<SOUI::SStringW> contacts;
+std::map<int,ContactInfo> contacts;
 SEVENT_END()
 
 SEVENT_BEGIN(EventOpenFileRet, EVT_OPEN_FILE_END)
@@ -251,6 +264,14 @@ namespace utils
 	
 	SOUI::SStringT getLoc(const SOUI::SStringT& loccode);
 
+	PhoneType StringToPhoneType(const char* strType);
+
+	PhoneType TypeToString(const char* strType);
+
+	SOUI::SStringW MakeName(SOUI::SStringW& firstname, SOUI::SStringW& lastname);
+
+	SOUI::SStringW MakePhoneNumber(std::vector<SOUI::SStringW>& phoneNumbers);
+
 	void getbatteryManufactureDateFormSNOld(const SOUI::SStringT& SN, SOUI::SStringT& outOrigin, SOUI::SStringT& outDate);
 
 	void getbatteryManufactureDateFormSN(const SOUI::SStringT& SN, SOUI::SStringT& outOrigin, SOUI::SStringT& outDate);
@@ -259,7 +280,7 @@ namespace utils
 	bool isIp6OrLater(SOUI::SStringT DevProductType);
 	bool getDevManufactureDateFormSN(const SOUI::SStringT& SN, SOUI::SStringT& outDate);
 
-
+	void SplitString(const std::string& s, std::vector<std::string>& v, const std::string& c);
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	char* basename(const char* path);
 

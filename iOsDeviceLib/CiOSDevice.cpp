@@ -531,7 +531,7 @@ bool CiOSDevice::GetDeviceBaseInfo()
 	_GetBatteryBaseInfo(m_iosInfo.m_sGasGauge);
 	//获取硬盘信息有一定机率会失败后面处理
 	_GetDiskInfo();
-	//_MobileSync();
+	//_SyncContacts();
 
 	m_iosInfo.m_bIsJailreak = _IsJailreak();
 
@@ -2296,106 +2296,254 @@ void CiOSDevice::StartGetContacts()
 		return;
 	if (m_workThread[Thread_Contacts].joinable())
 		m_workThread[Thread_Contacts].join();
-	m_workThread[Thread_Contacts] = std::thread(&CiOSDevice::_MobileSync, this);
+	m_workThread[Thread_Contacts] = std::thread(&CiOSDevice::_SyncContacts, this);
 }
 
-void CiOSDevice::_MobileSync()
+bool GetContactId(char* strkey, int& id, int& idx)
+{
+	//<key>3/720/0</key>
+	SASSERT(strkey);
+	if(!strkey)
+		return false;
+	std::vector<std::string> out;
+	std::string key = strkey;
+	utils::SplitString(key, out, "/");
+	SASSERT(out.size() == 3);
+	if (out.size() != 3)
+		return false;
+	id = atoi(out[1].c_str());
+	idx= atoi(out[2].c_str());
+	return true;
+}
+
+void GetPhoneNumber(plist_t val, SOUI::SStringW& phoneNumber, PhoneType& type)
+{
+	/*
+	<dict>
+		<key>value</key>
+		<string>62581</string>
+		<key>com.apple.syncservices.RecordEntityName</key>
+		<string>com.apple.contacts.Phone Number</string>
+		<key>type</key>
+		<string>mobile</string>
+		<key>contact</key>
+		<array>
+			<string>720</string>
+		</array>
+	</dict>
+	*/
+	plist_t phoneNumberNode = plist_dict_get_item(val, "value");
+	if (phoneNumberNode)
+	{
+		char* strPhoneNumber = NULL;
+		plist_get_string_val(phoneNumberNode, &strPhoneNumber);
+		if (strPhoneNumber)
+		{
+			phoneNumber = SOUI::S_CA2W(strPhoneNumber, CP_UTF8);
+			free(strPhoneNumber);
+		}
+	}
+	plist_t typeNode = plist_dict_get_item(val, "type");
+	if (typeNode)
+	{
+		char* strPhoneType = NULL;
+		plist_get_string_val(typeNode, &strPhoneType);
+		if (strPhoneType)
+		{
+			type=utils::StringToPhoneType(strPhoneType);
+			free(strPhoneType);
+		}
+	}
+}
+
+void GetName(plist_t val, SStringT& outLastName, SStringT& outFirstName)
+{
+	/*		<dict>
+			<key>display as company</key>
+			<string>person</string>
+			<key>last name</key>
+			<string>x</string>
+			<key>com.apple.syncservices.RecordEntityName</key>
+			<string>com.apple.contacts.Contact</string>
+			<key>first name</key>
+			<string>xx</string>
+		</dict>
+	*/
+	plist_t lastNameNode = plist_dict_get_item(val, "last name");
+	if (lastNameNode)
+	{
+		char* strLastName = NULL;
+		plist_get_string_val(lastNameNode, &strLastName);
+		if (strLastName)
+		{
+			outLastName = SOUI::S_CA2W(strLastName, CP_UTF8);
+			free(strLastName);
+		}
+	}
+	plist_t firstNameNode = plist_dict_get_item(val, "first name");
+	if (firstNameNode)
+	{
+		char* strFirstName = NULL;
+		plist_get_string_val(firstNameNode, &strFirstName);
+		if (strFirstName)
+		{
+			outFirstName = SOUI::S_CA2W(strFirstName, CP_UTF8);
+			free(strFirstName);
+		}
+	}
+}
+
+bool CiOSDevice::EnableSyncContacts()
+{
+	char** classes = NULL;
+	int count = 0;
+	lockdownd_get_sync_data_classes(m_client, &classes, &count);
+	bool bRet = false;
+	for (int i = 0; i < count; i++) {
+		if (strcmp(classes[i], "com.apple.Contacts") == 0)
+		{
+			bRet = true;
+			break;
+		}
+	}
+	lockdownd_data_classes_free(classes);
+	return bRet;
+}
+
+void CiOSDevice::_SyncContacts()
 {
 	auto_bool_value flag(m_bUpdataContacts);
-	/*
-	com.apple.Contacts
-com.apple.Calendars
-com.apple.Bookmarks
-com.apple.Notes
-com.apple.MailAccounts
-	*/
+	if (!EnableSyncContacts())
+	{
+		EventUpdataContacts* e = new EventUpdataContacts(NULL);
+		e->udid = m_iosInfo.m_strDevUDID;
+		e->udid.MakeLower();
+		e->bRet = false;
+		SOUI::SNotifyCenter::getSingleton().FireEventAsync(e);
+		e->Release();
+		return;
+	}
 	SOUI::SStringW wxml;
 	mobilesync_client_t client = NULL;
 	if (MOBILESYNC_E_SUCCESS != mobilesync_client_start_service(m_device, &client, "MobileSync"))
 		return;
-	mobilesync_sync_type_t type = MOBILESYNC_SYNC_TYPE_SLOW;
+	mobilesync_sync_type_t type;
 	char* errstr = NULL;
 	mobilesync_anchors_t anchors;
-	mobilesync_anchors_new(NULL, "Windows", &anchors);
+
+	mobilesync_anchors_new(NULL, "ContactsAnchors", &anchors);
 	uint64_t devicever;
 	mobilesync_error_t error = mobilesync_start(client, "com.apple.Contacts", anchors, 106, &type, &devicever, &errstr);
+	mobilesync_anchors_free(anchors);
 	free(errstr);
 	if (error != MOBILESYNC_E_SUCCESS)
 		goto clear;
-
-
 	if (mobilesync_get_all_records_from_device(client) != MOBILESYNC_E_SUCCESS)
 		goto clear;
-	plist_t entities = NULL, actions = NULL;
-	uint8_t out;
 
-	error = mobilesync_receive_changes(client, &entities, &out, &actions);
-	if (error != MOBILESYNC_E_SUCCESS)
-		goto clear;
-	/*uint32_t len;
-	char* xml = NULL;
-	plist_to_xml(entities, &xml, &len);
-	wxml = SOUI::S_CA2W(xml, CP_UTF8);
-	free(xml);*/
-
-	plist_dict_iter iter = NULL;
-	plist_dict_new_iter(entities, &iter);
-	plist_t val = NULL;
+	uint8_t is_last_record = 0;
 
 	EventUpdataContacts* e = new EventUpdataContacts(NULL);
 	e->udid = m_iosInfo.m_strDevUDID;
 	e->udid.MakeLower();
+	e->bRet = true;
 	do {
-		char* key = NULL;
-		plist_dict_next_item(entities, iter, &key, &val);
-		if (val&&(PLIST_DICT == plist_get_node_type(val)))
-		{
-			/*
-		<dict>
-		<key>display as company</key>
-		<string>person</string>
-		<key>last name</key>
-		<string>x</string>
-		<key>com.apple.syncservices.RecordEntityName</key>
-		<string>com.apple.contacts.Contact</string>
-		<key>first name</key>
-		<string>xx</string>
-	</dict>
-			*/
-			SStringT Name;
-			plist_t lastNameNode = plist_dict_get_item(val, "last name");
-			if (lastNameNode)
+		plist_t entities = NULL;
+		error = mobilesync_receive_changes(client, &entities, &is_last_record, NULL);
+		if (error != MOBILESYNC_E_SUCCESS)
+			goto clear;
+
+#if _DEBUG
+		uint32_t len;
+		char* xml = NULL;
+		plist_to_xml(entities, &xml, &len);
+		wxml = SOUI::S_CA2W(xml, CP_UTF8);
+		free(xml);
+#endif
+
+		plist_dict_iter iter = NULL;
+		plist_dict_new_iter(entities, &iter);
+		plist_t val = NULL;
+		do {
+			char* key = NULL;
+			plist_dict_next_item(entities, iter, &key, &val);
+			if (val && (PLIST_DICT == plist_get_node_type(val)))
 			{
-				char* strLastName = NULL;
-				plist_get_string_val(lastNameNode, &strLastName);
-				if (strLastName)
+				//"com.apple.syncservices.RecordEntityName"
+				plist_t RecordEntityName = plist_dict_get_item(val, "com.apple.syncservices.RecordEntityName");
+				if (RecordEntityName)
 				{
-					Name=SOUI::S_CA2W(strLastName,CP_UTF8);
-					free(strLastName);
+					char* strRecordEntityName = NULL;
+					plist_get_string_val(RecordEntityName, &strRecordEntityName);
+					if (strRecordEntityName)
+					{
+						//姓名等基本信息
+						//com.apple.contacts.Contact
+						//电话信息
+						//com.apple.contacts.Phone Number
+						//电子邮件信息
+						//com.apple.contacts.Email Address
+						//电子邮件信息
+						//com.apple.contacts.URL
+						//生日
+						//com.apple.contacts.Date
+						//即时消息
+						//com.apple.contacts.IM
+						//地址
+						//com.apple.contacts.Street Address
+						if (_stricmp("com.apple.contacts.Contact", strRecordEntityName) == 0)
+						{
+							e->contacts[atoi(key)];
+							ContactInfo& contactInfo = e->contacts[atoi(key)];
+							GetName(val, contactInfo.LastName, contactInfo.FirstName);
+						}
+						if (_stricmp("com.apple.contacts.Phone Number", strRecordEntityName) == 0)
+						{
+							int id, idx;
+							if (GetContactId(key, id, idx))
+							{
+								ContactInfo& contactInfo = e->contacts[id];
+								SOUI::SStringW phoneNumber;
+								PhoneType type;
+								GetPhoneNumber(val, phoneNumber, type);
+								contactInfo.PhoneNumber.push_back(phoneNumber);
+							}
+						}
+						if (_stricmp("com.apple.contacts.Email Address", strRecordEntityName) == 0)
+						{
+							
+						}
+						if (_stricmp("com.apple.contacts.URL", strRecordEntityName) == 0)
+						{
+							
+						}
+						if (_stricmp("com.apple.contacts.Date", strRecordEntityName) == 0)
+						{
+							
+						}
+						if (_stricmp("com.apple.contacts.IM", strRecordEntityName) == 0)
+						{
+							
+						}
+						if (_stricmp("com.apple.contacts.Street Address", strRecordEntityName) == 0)
+						{
+							
+						}
+						free(strRecordEntityName);
+					}
 				}
 			}
-			plist_t firstNameNode = plist_dict_get_item(val, "first name");
-			if (firstNameNode)
-			{
-				char* strFirstName = NULL;
-				plist_get_string_val(firstNameNode, &strFirstName);
-				if (strFirstName)
-				{
-					Name += SOUI::S_CA2W(strFirstName, CP_UTF8);
-					free(strFirstName);
-				}
-			}
-			e->contacts.push_back(Name);
-		}
-		if (key)
-			free(key);
-	} while (val);
+			if (key)
+				free(key);
+		} while (val);
+		plist_free(entities);
+
+		if (mobilesync_acknowledge_changes_from_device(client) != MOBILESYNC_E_SUCCESS)
+			goto clear;
+	} while (!is_last_record);
+
 	SOUI::SNotifyCenter::getSingleton().FireEventAsync(e);
 	e->Release();
-
-	plist_free(entities);
-	plist_free(actions);
 clear:
-	mobilesync_anchors_free(anchors);
 	mobilesync_client_free(client);
 }

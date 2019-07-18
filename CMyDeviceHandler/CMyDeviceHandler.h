@@ -51,6 +51,7 @@ protected:
 	void OnGoBack(EventArgs* pEArg);
 	void OnGoForward(EventArgs* pEArg);
 	void OnUpdataContacts(EventArgs* pEArg);
+	void OnContactSelChanged(EventArgs* pEArg);
 //ÎÄ¼þä¯ÀÀ¼ÇÂ¼
 	struct FileRecord {
 		bool isAfc2;
@@ -95,6 +96,7 @@ protected:
 		EVENT_ID_HANDLER(R.id.btn_installapp, EVT_CMD,OnInstallApp)
 		EVENT_ID_HANDLER(R.id.btn_goback, EVT_CMD, OnGoBack)
 		EVENT_ID_HANDLER(R.id.btn_goforward, EVT_CMD, OnGoForward)
+		EVENT_ID_HANDLER(R.id.lv_contactsList, EventLVSelChanged::EventID,OnContactSelChanged)
 	EVENT_MAP_BREAK()
 public:
 	CAutoRefPtr<CiOSDeviceTreeViewAdapter> m_pTreeViewAdapter;

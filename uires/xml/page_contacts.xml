@@ -1,0 +1,29 @@
+﻿<include>
+  <window size="-2,-2" layout="hbox" interval="12" colorBkgnd="@color/white" inset="28,28,28,28">
+    
+    <mclistviewex name="lv_contactsList" canSwapItem="0" headerHeight="26" colorDropBk="#0064b3" colorBkgnd="@color/white" size="0,-2" weight="1"  margin="1,1,1,1" colorBorder="@color/gray3">
+      <header2 align="center" matchParent="0" itemSkin="" cursor="hand" itemSwapEnable="0" sortHeader="0" colorText="#000000ff" margin="0,0,0,1" colorBorder="@color/gray3">
+        <items>
+          <item width="168">姓名</item>
+          <item width="400">电话</item>
+        </items>
+      </header2>
+      <template itemHeight="38" colorHover="@color/item_hov" colorSelected="@color/item_sel">
+        <window name="name" clipClient="1" layout="hbox" gravity="center" interval="4">
+          <icon size="16,16" name="img_fileIcon" extend_left="4"/>
+          <text name="lable_name" size="0,-1" weight="1" dotted="1" />
+        </window>
+        <window name="size" clipClient="1">
+          <text size="-2,-2" dotted="1" name="lable_phonenumber"></text>
+        </window>
+        <window name="type" clipClient="1">
+          <text name="lable_type" pos="|,|" offset="-0.5,-0.5" ></text>
+        </window>
+      </template>
+    </mclistviewex>
+    <window name="contactInfo" size="200,-2" layout="vbox" >
+      <text name="lable_name"/>
+      <listbox name="lb_phonenumbers" size="-2,0" weight="1" itemHeight="22" msgTransparent="1"/>
+    </window>
+  </window>
+</include>

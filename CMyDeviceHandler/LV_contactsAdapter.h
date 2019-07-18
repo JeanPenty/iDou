@@ -6,8 +6,9 @@ class CContactsListAdapter :public SMcAdapterBaseEx
 {
 	SArray<SStringW> m_colNames;
 	
-	std::vector<SOUI::SStringW> m_contacts;
-	
+	std::map<int, ContactInfo> m_contacts;
+	std::map<int, int> m_idx2id;
+
 public:
 	std::string m_udid;
 	CContactsListAdapter(LPCSTR udid) :m_udid(udid)
@@ -15,16 +16,31 @@ public:
 		SASSERT(udid);
 	}
 
-	void CopyForm(std::vector<SOUI::SStringW>&& contacts)
+	void CopyForm(std::map<int, ContactInfo>&& contacts)
 	{
-		m_contacts = contacts;
+		m_contacts = std::move(contacts);
+
+		m_idx2id.clear();
+		int i = 0;
+		for (const auto& ite : m_contacts)
+		{
+			m_idx2id[i++] = ite.first;
+		}
+
+
 		notifyDataSetChanged();
+	}
+
+	ContactInfo GetContactInfo(int idx)
+	{
+		SASSERT(idx>=0&&idx<m_idx2id.size());
+		return m_contacts[m_idx2id[idx]];
 	}
 
 	virtual int getCount()
 	{
 		return m_contacts.size();
-	}	
+	}
 
 	virtual void getView(int position, SWindow* pItem, pugi::xml_node xmlTemplate)
 	{
@@ -33,9 +49,10 @@ public:
 			pItem->InitFromXml(xmlTemplate);
 		}
 		const TCHAR* color[] = { L"#ffffff",L"#f9f9f9" };
-		pItem->SetAttribute(L"colorNormal", color[position % 2]);			
-
-		pItem->FindChildByID(R.id.lable_path)->SetWindowText(m_contacts[position]);
+		pItem->SetAttribute(L"colorNormal", color[position % 2]);
+		ContactInfo & contactInfo=m_contacts[m_idx2id[position]];
+		pItem->FindChildByID(R.id.lable_name)->SetWindowText(utils::MakeName(contactInfo.FirstName, contactInfo.LastName));
+		pItem->FindChildByID(R.id.lable_phonenumber)->SetWindowText(utils::MakePhoneNumber(contactInfo.PhoneNumber));
 	}
 
 	int GetColCount()

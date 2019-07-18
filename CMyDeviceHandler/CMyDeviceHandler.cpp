@@ -111,7 +111,7 @@ void CMyDeviceHandler::RemoveDev(const idevice_event_t* event)
 	Cafctask::getSingleton().RemoveDev(event->udid);
 
 	m_filerecords.erase(event->udid);
-
+	 
 	CDataCenter::getSingleton().RemoveDevGUID(event->udid);
 	pTab->RemoveItem(pTab->GetPageIndex(S_CA2T(event->udid), TRUE), 0);
 
@@ -798,6 +798,37 @@ void CMyDeviceHandler::OnUpdataContacts(EventArgs* pEArg)
 			CContactsListAdapter *pContactsAdpter=(CContactsListAdapter*) plv_contactsList->GetAdapter();
 			SASSERT(pContactsAdpter);
 			pContactsAdpter->CopyForm(std::move(e->contacts));
+		}
+	}
+}
+
+void CMyDeviceHandler::OnContactSelChanged(EventArgs* pEArg)
+{
+	EventLVSelChanged* e = sobj_cast<EventLVSelChanged>(pEArg);
+
+	if (e->iNewSel == -1)
+		return;
+
+	SMCListViewEx* plv_contactsList = sobj_cast<SMCListViewEx>(pEArg->sender);
+	if (plv_contactsList)
+	{
+		SWindow *pContactInfoWnd=plv_contactsList->GetParent()->FindChildByID(R.id.contactInfo);
+		SASSERT(pContactInfoWnd);
+		CContactsListAdapter* pContactsAdpter = (CContactsListAdapter*)plv_contactsList->GetAdapter();
+		SASSERT(pContactsAdpter);
+		ContactInfo contactInfo = pContactsAdpter->GetContactInfo(e->iNewSel);
+
+		pContactInfoWnd->FindChildByID(R.id.lable_name)->SetWindowText(utils::MakeName(contactInfo.FirstName, contactInfo.LastName));
+		SListBox *pPhoneNumbers= pContactInfoWnd->FindChildByID2<SListBox>(R.id.lb_phonenumbers);
+		SASSERT(pPhoneNumbers);
+		if (pPhoneNumbers)
+		{
+			pPhoneNumbers->DeleteAll();
+			for (const auto&iter: contactInfo.PhoneNumber)
+			{
+				pPhoneNumbers->AddString(L"ÊÖ»ú");
+				pPhoneNumbers->AddString(iter);
+			}
 		}
 	}
 }

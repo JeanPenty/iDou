@@ -1051,6 +1051,23 @@ namespace utils
 		return false;
 	}
 
+	void SplitString(const std::string& s, std::vector<std::string>& v, const std::string& c)
+	{
+		using std::string;
+		string::size_type pos1, pos2;
+		pos2 = s.find(c);
+		pos1 = 0;
+		while (string::npos != pos2)
+		{
+			v.push_back(s.substr(pos1, pos2 - pos1));
+
+			pos1 = pos2 + c.size();
+			pos2 = s.find(c, pos1);
+		}
+		if (pos1 != s.length())
+			v.push_back(s.substr(pos1));
+	}
+
 	std::map<SOUI::SStringT, SOUI::SStringT> LocMap = {
 		{L"CH/A",L"ÖÐ¹ú"}
 	};
@@ -1063,6 +1080,45 @@ namespace utils
 			return iter->second;
 		}
 		return loccode;
+	}
+
+	PhoneType StringToPhoneType(const char* strType)
+	{
+		if (strType)
+		{
+			if (strcmp(strType, "mobile") == 0)
+				return mobile;
+
+		}
+		return unknown;
+	}
+
+	PhoneType TypeToString(const char* strType)
+	{
+		if (strType)
+		{
+			if (strcmp(strType, "mobile") == 0)
+				return mobile;
+
+		}
+		return unknown;
+	}
+
+	SOUI::SStringW MakeName(SOUI::SStringW& firstname, SOUI::SStringW& lastname)
+	{
+		return lastname + firstname;
+	}
+
+	SOUI::SStringW MakePhoneNumber(std::vector<SOUI::SStringW>& phoneNumbers)
+	{
+		SOUI::SStringW out;
+		for (const auto& ite : phoneNumbers)
+		{
+			out += ite;
+			out += L",";
+		}
+		out.TrimRight(L',');
+		return out;
 	}
 
 	void getbatteryManufactureDateFormSNOld(const SOUI::SStringT & SN, SOUI::SStringT & outOrigin, SOUI::SStringT & outDate)

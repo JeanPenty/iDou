@@ -121,12 +121,24 @@ public:
 		SASSERT(pWnd->GetUserData() < m_apps.size());
 
 		{
+
+			CRect rc = pWnd->GetWindowRect();
+			SItemPanel* pItemPanel = (SItemPanel*)pWnd->GetTopLevelParent();
+			CRect rc2 = pItemPanel->GetItemRect();
+			rc += rc2.TopLeft();
+			POINT pt = { rc.left,rc.bottom };
+			ClientToScreen(pItemPanel->GetContainer()->GetHostHwnd(),& pt);
+			SMenuEx menu;
+			menu.LoadMenu(_T("SMENU:menu_main"));
+			menu.TrackPopupMenu(0, pt.x, pt.y + 2, pItemPanel->GetContainer()->GetHostHwnd());
+
+			/*
 			const AppInfo& appInfo = m_apps[pWnd->GetUserData()];
 			if (SMessageBox(NULL, SStringT().Format(_T("确定要卸载 [%s] 吗?"), appInfo.DisplayName),
 				_T("卸载应用"), MB_OKCANCEL | MB_ICONQUESTION) == IDOK)
 			{
 				CDataCenter::getSingleton().UninstallApp(iosudid.c_str(), appInfo.AppID.c_str());
-			}
+			}*/
 		}
 		return true;
 	}
