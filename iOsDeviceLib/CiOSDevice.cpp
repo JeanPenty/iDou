@@ -2303,7 +2303,7 @@ bool GetContactId(char* strkey, int& id, int& idx)
 {
 	//<key>3/720/0</key>
 	SASSERT(strkey);
-	if(!strkey)
+	if (!strkey)
 		return false;
 	std::vector<std::string> out;
 	std::string key = strkey;
@@ -2312,7 +2312,7 @@ bool GetContactId(char* strkey, int& id, int& idx)
 	if (out.size() != 3)
 		return false;
 	id = atoi(out[1].c_str());
-	idx= atoi(out[2].c_str());
+	idx = atoi(out[2].c_str());
 	return true;
 }
 
@@ -2350,10 +2350,28 @@ void GetPhoneNumber(plist_t val, SOUI::SStringW& phoneNumber, PhoneType& type)
 		plist_get_string_val(typeNode, &strPhoneType);
 		if (strPhoneType)
 		{
-			type=utils::StringToPhoneType(strPhoneType);
+			type = utils::StringToPhoneType(strPhoneType);
 			free(strPhoneType);
 		}
 	}
+}
+
+bool GetContactImg(plist_t val, SOUI::CAutoRefPtr<SOUI::IBitmap>& m_img)
+{
+	plist_t ContactImgNode = plist_dict_get_item(val, "image");
+	if (ContactImgNode)
+	{
+		char* imgdata = NULL;
+		uint64_t len;
+		plist_get_data_val(ContactImgNode, &imgdata, &len);
+		if (imgdata)
+		{
+			m_img.Attach(SOUI::SResLoadFromMemory::LoadImage(imgdata, (uint32_t)len));
+			free(imgdata);
+			return true;
+		}
+	}
+	return false;
 }
 
 void GetName(plist_t val, SStringT& outLastName, SStringT& outFirstName)
@@ -2395,6 +2413,7 @@ void GetName(plist_t val, SStringT& outLastName, SStringT& outFirstName)
 
 bool CiOSDevice::EnableSyncContacts()
 {
+	
 	char** classes = NULL;
 	int count = 0;
 	lockdownd_get_sync_data_classes(m_client, &classes, &count);
@@ -2408,25 +2427,43 @@ bool CiOSDevice::EnableSyncContacts()
 	}
 	lockdownd_data_classes_free(classes);
 	return bRet;
+		
+	//plist_t syncContactsNode = NULL;
+	//bool bRet = false;
+	//if (LOCKDOWN_E_SUCCESS == lockdownd_get_value(m_client, "com.apple.mobile.tethered_sync", "Contacts", &syncContactsNode))
+	//{
+	//	//DisableTethered
+	//	plist_t disable = plist_dict_get_item(syncContactsNode, "DisableTethered");
+	//	if (disable)
+	//	{
+	//		uint8_t value = 0;
+	//		plist_get_bool_val(disable, &value);
+	//		bRet = (1 == value);
+	//	}
+	//}
+	//plist_free(syncContactsNode);
+	return bRet;
 }
 
 void CiOSDevice::_SyncContacts()
 {
 	auto_bool_value flag(m_bUpdataContacts);
+	mobilesync_client_t client = NULL;
+	EventUpdataContacts* e = new EventUpdataContacts(NULL);
+	e->udid = m_iosInfo.m_strDevUDID;
+	e->udid.MakeLower();
+	e->bRet = false;
 	if (!EnableSyncContacts())
 	{
-		EventUpdataContacts* e = new EventUpdataContacts(NULL);
-		e->udid = m_iosInfo.m_strDevUDID;
-		e->udid.MakeLower();
-		e->bRet = false;
-		SOUI::SNotifyCenter::getSingleton().FireEventAsync(e);
-		e->Release();
-		return;
+		goto clear;
 	}
-	SOUI::SStringW wxml;
-	mobilesync_client_t client = NULL;
+
+	
 	if (MOBILESYNC_E_SUCCESS != mobilesync_client_start_service(m_device, &client, "MobileSync"))
-		return;
+	{
+		goto clear;
+	}
+
 	mobilesync_sync_type_t type;
 	char* errstr = NULL;
 	mobilesync_anchors_t anchors;
@@ -2440,13 +2477,8 @@ void CiOSDevice::_SyncContacts()
 		goto clear;
 	if (mobilesync_get_all_records_from_device(client) != MOBILESYNC_E_SUCCESS)
 		goto clear;
-
 	uint8_t is_last_record = 0;
-
-	EventUpdataContacts* e = new EventUpdataContacts(NULL);
-	e->udid = m_iosInfo.m_strDevUDID;
-	e->udid.MakeLower();
-	e->bRet = true;
+	
 	do {
 		plist_t entities = NULL;
 		error = mobilesync_receive_changes(client, &entities, &is_last_record, NULL);
@@ -2454,6 +2486,7 @@ void CiOSDevice::_SyncContacts()
 			goto clear;
 
 #if _DEBUG
+		SOUI::SStringW wxml;
 		uint32_t len;
 		char* xml = NULL;
 		plist_to_xml(entities, &xml, &len);
@@ -2461,6 +2494,7 @@ void CiOSDevice::_SyncContacts()
 		free(xml);
 #endif
 
+		
 		plist_dict_iter iter = NULL;
 		plist_dict_new_iter(entities, &iter);
 		plist_t val = NULL;
@@ -2496,6 +2530,7 @@ void CiOSDevice::_SyncContacts()
 							e->contacts[atoi(key)];
 							ContactInfo& contactInfo = e->contacts[atoi(key)];
 							GetName(val, contactInfo.LastName, contactInfo.FirstName);
+							GetContactImg(val, contactInfo.m_img);
 						}
 						if (_stricmp("com.apple.contacts.Phone Number", strRecordEntityName) == 0)
 						{
@@ -2511,23 +2546,23 @@ void CiOSDevice::_SyncContacts()
 						}
 						if (_stricmp("com.apple.contacts.Email Address", strRecordEntityName) == 0)
 						{
-							
+
 						}
 						if (_stricmp("com.apple.contacts.URL", strRecordEntityName) == 0)
 						{
-							
+
 						}
 						if (_stricmp("com.apple.contacts.Date", strRecordEntityName) == 0)
 						{
-							
+
 						}
 						if (_stricmp("com.apple.contacts.IM", strRecordEntityName) == 0)
 						{
-							
+
 						}
 						if (_stricmp("com.apple.contacts.Street Address", strRecordEntityName) == 0)
 						{
-							
+
 						}
 						free(strRecordEntityName);
 					}
@@ -2541,9 +2576,44 @@ void CiOSDevice::_SyncContacts()
 		if (mobilesync_acknowledge_changes_from_device(client) != MOBILESYNC_E_SUCCESS)
 			goto clear;
 	} while (!is_last_record);
-
+	mobilesync_finish(client);
+	e->bRet = true;
+clear:
 	SOUI::SNotifyCenter::getSingleton().FireEventAsync(e);
 	e->Release();
-clear:
 	mobilesync_client_free(client);
+}
+
+void ChangedSync()
+{
+	mobilesync_client_t client = NULL;
+	//if (MOBILESYNC_E_SUCCESS != mobilesync_client_start_service(m_device, &client, "MobileSync"))
+	{
+		goto clear;
+	}
+	/*mobilesync_sync_type_t type;
+	char* errstr = NULL;
+	mobilesync_anchors_t anchors;
+	mobilesync_anchors_new(NULL, "ContactsAnchors", &anchors);
+	uint64_t devicever;
+	mobilesync_error_t error = mobilesync_start(client, "com.apple.Contacts", anchors, 106, &type, &devicever, &errstr);
+	mobilesync_anchors_free(anchors);
+	free(errstr);
+	if (error != MOBILESYNC_E_SUCCESS)
+		goto clear;*/
+
+	mobilesync_error_t error = mobilesync_ready_to_send_changes_from_computer(client);
+		if (error != MOBILESYNC_E_SUCCESS) {
+		goto clear;
+	}
+		int number_of_changed = 10;
+		for (int i = 0; i < number_of_changed; i++) {
+			plist_t actions = mobilesync_actions_new();
+			mobilesync_actions_add(actions, "SyncDeviceLinkEntityNamesKey", "com.apple.Contacts", 1,"SyncDeviceLinkAllRecordsOfPulledEntityTypeSentKey", 1, NULL);
+			error = mobilesync_send_changes(client, "com.apple.Contacts", i == (number_of_changed - 1) ? 0 : 1, actions);
+			mobilesync_actions_free(actions);
+			//error = mobilesync_remap_identifiers(client, &remapping);
+	}
+	//mobilesync_finish(client);
+	clear:;
 }

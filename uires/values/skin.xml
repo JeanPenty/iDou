@@ -36,4 +36,5 @@
   <colorrect name="TrayMenu_menu_sep" normal="#cccccc" />
   <imglist name="skin_cmdicons" src="img:png_cmdicons" states="5"/>
   <imglist name="skin_backup" src="img:png_devbackup" states="2"/>
+  <imglist name="skin_avatar" src="img:png_def_avatar"/>
 </skin>

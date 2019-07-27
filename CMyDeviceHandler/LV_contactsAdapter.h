@@ -26,8 +26,6 @@ public:
 		{
 			m_idx2id[i++] = ite.first;
 		}
-
-
 		notifyDataSetChanged();
 	}
 
@@ -53,6 +51,13 @@ public:
 		ContactInfo & contactInfo=m_contacts[m_idx2id[position]];
 		pItem->FindChildByID(R.id.lable_name)->SetWindowText(utils::MakeName(contactInfo.FirstName, contactInfo.LastName));
 		pItem->FindChildByID(R.id.lable_phonenumber)->SetWindowText(utils::MakePhoneNumber(contactInfo.PhoneNumber));
+		SImageWnd *pAvatar = pItem->FindChildByID2<SImageWnd>(R.id.img_avatar);
+		if(contactInfo.m_img)
+			pAvatar->SetImage(contactInfo.m_img, kHigh_FilterLevel);
+		else
+		{
+			pAvatar->SetSkin(GETSKIN(L"skin_avatar",100));
+		}
 	}
 
 	int GetColCount()

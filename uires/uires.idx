@@ -54,6 +54,7 @@
     <file name="png_repair" path="image\repair.png"/>
     <file name="png_cmdicons" path="image\cmd_icons.png"/>
     <file name="png_devbackup" path="image\backup.png"/>
+    <file name="png_def_avatar" path="image\def_avatar.png"/>
   </IMG>
   <ICON>
     <file name="ICON_LOGO"  path="image\logo.ico"/>

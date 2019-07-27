@@ -56,4 +56,5 @@
     <nocharging value="不在充电"/>
     <loadtitle value="加载文件"/>
     <loadding value="正在加载文件，请稍后..."/>
+    <DevName value="设备名"/>
   </string>

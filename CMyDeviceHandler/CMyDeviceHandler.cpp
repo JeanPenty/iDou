@@ -792,12 +792,15 @@ void CMyDeviceHandler::OnUpdataContacts(EventArgs* pEArg)
 	SWindow* pContactsWindow = GetDevCmdWindow(e->udid,3);
 	if (pContactsWindow)
 	{
-		SMCListViewEx* plv_contactsList = pContactsWindow->FindChildByID2<SMCListViewEx>(R.id.lv_contactsList);
-		if (plv_contactsList)
+		if (e->bRet)
 		{
-			CContactsListAdapter *pContactsAdpter=(CContactsListAdapter*) plv_contactsList->GetAdapter();
-			SASSERT(pContactsAdpter);
-			pContactsAdpter->CopyForm(std::move(e->contacts));
+			SMCListViewEx* plv_contactsList = pContactsWindow->FindChildByID2<SMCListViewEx>(R.id.lv_contactsList);
+			if (plv_contactsList)
+			{
+				CContactsListAdapter* pContactsAdpter = (CContactsListAdapter*)plv_contactsList->GetAdapter();
+				SASSERT(pContactsAdpter);
+				pContactsAdpter->CopyForm(std::move(e->contacts));
+			}
 		}
 	}
 }
@@ -817,7 +820,7 @@ void CMyDeviceHandler::OnContactSelChanged(EventArgs* pEArg)
 		CContactsListAdapter* pContactsAdpter = (CContactsListAdapter*)plv_contactsList->GetAdapter();
 		SASSERT(pContactsAdpter);
 		ContactInfo contactInfo = pContactsAdpter->GetContactInfo(e->iNewSel);
-
+		pContactInfoWnd->FindChildByID2<SImageWnd>(R.id.img_avatar)->SetImage(contactInfo.m_img, kHigh_FilterLevel);
 		pContactInfoWnd->FindChildByID(R.id.lable_name)->SetWindowText(utils::MakeName(contactInfo.FirstName, contactInfo.LastName));
 		SListBox *pPhoneNumbers= pContactInfoWnd->FindChildByID2<SListBox>(R.id.lb_phonenumbers);
 		SASSERT(pPhoneNumbers);

@@ -10,7 +10,7 @@
       </header2>
       <template itemHeight="38" colorHover="@color/item_hov" colorSelected="@color/item_sel">
         <window name="name" clipClient="1" layout="hbox" gravity="center" interval="4">
-          <icon size="16,16" name="img_fileIcon" extend_left="4"/>
+          <img size="32,32" name="img_avatar" extend_left="4"/>
           <text name="lable_name" size="0,-1" weight="1" dotted="1" />
         </window>
         <window name="size" clipClient="1">
@@ -22,7 +22,10 @@
       </template>
     </mclistviewex>
     <window name="contactInfo" size="200,-2" layout="vbox" >
+      <window size="-2,-1" layout="hbox" gravity="center" interval="12">
+      <img size="32,32" name="img_avatar" skin="skin_avatar" extend_left="4"/>
       <text name="lable_name"/>
+      </window>
       <listbox name="lb_phonenumbers" size="-2,0" weight="1" itemHeight="22" msgTransparent="1"/>
     </window>
   </window>

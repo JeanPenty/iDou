@@ -12,7 +12,7 @@
 #include <libimobiledevice/afc.h>
 #include <libimobiledevice/installation_proxy.h>
 #include <libimobiledevice/sbservices.h>
-#include <include\endianness.h>
+#include <include/endianness.h>
 #include <string>
 #include <sstream>
 #include <common/utils.h>
@@ -23,6 +23,8 @@
 #include <list>
 #include <vector>
 #include <map>
+#include <unknown/obj-ref-impl.hpp>
+
 struct AppInfo
 {
 	std::string AppID;
@@ -160,6 +162,7 @@ struct ContactInfo
 	SOUI::SStringW FirstName;
 	SOUI::SStringW LastName;
 	std::vector<SOUI::SStringW> PhoneNumber;
+	SOUI::CAutoRefPtr<SOUI::IBitmap> m_img;
 };
 
 SEVENT_BEGIN(EventUpdataContacts, EVT_UPDATA_CONTACTS)

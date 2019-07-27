@@ -9,19 +9,15 @@
         </caption>
         <window size="-2,-1" layout="vbox" colorBkgnd="#ffffff" padding="10,10,10,10">
           <t:info_item>
-            <data title="@string/CycleCount" name="lable_CycleCount"/>
+            <data title="@string/DevName" name="lable_DevName"/>
           </t:info_item>
           <hr size="-2,1" colorLine="@color/infoborder"/>
           <t:info_item>
-            <data title="@string/ActuallyCapacity" name="lable_ActuallyCapacity"/>
+            <data title="@string/ActivationState" name="lable_ActivationState"/>
           </t:info_item>
           <hr size="-2,1" colorLine="@color/infoborder"/>
           <t:info_item>
-            <data title="@string/DesignCapacity" name="lable_DesignCapacity"/>
-          </t:info_item>
-          <hr size="-2,1" colorLine="@color/infoborder"/>
-          <t:info_item>
-            <data title="@string/CycleLife" name="lable_CycleLife"/>
+            <data title="@string/IsJailreak" name="lable_IsJailreak"/>
           </t:info_item>
           <hr size="-2,1" colorLine="@color/infoborder"/>
           <t:info_item>
@@ -29,13 +25,20 @@
           </t:info_item>
           <hr size="-2,1" colorLine="@color/infoborder"/>
           <t:info_item>
-            <data title="@string/CycleLife" name="lable_CycleLife"/>
+            <data title="@string/ProductType" name="lable_ProductType"/>
           </t:info_item>
-
           <hr size="-2,1" colorLine="@color/infoborder"/>
           <t:info_item>
-            <data title="@string/CycleLife" name="lable_CycleLife"/>
+            <data title="@string/BluetoothAddress" name="lable_BluetoothAddress"/>
           </t:info_item>
+          <hr size="-2,1" colorLine="@color/infoborder"/>
+          <t:info_item>
+            <data title="@string/WiFiAddress" name="lable_WiFiAddress"/>
+          </t:info_item>
+          <hr size="-2,1" colorLine="@color/infoborder"/>
+          <t:info_item>
+            <data title="@string/CPU" name="lable_CPU"/>
+          </t:info_item>         
         </window>
       </window>
     </window>

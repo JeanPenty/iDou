@@ -3,8 +3,7 @@
 #include "../CDataCenter.h"
 
 CBattryInfoDlg::CBattryInfoDlg(const std::string& udid) :CBaseInfoDlg(udid), SHostDialog(L"LAYOUT:XML_dlg_battry")
-{
-	
+{	
 }
 
 
@@ -66,8 +65,8 @@ void CBattryInfoDlg::OnDestroy()
 }
 
 CDevInfoDlg::CDevInfoDlg(const std::string& udid) :CBaseInfoDlg(udid), SHostDialog(L"LAYOUT:XML_dlg_all") 
-{
-}
+{}
+
 
 CDevInfoDlg::~CDevInfoDlg()
 {
@@ -75,6 +74,20 @@ CDevInfoDlg::~CDevInfoDlg()
 
 BOOL CDevInfoDlg::OnInitDialog(HWND wndFocus, LPARAM lInitParam)
 {	
-	return 0;
+	CiOSDevice* dev = CDataCenter::getSingleton().GetDevByUDID(m_udid.c_str());
+	if (dev)
+	{
+		const iOSDevInfo& devInfo = dev->GetiOSBaseInfo();
+	
+		FindChildByID(R.id.lable_DevName)->SetWindowText(devInfo.m_strDevName);
+		FindChildByID(R.id.lable_ActivationState)->SetWindowText(devInfo.m_strActivationState == L"Activated" ? L"已激活" : L"未激活");
+		FindChildByID(R.id.lable_IsJailreak)->SetWindowText(devInfo.m_bIsJailreak ? L"已越狱" : L"未越狱");
+		FindChildByID(R.id.lable_HardwareModel)->SetWindowText(devInfo.m_strDevHardwareModel);
+		FindChildByID(R.id.lable_ProductType)->SetWindowText(devInfo.m_strDevProductType);
+		FindChildByID(R.id.lable_BluetoothAddress)->SetWindowText(devInfo.m_strDevBluetoothAddress);
+		FindChildByID(R.id.lable_WiFiAddress)->SetWindowText(devInfo.m_strDevWiFiAddress);
+		FindChildByID(R.id.lable_CPU)->SetWindowText(devInfo.m_strDevCpuarc);
+	}
+	return TRUE;
 }
 
